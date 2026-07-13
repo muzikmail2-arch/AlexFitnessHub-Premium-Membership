@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Surrogate-Control" content="no-store" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Alexfitnesshub.com - Custom Fitness Programs & AI Coaching</title>
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/jpeg" href="/favicon.jpg" />
+    <link rel="apple-touch-icon" href="/icon-192.jpg" />
+    <meta name="theme-color" content="#10b981" />
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <script>
+      // Register Service Worker for PWA (with auto-reload prevention)
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js').then(function(registration) {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+          }, function(err) {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+        });
+        
+        // Unregister all other/outdated service workers
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for (var i = 0; i < registrations.length; i++) {
+            var reg = registrations[i];
+            if (reg.active && !reg.active.scriptURL.endsWith('/sw.js')) {
+              reg.unregister().then(function(success) {
+                if (success) console.log('[DevOps SW Cleanup] Unregistered outdated SW:', reg.scope);
+              });
+            }
+          }
+        });
+      }
+
+      // Aggressively flush old caches if any exist to ensure pristine production asset sync
+      if ('caches' in window) {
+        caches.keys().then(function(keys) {
+          keys.forEach(function(key) {
+            caches.delete(key).then(function() {
+              console.log('[DevOps Cache Cleanup] Deleted stale cache bucket:', key);
+            });
+          });
+        });
+      }
+
+      // Ensure local storage is set to light theme permanently
+      try {
+        localStorage.setItem("fit_theme", "light");
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <!--Start of Tawk.to Script-->
+    <script type="text/javascript">
+    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+    (function(){
+    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+    s1.async=true;
+    s1.src='https://embed.tawk.to/6a48cf13539b7e1d4b7d3d34/1jsm6hqa8';
+    s1.charset='UTF-8';
+    s1.setAttribute('crossorigin','*');
+    s0.parentNode.insertBefore(s1,s0);
+    })();
+    </script>
+    <!--End of Tawk.to Script-->
+  </body>
+</html>
+

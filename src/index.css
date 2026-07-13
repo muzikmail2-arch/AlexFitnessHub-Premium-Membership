@@ -1,0 +1,210 @@
+@import "tailwindcss";
+
+/* Completely deactivate Tailwind v4 dark: styles globally so that user OS preferences (prefers-color-scheme) never break the clean light theme */
+@variant dark (&:where(.never-match-this-class-name));
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;750&display=swap');
+
+:root {
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F8FAFC;
+  --bg-tertiary: #F1F5F9;
+  --bg-card: #FFFFFF;
+  
+  --text-primary: #000000;
+  --text-secondary: #334155;
+  --text-tertiary: #64748B;
+  
+  --border-color: #E2E8F0;
+  --accent-red: #D32F2F;
+  --accent-green: #2E7D32;
+  
+  --overlay-bg: rgba(255, 255, 255, 0.9);
+}
+
+.dark {
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F8FAFC;
+  --bg-tertiary: #F1F5F9;
+  --bg-card: #FFFFFF;
+  
+  --text-primary: #000000;
+  --text-secondary: #334155;
+  --text-tertiary: #64748B;
+  
+  --border-color: #E2E8F0;
+  --accent-red: #D32F2F;
+  --accent-green: #2E7D32;
+  
+  --overlay-bg: rgba(255, 255, 255, 0.9);
+}
+
+@theme {
+  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-serif: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-display: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+@layer base {
+  body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+  }
+}
+
+/* Force all text font to Helvetica family */
+* {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+}
+
+/* Custom background variables entirely across body, panels, sidebars, containers, and views */
+html, body, #root, #home-view-root, main, section, footer, article, aside {
+  background-color: var(--bg-primary) !important;
+  background-image: none !important;
+  color: var(--text-primary) !important;
+}
+
+/* Force white/midnight-dark backgrounds for all cards, list rows, bento blocks, tabs, code, drawers, and overlays */
+.bg-white, .bg-slate-50, .bg-slate-100, .bg-slate-200, .bg-slate-300, .bg-slate-900, .bg-slate-950, 
+.bg-gray-50, .bg-gray-100, .bg-gray-200, .bg-gray-900, .bg-zinc-900, .bg-black, .bg-[#1C1C1C], .bg-emerald-950\/20,
+.bg-slate-50\/50, .bg-slate-900\/40, .bg-slate-900\/60, .bg-slate-50\/50, .bg-slate-900\/40, .bg-slate-900\/60,
+.bg-red-50, .bg-red-100, .bg-sky-50, .bg-emerald-500\/5, .bg-emerald-550 {
+  background-color: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Allow Green as an accent color for success, active, achievements, progress indicators and badges */
+.text-green-600, .text-emerald-600, .text-green-700, .text-emerald-700, .text-achievement, .text-emerald-500, .text-green-500 {
+  color: var(--accent-green) !important;
+}
+
+.bg-green-50, .bg-emerald-50, .bg-green-100, .bg-emerald-100, .bg-emerald-500\/10 {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--accent-green) !important;
+  border-color: var(--border-color) !important;
+}
+
+.bg-green-600, .bg-emerald-600, .bg-green-700, .bg-emerald-700, .bg-achievement, .bg-emerald-500, .bg-green-500 {
+  background-color: var(--accent-green) !important;
+  color: #FFFFFF !important;
+}
+
+.bg-green-600 *, .bg-emerald-600 *, .bg-green-700 *, .bg-emerald-700 *, .bg-achievement *, .bg-emerald-500 *, .bg-green-500 * {
+  color: #FFFFFF !important;
+}
+
+/* Keep borders visible and elegant in both themes */
+.border, .border-slate-200, .border-slate-800, .border-slate-150, .border-slate-850, .border-dashed, .border-t, .border-b, .border-r, .border-l {
+  border-color: var(--border-color) !important;
+}
+
+/* Make sure headers are ALWAYS our crisp Red (supports Midnight contrasting red) */
+h1, h2, h3, h4, h5, h6, 
+.font-black, .font-extrabold, 
+h1 *, h2 *, h3 *, h4 *, h5 *, h6 * {
+  color: var(--accent-red) !important;
+}
+
+/* Make sure text elements are ALWAYS primary text unless they are specifically styled as achievements, white text in buttons, or active states */
+p, li, span, div, label, td, th, input, select, textarea, button:not(.bg-\[\#D32F2F\]):not(.text-white):not(.text-emerald-600):not(.text-green-600):not(.bg-green-600):not(.bg-emerald-600):not(.text-green-500):not(.bg-green-500):not(.text-emerald-500):not(.bg-emerald-500) {
+  color: var(--text-primary) !important;
+}
+
+/* Ensure our red is applied universally to active icons and highlights */
+.text-\[\#C0392B\], .text-red-500, .text-red-600, .text-rose-600, .text-\[\#D32F2F\] {
+  color: var(--accent-red) !important;
+}
+
+/* Standardize Interactive Buttons */
+button.bg-\[\#C0392B\], button.bg-\[\#D32F2F\], button.bg-emerald-500, button.bg-sky-500, button.bg-black, button.bg-slate-900,
+button[type="submit"], button[type="button"].bg-emerald-500, button[type="button"].bg-sky-500,
+.bg-emerald-500, .bg-\[\#C0392B\], .bg-\[\#D32F2F\], .bg-sky-500, .bg-black, .bg-slate-900,
+.bg-\[\#C0392B\] button, .bg-\[\#D32F2F\] button, .bg-emerald-600, .bg-emerald-550, .bg-emerald-500 {
+  background-color: var(--accent-red) !important;
+  color: #FFFFFF !important;
+  border-color: var(--accent-red) !important;
+}
+
+/* Keep actual text inside primary red buttons as White */
+button.bg-\[\#C0392B\] *, button.bg-\[\#D32F2F\] *, button.bg-emerald-500 *, button.bg-sky-500 *, button.bg-black *, button.bg-slate-900 *,
+.bg-\[\#C0392B\] *, .bg-\[\#D32F2F\] *, .bg-\[\#C0392B\] span, .bg-\[\#D32F2F\] span, .bg-emerald-500 span, .bg-emerald-500 p, .bg-emerald-500 *, .bg-emerald-600 * {
+  color: #FFFFFF !important;
+}
+
+/* Secondary outline buttons style */
+button.border, button.border-slate-200, button.border-red-200 {
+  background-color: var(--bg-primary) !important;
+  color: var(--accent-red) !important;
+  border: 1px solid var(--accent-red) !important;
+}
+button.border * {
+  color: var(--accent-red) !important;
+}
+
+/* Standardize Input Fields & Select Dropdowns */
+input, select, textarea {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+input::placeholder, textarea::placeholder {
+  color: var(--text-tertiary) !important;
+}
+
+/* Sticky header background retains red header look nicely */
+header.bg-\[\#C0392B\], header.bg-\[\#D32F2F\], header {
+  background-color: var(--accent-red) !important;
+}
+header * {
+  color: #FFFFFF !important;
+}
+
+/* Active links inside navbar */
+header nav a, header span, header button {
+  color: #FFFFFF !important;
+}
+
+/* Fix any modals or blur overlays to remain white/light instead of black/dark */
+.bg-slate-950\/75, .bg-black\/75, .bg-black\/40 {
+  background-color: var(--overlay-bg) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.99); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Explicit color overrides for key feedback accents */
+.text-amber-500, .text-amber-500 * {
+  color: #F59E0B !important;
+  fill: #F59E0B !important;
+}
+.text-sky-500, .text-sky-500 * {
+  color: #0EA5E9 !important;
+}
