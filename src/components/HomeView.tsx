@@ -359,36 +359,75 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
     }
     
     setCheckoutError(null);
-    setPayEmail(user.email);
+    setPayEmail(user.email || "");
     setActivePaymentModal(plan);
-  };
-
-  const handlePaystackPayment = async () => {
-    if (!activePaymentModal || !user) return;
-
-    setSubmittingPlan(activePaymentModal);
-    setCheckoutError(null);
+    setSubmittingPlan(plan);
 
     try {
+      // 1. Fetch active Paystack Public Key
+      const configRes = await fetch("/api/payments/config");
+      const configData = await configRes.json();
+      const publicKey = configData.publicKey || import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || "";
+      
+      if (!publicKey) {
+        throw new Error("Paystack Public Key is not configured in backend or environment.");
+      }
+
+      // 2. Initialize checkout session on our server
       const res = await fetch("/api/payments/initialize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          plan: activePaymentModal,
-          email: payEmail || user.email,
+          plan,
+          email: user.email,
           userId: user.uid,
-          months: activePaymentModal === "multi" ? selectedMonths : undefined
+          months: plan === "multi" ? selectedMonths : undefined
         })
       });
       const data = await res.json();
-      if (!data.success || !data.authorization_url) {
-        throw new Error(data.error || "Unable to initialize payment.");
+      if (!data.success || !data.access_code) {
+        throw new Error(data.error || "Unable to initialize secure transaction with Paystack.");
       }
-      console.log(`[Redirect to Paystack] Redirecting to Paystack checkout: ${data.authorization_url}`);
-      window.location.assign(data.authorization_url);
+
+      // 3. Verify PaystackPop is loaded
+      if (!(window as any).PaystackPop) {
+        throw new Error("Paystack SDK is currently loading or unavailable. Please check your internet connection.");
+      }
+
+      // 4. Trigger modern Paystack newCheckout popup directly
+      console.log(`[Popup Trigger] Initializing modern paystack.newCheckout for plan: ${plan}, reference: ${data.reference}`);
+      const paystack = new (window as any).PaystackPop();
+      paystack.newCheckout({
+        key: publicKey,
+        accessCode: data.access_code,
+        onSuccess: async (transaction: any) => {
+          console.log("[Popup Success] Paystack transaction authorized:", transaction);
+          const activeRef = transaction.reference || data.reference;
+          try {
+            // Upgrade user via context helper (communicates directly with verification endpoint)
+            await upgradeWithPaystack(activeRef, plan);
+            alert("Payment completed and verified successfully! Your subscription is now ACTIVE.");
+            window.location.reload();
+          } catch (verifyErr: any) {
+            console.error("[Verification Failed] Direct verify check returned error:", verifyErr);
+            setCheckoutError(verifyErr.message || "We could not verify your payment reference. Please contact admin.");
+          }
+        },
+        onCancel: () => {
+          console.log("[Popup Closed] Checkout popup closed by client.");
+          setActivePaymentModal(null);
+          setSubmittingPlan(null);
+        },
+        onClose: () => {
+          console.log("[Popup Closed] Checkout popup closed by client.");
+          setActivePaymentModal(null);
+          setSubmittingPlan(null);
+        }
+      });
+
     } catch (err: any) {
       console.error("Error initiating checkout:", err);
-      setCheckoutError(err.message || "Failed to initialize checkout. Please contact admin.");
+      setCheckoutError(err.message || "Failed to initialize secure checkout. Please contact admin.");
       setSubmittingPlan(null);
     }
   };
@@ -1446,7 +1485,7 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
               <div className="mt-8 pt-5 border-t border-gray-100">
                 <button
                   onClick={() => handleInitiatePayment("monthly")}
-                  className="w-full py-3 bg-[#1C1C1C] hover:bg-black text-white font-sans font-bold text-xs uppercase rounded-full transition-all duration-200"
+                  className="w-full py-3 bg-[#1C1C1C] hover:bg-black text-white font-sans font-bold text-xs uppercase rounded-full transition-all duration-200 no-scroll-top"
                 >
                   Select Monthly
                 </button>
@@ -1487,7 +1526,7 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                         key={m}
                         type="button"
                         onClick={() => setSelectedMonths(m)}
-                        className={`flex-1 py-1.5 rounded text-xs font-sans font-black transition-all border ${
+                        className={`flex-1 py-1.5 rounded text-xs font-sans font-black transition-all border no-scroll-top ${
                           selectedMonths === m
                             ? "bg-[#C0392B] text-white border-transparent"
                             : "bg-white text-gray-700 border-gray-200 hover:border-[#C0392B]"
@@ -1514,7 +1553,7 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
               <div className="mt-8 pt-5 border-t border-gray-100">
                 <button
                   onClick={() => handleInitiatePayment("multi")}
-                  className="w-full py-3 bg-[#C0392B] hover:bg-[#A82E22] text-white font-sans font-bold text-xs uppercase rounded-full transition-all duration-200"
+                  className="w-full py-3 bg-[#C0392B] hover:bg-[#A82E22] text-white font-sans font-bold text-xs uppercase rounded-full transition-all duration-200 no-scroll-top"
                 >
                   Select duration
                 </button>
@@ -1580,7 +1619,7 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
               <div className="mt-8 pt-5 border-t border-white/20">
                 <button
                   onClick={() => handleInitiatePayment("yearly")}
-                  className="w-full py-3 bg-white hover:bg-gray-100 text-[#C0392B] font-sans font-black text-xs uppercase rounded-full transition-all duration-200 cursor-pointer shadow-sm"
+                  className="w-full py-3 bg-white hover:bg-gray-100 text-[#C0392B] font-sans font-black text-xs uppercase rounded-full transition-all duration-200 cursor-pointer shadow-sm no-scroll-top"
                 >
                   CHOOSE ANCHOR YEARLY
                 </button>
@@ -1772,77 +1811,125 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
         <MessageCircle className="w-6 h-6 text-white" />
       </button>
 
-      {/* 9. EMBEDDED PREMIUM ACTIVATION OVERLAY */}
+      {/* 9. EMBEDDED PREMIUM ACTIVATION OVERLAY (PAYSTACK DISPLAY NAVIGATOR) */}
       {activePaymentModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-2xl bg-white border border-gray-200 overflow-hidden shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 p-4 backdrop-blur-md">
+          <div className="w-full max-w-lg rounded-2xl bg-[#111111] border border-gray-800 overflow-hidden shadow-2xl relative text-white">
             
             {/* HUD portal header */}
-            <div className="bg-[#1C1C1C] p-5 flex items-center justify-between text-white border-b border-gray-800">
+            <div className="bg-[#1C1C1C] p-5 flex items-center justify-between border-b border-gray-800">
               <div className="flex items-center gap-2">
                 <Shield className="w-5 h-5 text-[#C0392B] fill-[#C0392B]" />
-                <span className="font-display font-black tracking-wider text-xs uppercase text-white">ACTIVATE PREMIUM</span>
+                <span className="font-display font-black tracking-wider text-xs uppercase text-gray-100">
+                  PAYSTACK TRANSACTION INITIATION NODE
+                </span>
               </div>
-              <button 
-                onClick={() => setActivePaymentModal(null)} 
-                className="p-1.5 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              {checkoutError && (
+                <button 
+                  onClick={() => {
+                    setActivePaymentModal(null);
+                    setSubmittingPlan(null);
+                    setCheckoutError(null);
+                  }} 
+                  className="p-1.5 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors no-scroll-top"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
             
-            <div className="p-6 space-y-5 text-xs font-sans">
+            <div className="p-6 space-y-6 text-xs font-sans">
               
-              {/* Optional billing email address */}
-              <div className="space-y-1 text-left">
-                <label className="text-[10px] font-mono uppercase text-gray-500 block">Billing Email Address</label>
-                <input
-                  type="email"
-                  value={payEmail}
-                  onChange={(e) => setPayEmail(e.target.value)}
-                  placeholder="email@example.com"
-                  className="w-full p-2.5 rounded-xl border border-gray-300 text-xs bg-white text-black font-sans focus:outline-none focus:border-[#C0392B]"
-                />
-              </div>
-
-              {/* Receipt details */}
-              <div className="p-4 rounded-xl bg-[#F7F7F7] text-[11px] border border-gray-200 space-y-2 text-left">
-                <div className="flex justify-between font-mono text-[10px] uppercase text-[#6B6B6B]">
-                  <span>Tier Option:</span>
-                  <span className="font-black text-[#1C1C1C]">
-                    {activePaymentModal === "yearly" ? "12 Months" : activePaymentModal === "multi" ? `${selectedMonths} Months` : "1 Month"}
-                  </span>
+              {checkoutError ? (
+                <div className="space-y-4 py-4">
+                  <div className="p-4 rounded-xl bg-red-950/50 border border-red-900 text-red-400 leading-relaxed font-sans text-left">
+                    <strong className="text-sm font-bold block mb-1">Initialization Failed</strong>
+                    {checkoutError}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActivePaymentModal(null);
+                      setSubmittingPlan(null);
+                      setCheckoutError(null);
+                    }}
+                    className="w-full py-3 bg-[#C0392B] hover:bg-[#A82E22] text-white font-sans font-bold text-xs uppercase rounded-xl transition duration-200 no-scroll-top cursor-pointer"
+                  >
+                    Return to pricing plans
+                  </button>
                 </div>
-                <div className="flex justify-between font-mono py-1.5 border-t border-dashed border-gray-200 text-left">
-                  <span className="text-[#6B6B6B] uppercase">PLAN VALUE:</span>
-                  <span className="font-black text-[#C0392B] text-sm">
-                    ₦{activePaymentModal === "yearly" ? yearlyPriceAnnual.toLocaleString() : activePaymentModal === "multi" ? multiMonthTotal.toLocaleString() : basePriceMonthly.toLocaleString()}
-                  </span>
-                </div>
-                <p className="text-[10px] text-emerald-600 leading-normal text-center font-bold">✓ Paystack Secured Checkout Enabled</p>
-              </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Beautiful Loading Core Indicator */}
+                  <div className="flex flex-col items-center justify-center space-y-4 text-center py-4">
+                    <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#C0392B] border-t-transparent" />
+                    <div className="space-y-1">
+                      <h3 className="text-base font-bold text-white tracking-tight">
+                        ALEXFITNESSHUB SECURE CONSOLE
+                      </h3>
+                      <p className="text-[10px] text-gray-400 uppercase tracking-widest font-mono">
+                        INITIALIZING PAYSTACK CHECKOUT GATEWAY
+                      </p>
+                    </div>
+                  </div>
 
-              {checkoutError && (
-                <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-600 text-[10px] leading-normal font-sans text-center">
-                  <strong>Error:</strong> {checkoutError}
+                  {/* Transaction Parameters */}
+                  <div className="rounded-xl bg-[#1A1A1A] p-4 border border-gray-800 space-y-3 text-left">
+                    <div className="flex justify-between items-center py-1.5 border-b border-gray-800/60 font-mono text-[10px] text-gray-400">
+                      <span>SECURE CONNECTION</span>
+                      <span className="text-emerald-500 font-bold uppercase">● ESTABLISHED</span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-gray-400 font-mono text-[10px] uppercase">ATHLETE PROFILE:</span>
+                      <span className="font-bold text-gray-100">{user?.email}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-gray-400 font-mono text-[10px] uppercase">MEMBERSHIP LEVEL:</span>
+                      <span className="font-bold text-[#C0392B] uppercase">
+                        {activePaymentModal === "yearly" 
+                          ? "VIP Elite Club (12M)" 
+                          : activePaymentModal === "multi" 
+                          ? `Flexible Span (${selectedMonths}M)` 
+                          : "Monthly Elite (1M)"}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-gray-400 font-mono text-[10px] uppercase">DUE VALUE TODAY:</span>
+                      <span className="font-black text-white text-sm">
+                        ₦{(activePaymentModal === "yearly" 
+                          ? yearlyPriceAnnual 
+                          : activePaymentModal === "multi" 
+                          ? multiMonthTotal 
+                          : basePriceMonthly).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Connection log terminal simulation */}
+                  <div className="rounded-lg bg-black p-3.5 border border-gray-900 font-mono text-[9px] text-gray-500 space-y-1.5 text-left leading-normal">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[#C0392B]">&gt;</span>
+                      <span>Enabling SSL/TLS 1.3 socket tunnel...</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[#C0392B]">&gt;</span>
+                      <span>Requesting checkout redirect from paystack.co...</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 animate-pulse">
+                      <span className="text-[#C0392B]">&gt;</span>
+                      <span className="text-gray-300">Awaiting secure authorization handshakes...</span>
+                    </div>
+                  </div>
+
+                  {/* Redirection Notice */}
+                  <p className="text-[10px] text-gray-400 leading-normal text-center max-w-sm mx-auto">
+                    Please do not close, refresh, or navigate away. Redirection takes place automatically. After successful payment, your Premium account access will unlock instantly.
+                  </p>
                 </div>
               )}
-
-              {/* ACTION: PRIMARY ACTIVATION */}
-              <div className="space-y-2">
-                <button
-                  type="button"
-                  onClick={handlePaystackPayment}
-                  disabled={submittingPlan !== null}
-                  className="w-full py-3.5 rounded-xl text-xs font-sans font-black uppercase tracking-widest text-white bg-[#C0392B] hover:bg-[#A82E22] transition-all duration-200 flex items-center justify-center gap-2 shadow cursor-pointer"
-                >
-                  {submittingPlan === activePaymentModal ? "INITIALIZING..." : "PAY VIA PAYSTACK"}
-                </button>
-
-                <p className="text-[9px] text-gray-400 leading-normal text-center">
-                  Unlock elite kinesis blueprints, unlimited AI consultations, and tailored meal plans instantly.
-                </p>
-              </div>
 
             </div>
           </div>

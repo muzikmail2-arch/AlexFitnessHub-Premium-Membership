@@ -142,42 +142,37 @@ function FitnessAppContent() {
     }
   }, []);
 
-  // Keep track of exact scroll positions for each page view
-  const scrollPositions = React.useRef<Record<string, number>>({});
-
-  // Continuously record scrolling offsets for the active view in real-time
+  // Reset scroll to top smoothly on every view/route change
   React.useEffect(() => {
-    const handleScroll = () => {
-      if (document.body.style.overflow !== "hidden") {
-        scrollPositions.current[currentView] = window.scrollY;
-      }
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [currentView]);
 
-  // Frame-perfect scroll restoration when currentView changes
+  // Global automatic scroll-to-top on clickable element interactions (buttons, links, tabs, menu items, cards, forms, modals)
   React.useEffect(() => {
-    const targetScroll = scrollPositions.current[currentView] || 0;
-    
-    let attempts = 0;
-    const maxAttempts = 15;
-    
-    const restoreScroll = () => {
-      window.scrollTo({ top: targetScroll, behavior: "instant" });
-      attempts++;
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
       
-      // If layout rendering is still catching up, retry on the next animation frame
-      if (attempts < maxAttempts && Math.abs(window.scrollY - targetScroll) > 2) {
-        requestAnimationFrame(restoreScroll);
+      // Check if target is inside or is a button, anchor, input, custom button/tab/card/menu
+      const clickable = target.closest(
+        "button, a, [role='button'], input[type='submit'], [type='button'], .cursor-pointer, [data-scroll-to-top]"
+      );
+      
+      if (clickable) {
+        // Prevent interfering with specific non-scrolling widgets or components
+        if (clickable.classList.contains("no-scroll-top") || clickable.id?.includes("tawk") || clickable.closest("#tawk")) {
+          return;
+        }
+        
+        // Scroll smoothly to top of viewport
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
     };
 
-    const timer = setTimeout(restoreScroll, 30);
-    return () => clearTimeout(timer);
-  }, [currentView]);
+    document.addEventListener("click", handleGlobalClick, { capture: true, passive: true });
+    return () => {
+      document.removeEventListener("click", handleGlobalClick, { capture: true });
+    };
+  }, []);
 
   // Protected navigation handler
   const handleSetView = (targetView: string) => {

@@ -23,7 +23,7 @@ Additionally, this repository hosts an **Interactive Architecture & Live API Tim
 ### 3. Database & Security
 - **Cloud Database:** Google Cloud Firestore NoSQL SDK for atomic athlete stats and logs.
 - **Token Authenticator:** Firebase Authentication processing encrypted session state keys.
-- **Security Protocols:** Validated NoSQL rules guaranteeing user profile sandboxing.
+- **Security Protocols:** Validated NoSQL rules guaranteeing user profile isolation.
 
 ---
 
@@ -64,7 +64,7 @@ npm install
 ```
 
 ### 2. Boot Core Workspace (Port 3000)
-In the development sandbox, the Express server acts as a live proxy feeding client requests directly into Vite's middleware pipeline.
+In development, the Express server acts as a live proxy feeding client requests directly into Vite's middleware pipeline.
 ```bash
 npm run dev
 ```

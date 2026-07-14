@@ -1,12 +1,12 @@
 {
-  "name": "AlexFitnessHub",
-  "short_name": "AlexFitness",
-  "description": "Custom Fitness Programs & AI Coaching",
+  "name": "ALEXFITNESSHUB",
+  "short_name": "ALEXFITNESSHUB",
+  "description": "ALEXFITNESSHUB is a premium fitness platform offering personalized workout plans, AI coaching, nutrition guidance, progress tracking, and secure subscription management.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#ffffff",
-  "theme_color": "#10b981",
+  "background_color": "#FFFFFF",
+  "theme_color": "#000000",
   "icons": [
     {
       "src": "/icon-192.jpg",

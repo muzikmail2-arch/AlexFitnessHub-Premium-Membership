@@ -236,7 +236,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     root.classList.remove("dark");
   }, [theme]);
 
-  // Handle local state tracking for sandboxed sessions
+  // Handle local state tracking for offline or unauthenticated sessions
   useEffect(() => {
     // Permanently use light theme as requested
     localStorage.setItem("fit_theme", "light");

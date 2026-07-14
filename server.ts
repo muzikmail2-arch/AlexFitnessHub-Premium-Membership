@@ -108,7 +108,7 @@ function getGeminiClient() {
       apiKey: key,
       httpOptions: {
         headers: {
-          'User-Agent': 'aistudio-build',
+          'User-Agent': 'AlexFitnessHub',
         }
       }
     });
@@ -136,7 +136,7 @@ function logDetailedError(category: string, error: any, context?: any) {
 const firebaseConfigPath = path.join(process.cwd(), "firebase-applet-config.json");
 let firebaseConfig = JSON.parse(fs.readFileSync(firebaseConfigPath, "utf-8"));
 
-// Dynamically patch the firebaseConfig to use the actual Google Cloud Project ID of this sandbox
+// Dynamically patch the firebaseConfig to use the actual Google Cloud Project ID of this environment
 if (process.env.AUTHORIZED_SERVICE_ACCOUNT_EMAIL) {
   const parts = process.env.AUTHORIZED_SERVICE_ACCOUNT_EMAIL.split("@");
   if (parts.length > 1) {
@@ -611,7 +611,7 @@ app.post("/api/gemini/coach", requirePremium, async (req, res) => {
     const ai = getGeminiClient();
 
     if (!ai) {
-      // Elegant rule-based fallback response if the key is missing during preview/development
+      // Elegant rule-based fallback response if the key is missing during production/offline mode
       return res.json({
         success: true,
         text: `### 🌟 Fallback AI Fitness Coach Response (API Key Not Configured)
@@ -631,7 +631,7 @@ To help you succeed, here is a professional, personalized blueprint:
 - **Recommended Fruits:** Strawberries, blueberries, and apples for rich fiber & natural antioxidants.
 - **Hydration:** Aim for 3.5 liters of water daily.
 
-*Configuring your real **GEMINI_API_KEY** in the Secrets panel in AI Studio will unlock full, dynamic, and unlimited conversational coaching!*`
+*Configuring your real **GEMINI_API_KEY** in the environment variables will unlock full, dynamic, and unlimited conversational coaching!*`
       });
     }
 
@@ -2500,7 +2500,7 @@ Proper hydration is the foundation of peak performance. To maximize your results
 4.  **How to Drink**: Drink this refreshing 2-liter infusion throughout the day on your designated protocol days (e.g., Monday, Wednesday, Friday). 
 5.  **Scientific Benefits**: Cucumber provides natural silica and cooling antioxidants to reduce muscle swelling and bloating. Lemons supply high concentrations of citrate and potassium to alkalize the digestive tract and assist liver detoxification. Consuming **2 liters** ensures your cellular mitochondria are fully hydrated to optimize fat burning and muscle protein synthesis!
 
-*For a fully dynamic plan with personalized macronutrient goals, configure your real **GEMINI_API_KEY** in the Secrets panel in AI Studio.*`
+*For a fully dynamic plan with personalized macronutrient goals, configure your real **GEMINI_API_KEY** in the environment variables.*`
       });
     }
 
@@ -2677,7 +2677,7 @@ app.get("/api/diagnostics/audit", requireAdmin, async (req: any, res: any) => {
   const clientIp = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown";
   
   let metadata: any = {
-    deploymentId: "dev-sandbox",
+    deploymentId: "production-deploy",
     commitHash: "local-dev-commit",
     buildTimestamp: new Date().toISOString(),
     jsBundles: [],
@@ -2737,6 +2737,14 @@ app.get("/api/diagnostics/audit", requireAdmin, async (req: any, res: any) => {
       cacheStrategy: "network-first-bypass-all",
       pwaManifest: "/manifest.json"
     }
+  });
+});
+
+// Public config for Paystack Public Key
+app.get("/api/payments/config", (req, res) => {
+  res.json({
+    success: true,
+    publicKey: PAYSTACK_PUBLIC_KEY
   });
 });
 

@@ -840,7 +840,7 @@ export default function CoachView() {
 
                       {isPlaceholder && (
                         <div className="p-3 bg-amber-50 rounded-xl border border-amber-100 text-[10px] text-slate-700 text-center leading-relaxed">
-                          ⚠️ <strong>Key Config Warning:</strong> Served in high-quality dynamic sandbox placeholder mode. To unlock unlimited real-world AI poster generations, specify a real <strong>GEMINI_API_KEY</strong> in the Secrets menu.
+                          ⚠️ <strong>Key Config Warning:</strong> Served in high-quality dynamic placeholder mode. To unlock unlimited real-world AI poster generations, specify a real <strong>GEMINI_API_KEY</strong> in the environment variables.
                         </div>
                       )}
 

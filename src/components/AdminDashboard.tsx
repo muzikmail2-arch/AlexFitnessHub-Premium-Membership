@@ -13,6 +13,11 @@ export default function AdminDashboard() {
   const [exerciseQuery, setExerciseQuery] = useState("");
   const [activeAdminTab, setActiveAdminTab] = useState<"directory" | "paystack">("directory");
 
+  // Smoothly scroll to the top of the viewport whenever the active admin tab changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [activeAdminTab]);
+
   // Paystack Integration Status state
   const [paystackStatus, setPaystackStatus] = useState<any>(null);
   const [loadingStatus, setLoadingStatus] = useState(false);
@@ -307,7 +312,7 @@ export default function AdminDashboard() {
                 Paystack Gateway Connection Status
               </h3>
               <p className="text-xs text-slate-500 mt-1">
-                Your application communicates directly with Paystack’s payment core. Configure these values inside your Paystack Merchant account to activate live or sandbox flows.
+                Your application communicates directly with Paystack’s payment core. Configure these values inside your Paystack Merchant account to activate live or test flows.
               </p>
             </div>
 

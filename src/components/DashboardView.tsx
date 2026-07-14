@@ -82,6 +82,11 @@ export default function DashboardView({ activeView = "dashboard", setView }: Das
   // Defaulting to "workouts"
   const [activeTab, setActiveTab] = useState<string>("workouts");
 
+  // Smoothly scroll to the top of the viewport whenever the dashboard active tab changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [activeTab]);
+
   // Auto-redirect and guard for non-premium users removed to support Free Dashboard with in-tab locks
   useEffect(() => {
     // If navigating directly from the Navbar, align the active tab with the clicked view ID

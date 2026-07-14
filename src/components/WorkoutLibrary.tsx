@@ -202,6 +202,11 @@ export default function WorkoutLibrary({ setView }: { setView?: (view: string) =
   // Active view tabs for search results
   const [activeSearchTab, setActiveSearchTab] = useState<"exercises" | "mealplans">("exercises");
 
+  // Smoothly scroll to the top of the viewport whenever the active search tab changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [activeSearchTab]);
+
   // Pagination for heavy exercise cards lists
   const [visibleCount, setVisibleCount] = useState(12);
 
