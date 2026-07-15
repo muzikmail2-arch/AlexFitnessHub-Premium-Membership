@@ -5,6 +5,7 @@ import {
   Play, Users, X, HelpCircle, Clipboard, ChevronDown, Star, Lock, MessageCircle, ChevronLeft,
   Mail, Bell, Heart, Sparkles, Activity
 } from "lucide-react";
+import { motion } from "motion/react";
 
 const workoutCategories = [
   {
@@ -385,45 +386,13 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
         })
       });
       const data = await res.json();
-      if (!data.success || !data.access_code) {
+      if (!data.success || !data.authorization_url) {
         throw new Error(data.error || "Unable to initialize secure transaction with Paystack.");
       }
 
-      // 3. Verify PaystackPop is loaded
-      if (!(window as any).PaystackPop) {
-        throw new Error("Paystack SDK is currently loading or unavailable. Please check your internet connection.");
-      }
-
-      // 4. Trigger modern Paystack newCheckout popup directly
-      console.log(`[Popup Trigger] Initializing modern paystack.newCheckout for plan: ${plan}, reference: ${data.reference}`);
-      const paystack = new (window as any).PaystackPop();
-      paystack.newCheckout({
-        key: publicKey,
-        accessCode: data.access_code,
-        onSuccess: async (transaction: any) => {
-          console.log("[Popup Success] Paystack transaction authorized:", transaction);
-          const activeRef = transaction.reference || data.reference;
-          try {
-            // Upgrade user via context helper (communicates directly with verification endpoint)
-            await upgradeWithPaystack(activeRef, plan);
-            alert("Payment completed and verified successfully! Your subscription is now ACTIVE.");
-            window.location.reload();
-          } catch (verifyErr: any) {
-            console.error("[Verification Failed] Direct verify check returned error:", verifyErr);
-            setCheckoutError(verifyErr.message || "We could not verify your payment reference. Please contact admin.");
-          }
-        },
-        onCancel: () => {
-          console.log("[Popup Closed] Checkout popup closed by client.");
-          setActivePaymentModal(null);
-          setSubmittingPlan(null);
-        },
-        onClose: () => {
-          console.log("[Popup Closed] Checkout popup closed by client.");
-          setActivePaymentModal(null);
-          setSubmittingPlan(null);
-        }
-      });
+      // 3. Directly redirect user to Paystack secure payment page
+      console.log(`[Redirect Flow] Redirecting user ${user.uid} to secure Paystack payment URL: ${data.authorization_url}`);
+      window.location.href = data.authorization_url;
 
     } catch (err: any) {
       console.error("Error initiating checkout:", err);
@@ -465,12 +434,12 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
     <div id="home-view-root" className="bg-white text-black min-h-screen relative font-sans animate-fade-in">
       
       {/* 1. HERO SECTION WITH LUXURY BRIGHT CINEMATIC BACKGROUND */}
-      <section id="hero-segment" className="relative py-16 lg:py-24 flex items-center bg-slate-50 overflow-hidden border-b border-slate-200 min-h-[85vh] lg:min-h-[90vh]">
+      <section id="hero-segment" className="relative py-20 lg:py-28 flex items-center bg-slate-50 overflow-hidden border-b border-slate-200 min-h-[70vh] lg:min-h-[75vh]">
         
         {/* Cinematic Background Image showing extremely bright with no dark overlays covering it */}
         <div className="absolute inset-0 z-0 select-none pointer-events-none">
           <img 
-            src="https://ifitness.ng/wp-content/uploads/2023/09/DAV_0944-1024x1024.jpg" 
+            src="https://github.com/muzikmail2-arch/bb/blob/main/ChatGPT%20Image%20Jul%2015,%202026,%2006_45_05%20PM.png?raw=true" 
             alt="Alex Fitness Hub Elite Training Facility"
             className="w-full h-full object-cover object-center scale-100 filter brightness-125 contrast-[1.05]"
             referrerPolicy="no-referrer"
@@ -478,17 +447,17 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
         </div>
         
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 z-10 relative">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          <div className="flex flex-col items-center justify-center">
             
-            {/* Left Column: Carousel Text & Actions */}
-            <div className="lg:col-span-7 flex flex-col justify-center text-slate-950">
-              <div className="relative min-h-[630px] sm:min-h-[590px] md:min-h-[580px] lg:min-h-[560px]">
+            {/* Expanded Center Column: Carousel Text & Actions */}
+            <div className="w-full max-w-4xl flex flex-col justify-center items-center text-center text-white">
+              <div className="relative min-h-[350px] sm:min-h-[300px] md:min-h-[280px] lg:min-h-[240px] w-full">
                 {heroSlides.map((slide, idx) => {
                   const isActive = idx === currentSlide;
                   return (
                     <div 
                       key={idx}
-                      className={`transition-all duration-[350ms] ease-out space-y-6 ${
+                      className={`transition-all duration-[350ms] ease-out space-y-6 flex flex-col items-center ${
                         isActive 
                           ? "opacity-100 translate-y-0 scale-100" 
                           : "opacity-0 translate-y-4 scale-98 absolute inset-0 pointer-events-none"
@@ -498,58 +467,37 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                         {slide.eyebrow}
                       </span>
                       
-                      <h1 className="text-4xl sm:text-5xl md:text-6xl font-sans font-black tracking-tight text-slate-950 leading-none uppercase">
+                      <h1 className="text-4xl sm:text-5xl md:text-6xl font-sans font-black tracking-tight leading-none uppercase select-none" style={{ color: '#DFB15B', textShadow: '0 3px 10px rgba(0,0,0,0.9)' }}>
                         {slide.wordOne}{" "}
-                        <span className="text-[#D32F2F]">
+                        <span className="text-white" style={{ textShadow: '0 3px 10px rgba(0,0,0,0.9)' }}>
                           {slide.wordTwo}
                         </span>
                       </h1>
 
-                      <p className="text-xs sm:text-sm text-slate-800 max-w-xl leading-relaxed font-sans font-bold">
+                      <p className="text-xs sm:text-sm text-white max-w-2xl leading-relaxed font-sans font-black" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.95)' }}>
                         {slide.desc}
                       </p>
 
-                      <div className="flex flex-wrap gap-4 pt-2">
-                        <button
+                      <div className="flex flex-wrap justify-center gap-4 pt-2">
+                        <motion.button
+                          whileHover={{ scale: 1.05, y: -2, boxShadow: "0 10px 20px rgba(211,47,47,0.4)" }}
+                          whileTap={{ scale: 0.95 }}
                           onClick={() => setView("library")}
-                          className="px-6 py-3 bg-[#D32F2F] hover:bg-[#B71C1C] text-white font-sans font-extrabold text-xs uppercase rounded-full shadow-lg transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                          className="px-6 py-3 bg-[#D32F2F] hover:bg-[#B71C1C] text-white font-sans font-extrabold text-xs uppercase rounded-full shadow-lg transition-all duration-200 cursor-pointer"
                         >
                           Start Training
-                        </button>
-                        <button
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.05, y: -2, boxShadow: "0 10px 20px rgba(0,0,0,0.1)" }}
+                          whileTap={{ scale: 0.95 }}
                           onClick={() => {
                             const el = document.getElementById("pricing");
                             if (el) el.scrollIntoView({ behavior: "smooth" });
                           }}
-                          className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-900 font-sans font-black text-xs uppercase rounded-full border border-slate-300 shadow-md transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                          className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-900 font-sans font-black text-xs uppercase rounded-full border border-slate-300 shadow-md transition-all duration-200 cursor-pointer"
                         >
                           View Pricing
-                        </button>
-                      </div>
-
-                      {/* Dynamic Big Hero Image displaying under the buttons */}
-                      <div className="pt-2">
-                        <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-2xl relative w-full h-48 sm:h-56 md:h-64 lg:h-72 group bg-slate-100">
-                          <img 
-                            src={slide.imageUrl} 
-                            alt={slide.eyebrow}
-                            className="w-full h-full object-cover transition-transform duration-[700ms] group-hover:scale-105"
-                            referrerPolicy="no-referrer"
-                          />
-                          <div className="absolute inset-x-0 bottom-0 bg-white/95 backdrop-blur-sm flex items-center justify-between p-4 border-t border-slate-200 z-10">
-                            <div className="text-left">
-                              <p className="text-[9px] font-mono font-black tracking-widest text-[#D32F2F] uppercase">
-                                PRO CLINICAL TRACKER
-                              </p>
-                              <h4 className="text-xs font-sans font-black text-slate-900 uppercase mt-0.5">
-                                {slide.wordOne} {slide.wordTwo} Suite
-                              </h4>
-                            </div>
-                            <span className="text-[9px] font-mono font-black tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full uppercase">
-                              UNLOCKED & ACTIVE
-                            </span>
-                          </div>
-                        </div>
+                        </motion.button>
                       </div>
                     </div>
                   );
@@ -557,9 +505,9 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
               </div>
 
               {/* Carousel Layout Mechanics */}
-              <div className="flex items-center justify-between mt-8 pt-6 border-t border-slate-200">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t border-slate-300/50 w-full">
                 
-                {/* Pagination dots bottom-left: active = red dot, inactive = slate dash */}
+                {/* Pagination dots bottom-left: active = gold dot, inactive = slate dash */}
                 <div className="flex items-center gap-3">
                   {heroSlides.map((_, idx) => (
                     <button
@@ -567,26 +515,26 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                       onClick={() => setCurrentSlide(idx)}
                       className={`transition-all duration-300 cursor-pointer ${
                         idx === currentSlide 
-                          ? "bg-[#D32F2F] w-8 h-2 rounded-full shadow-[0_0_10px_rgba(211,47,47,0.5)]" 
-                          : "bg-slate-300 w-3 h-2 rounded-full hover:bg-slate-400"
+                          ? "bg-[#D4AF37] w-8 h-2 rounded-full shadow-[0_0_10px_rgba(212,175,55,0.8)]" 
+                          : "bg-slate-400 w-3 h-2 rounded-full hover:bg-slate-500"
                       }`}
                       aria-label={`Go to slide ${idx + 1}`}
                     />
                   ))}
                 </div>
 
-                {/* Round arrow nav buttons bottom-right: red circle, dark chevron */}
+                {/* Round arrow nav buttons bottom-right: red/gold circle, dark chevron */}
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handlePrevSlide}
-                    className="p-3 rounded-full bg-slate-100 text-slate-800 hover:bg-[#D32F2F] hover:text-white transition-colors duration-200 shadow-md cursor-pointer border border-slate-200"
+                    className="p-3 rounded-full bg-white/90 text-slate-800 hover:bg-[#D4AF37] hover:text-white transition-colors duration-200 shadow-md cursor-pointer border border-slate-200"
                     aria-label="Previous slide"
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
                   <button
                     onClick={handleNextSlide}
-                    className="p-3 rounded-full bg-slate-100 text-slate-800 hover:bg-[#D32F2F] hover:text-white transition-colors duration-200 shadow-md cursor-pointer border border-slate-200"
+                    className="p-3 rounded-full bg-white/90 text-slate-800 hover:bg-[#D4AF37] hover:text-white transition-colors duration-200 shadow-md cursor-pointer border border-slate-200"
                     aria-label="Next slide"
                   >
                     <ArrowRight className="w-5 h-5" />
@@ -595,10 +543,32 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
               </div>
             </div>
 
-            {/* Right Column: Premium High-Definition Video Player Container (Bright & High Contrast) */}
-            <div className="lg:col-span-5 relative w-full flex justify-center z-10">
-              <div className="relative w-full max-w-md aspect-[4/3] rounded-[2.5rem] p-3 bg-gradient-to-tr from-[#D32F2F] to-red-500/80 shadow-[0_20px_50px_rgba(211,47,47,0.4)] group overflow-hidden border border-white/10 backdrop-blur-md">
-                <div className="w-full h-full rounded-[2rem] overflow-hidden bg-black relative">
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* 1.1 ELITE PERFORMANCE GALLERY & DEMONSTRATION */}
+      <section id="elite-gallery-segment" className="py-16 bg-white border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            
+            {/* Left side: Premium High-Definition Video Player Container (Moved from Hero) */}
+            <div className="lg:col-span-6 relative w-full flex flex-col justify-center">
+              <div className="mb-4 text-left">
+                <span className="text-[9px] font-mono font-black tracking-widest text-[#D32F2F] uppercase bg-red-50 px-2.5 py-1 rounded-full">
+                  Elite Live Demonstration
+                </span>
+                <h3 className="text-xl font-sans font-black text-slate-900 uppercase mt-2">
+                  Alex Fitness Hub Live Session
+                </h3>
+                <p className="text-xs text-slate-600 mt-1">
+                  Witness real-time training biomechanics and dynamic feedback in action.
+                </p>
+              </div>
+              <div className="relative w-full aspect-[16/10] rounded-3xl p-2 bg-gradient-to-tr from-[#D4AF37] to-amber-500 shadow-xl group overflow-hidden border border-slate-200">
+                <div className="w-full h-full rounded-[1.4rem] overflow-hidden bg-black relative">
                   <video
                     autoPlay
                     loop
@@ -613,7 +583,7 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                   {/* Glowing Premium Highlight Badges */}
                   <div className="absolute top-4 left-4 bg-[#D32F2F] text-white text-[9px] font-sans font-black tracking-wider uppercase px-3 py-1 rounded-full shadow-lg flex items-center gap-1.5 z-10 animate-pulse">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span>
-                    ALEXFITNESSHUB LIVE SESSIONS
+                    LIVE SESSIONS
                   </div>
 
                   <div className="absolute bottom-4 right-4 bg-black/70 backdrop-blur-md text-white text-[9px] font-mono tracking-widest px-3 py-1.5 rounded-lg border border-white/10 z-10">
@@ -623,12 +593,81 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
               </div>
             </div>
 
+            {/* Right side: Dynamic Slide Imagery Showcase (Moved from Hero) */}
+            <div className="lg:col-span-6 flex flex-col justify-center">
+              <div className="mb-4 text-left">
+                <span className="text-[9px] font-mono font-black tracking-widest text-[#D4AF37] uppercase bg-amber-50 px-2.5 py-1 rounded-full">
+                  Specialization Spotlights
+                </span>
+                <h3 className="text-xl font-sans font-black text-slate-900 uppercase mt-2">
+                  Training & Nutrition Curriculums
+                </h3>
+                <p className="text-xs text-slate-600 mt-1">
+                  Explore our core visual pillars from the active training guide programs.
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {heroSlides.map((slide, idx) => (
+                  <motion.div 
+                    whileHover={{ y: -4, scale: 1.03, boxShadow: "0 12px 24px -10px rgba(0,0,0,0.15)" }}
+                    whileTap={{ scale: 0.98 }}
+                    key={idx} 
+                    className={`rounded-2xl overflow-hidden border transition-all duration-300 relative group bg-slate-100 h-40 cursor-pointer shadow-sm ${
+                      idx === currentSlide 
+                        ? "border-[#D4AF37] ring-2 ring-[#D4AF37]/50 shadow-md" 
+                        : "border-slate-200 opacity-85"
+                    }`}
+                    onClick={() => setCurrentSlide(idx)}
+                  >
+                    <img 
+                      src={slide.imageUrl} 
+                      alt={slide.eyebrow}
+                      className="w-full h-full object-cover transition-transform duration-[700ms]"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-90" />
+                    
+                    <div className="absolute inset-x-0 bottom-0 p-3 text-left">
+                      <p className="text-[8px] font-mono font-black tracking-widest text-amber-400 uppercase">
+                        {slide.wordOne}
+                      </p>
+                      <h4 className="text-[11px] font-sans font-black text-white uppercase mt-0.5 leading-tight">
+                        {slide.wordTwo} Suite
+                      </h4>
+                    </div>
+
+                    {idx === currentSlide && (
+                      <span className="absolute top-2 right-2 text-[8px] font-mono font-black tracking-wider text-white bg-[#D4AF37] px-2 py-0.5 rounded-full uppercase">
+                        Active
+                      </span>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+              
+              {/* Highlight card for currently active details */}
+              <div className="mt-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-left">
+                <div className="flex items-center justify-between">
+                  <span className="text-[8px] font-mono font-black text-[#D32F2F] bg-red-50 px-2 py-0.5 rounded uppercase">
+                    {heroSlides[currentSlide].eyebrow}
+                  </span>
+                  <span className="text-[8px] font-mono font-black tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full uppercase">
+                    PRO CLINICAL TRACKER
+                  </span>
+                </div>
+                <h4 className="text-sm font-sans font-black text-slate-900 uppercase mt-2">
+                  {heroSlides[currentSlide].wordOne} {heroSlides[currentSlide].wordTwo}
+                </h4>
+                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                  {heroSlides[currentSlide].desc}
+                </p>
+              </div>
+
+            </div>
+
           </div>
-
-
-
         </div>
-
       </section>
 
 
@@ -1454,7 +1493,10 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
           <div className="grid md:grid-cols-3 gap-8 items-stretch max-w-6xl mx-auto">
             
             {/* TIER 1: MONTHLY */}
-            <div className="p-8 rounded-2xl bg-white border border-gray-200 hover:border-[#C0392B] hover:shadow-lg transition-all duration-250 flex flex-col justify-between">
+            <motion.div 
+              whileHover={{ y: -8, scale: 1.02, boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)" }}
+              className="p-8 rounded-2xl bg-white border border-gray-200 hover:border-[#C0392B] flex flex-col justify-between cursor-pointer"
+            >
               <div className="text-left">
                 <span className="text-[10px] font-sans font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-gray-100 text-[#1C1C1C]">
                   MONTHLY STARTER
@@ -1483,18 +1525,23 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
               </div>
 
               <div className="mt-8 pt-5 border-t border-gray-100">
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => handleInitiatePayment("monthly")}
-                  className="w-full py-3 bg-[#1C1C1C] hover:bg-black text-white font-sans font-bold text-xs uppercase rounded-full transition-all duration-200 no-scroll-top"
+                  className="w-full py-3 bg-[#1C1C1C] hover:bg-black text-white font-sans font-bold text-xs uppercase rounded-full transition-all duration-200 no-scroll-top cursor-pointer"
                 >
                   Select Monthly
-                </button>
+                </motion.button>
               </div>
-            </div>
+            </motion.div>
 
             {/* TIER 2: FLEXIBLE MONTH SELECTOR */}
-            <div className="p-8 rounded-2xl bg-white border-2 border-[#C0392B] hover:shadow-xl transition-all duration-250 flex flex-col justify-between relative">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#C0392B] text-white text-[8px] font-sans font-black uppercase tracking-wider px-3.5 py-1 rounded-full">
+            <motion.div 
+              whileHover={{ y: -8, scale: 1.02, boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)" }}
+              className="p-8 rounded-2xl bg-white border-2 border-[#C0392B] flex flex-col justify-between relative cursor-pointer"
+            >
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#C0392B] text-white text-[8px] font-sans font-black uppercase tracking-wider px-3.5 py-1 rounded-full z-10">
                 FLEXIBLE SPAN
               </div>
               
@@ -1522,18 +1569,20 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                   
                   <div className="flex justify-between gap-1">
                     {[2, 3, 4, 5, 6].map((m) => (
-                      <button
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
                         key={m}
                         type="button"
                         onClick={() => setSelectedMonths(m)}
-                        className={`flex-1 py-1.5 rounded text-xs font-sans font-black transition-all border no-scroll-top ${
+                        className={`flex-1 py-1.5 rounded text-xs font-sans font-black transition-all border no-scroll-top cursor-pointer ${
                           selectedMonths === m
                             ? "bg-[#C0392B] text-white border-transparent"
                             : "bg-white text-gray-700 border-gray-200 hover:border-[#C0392B]"
                         }`}
                       >
                         {m}M
-                      </button>
+                      </motion.button>
                     ))}
                   </div>
                 </div>
@@ -1551,17 +1600,22 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
               </div>
 
               <div className="mt-8 pt-5 border-t border-gray-100">
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => handleInitiatePayment("multi")}
-                  className="w-full py-3 bg-[#C0392B] hover:bg-[#A82E22] text-white font-sans font-bold text-xs uppercase rounded-full transition-all duration-200 no-scroll-top"
+                  className="w-full py-3 bg-[#C0392B] hover:bg-[#A82E22] text-white font-sans font-bold text-xs uppercase rounded-full transition-all duration-200 no-scroll-top cursor-pointer"
                 >
                   Select duration
-                </button>
+                </motion.button>
               </div>
-            </div>
+            </motion.div>
 
             {/* TIER 3: YEARLY (10% DISCOUNT) */}
-            <div className="p-8 rounded-2xl bg-[#C0392B] text-white border-2 border-[#C0392B] hover:shadow-xl transition-all duration-250 flex flex-col justify-between">
+            <motion.div 
+              whileHover={{ y: -8, scale: 1.02, boxShadow: "0 20px 25px -5px rgba(192,57,43,0.3)" }}
+              className="p-8 rounded-2xl bg-[#C0392B] text-white border-2 border-[#C0392B] flex flex-col justify-between cursor-pointer"
+            >
               <div className="text-left">
                 <div className="flex justify-between items-center">
                   <span className="text-[10px] font-sans font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-white text-[#C0392B]">
@@ -1617,14 +1671,16 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
               </div>
 
               <div className="mt-8 pt-5 border-t border-white/20">
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => handleInitiatePayment("yearly")}
                   className="w-full py-3 bg-white hover:bg-gray-100 text-[#C0392B] font-sans font-black text-xs uppercase rounded-full transition-all duration-200 cursor-pointer shadow-sm no-scroll-top"
                 >
                   CHOOSE ANCHOR YEARLY
-                </button>
+                </motion.button>
               </div>
-            </div>
+            </motion.div>
 
           </div>
 

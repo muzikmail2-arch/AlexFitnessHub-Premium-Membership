@@ -19,12 +19,17 @@ import DailyPlanView from "./components/DailyPlanView";
 import DashboardView from "./components/DashboardView";
 import { TestimonialPopup } from "./components/TestimonialPopup";
 import DailyNotificationController from "./components/DailyNotificationController";
+import PaymentSuccessView from "./components/PaymentSuccessView";
+import FitnessChallenges from "./components/FitnessChallenges";
 
 
 
 function FitnessAppContent() {
   const { user, loading } = useApp();
   const [currentView, setView] = useState(() => {
+    if (window.location.pathname === "/payment/success") {
+      return "payment-success";
+    }
     try {
       const activeUid = localStorage.getItem("fit_active_uid");
       if (activeUid) {
@@ -78,48 +83,6 @@ function FitnessAppContent() {
       }
     }
   }, [user, currentView]);
-
-  // Listen for Paystack redirect callback reference
-  React.useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const reference = params.get("reference");
-    const trxref = params.get("trxref");
-    const activeRef = reference || trxref;
-
-    if (activeRef && user) {
-      console.log(`[Callback Redirect] Found payment reference: ${activeRef} in URL. Starting verification...`);
-      const verifyAndReload = async () => {
-        try {
-          window.history.replaceState({}, document.title, window.location.pathname);
-          
-          alert("Verifying your payment... Please wait.");
-          
-          const token = await auth.currentUser?.getIdToken();
-          const res = await fetch("/api/payments/verify", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              ...(token ? { "Authorization": `Bearer ${token}` } : {})
-            },
-            body: JSON.stringify({ reference: activeRef, userId: user.uid })
-          });
-          
-          const result = await res.json();
-          if (result.success) {
-            alert("Payment completed and verified successfully! Your subscription is now ACTIVE.");
-            window.location.reload();
-          } else {
-            alert("Payment verification pending or failed: " + (result.error || "Please wait for your premium status to update in a few moments."));
-          }
-        } catch (err: any) {
-          console.error("Error verifying redirect payment:", err);
-          alert("Payment verification error: " + err.message);
-        }
-      };
-      
-      verifyAndReload();
-    }
-  }, [user]);
 
   // Activate Tawk.to Live Chat dynamically on load
   React.useEffect(() => {
@@ -187,7 +150,7 @@ function FitnessAppContent() {
       return;
     }
 
-    if ((["coach", "nutrition", "community", "success-stories", "workout-generator", "daily-plan", "dashboard", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory"].includes(targetView)) && !user) {
+    if ((["coach", "nutrition", "community", "challenges", "success-stories", "workout-generator", "daily-plan", "dashboard", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory"].includes(targetView)) && !user) {
       setIsAuthOpen(true);
       return;
     }
@@ -260,6 +223,9 @@ function FitnessAppContent() {
             {currentView === "home" && (
               <HomeView setView={handleSetView} onOpenAuth={() => setIsAuthOpen(true)} />
             )}
+            {currentView === "payment-success" && (
+              <PaymentSuccessView />
+            )}
             {currentView === "library" && (
               <WorkoutLibrary setView={handleSetView} />
             )}
@@ -280,6 +246,9 @@ function FitnessAppContent() {
             )}
             {currentView === "community" && user && (
               <CommunityView />
+            )}
+            {currentView === "challenges" && user && (
+              <FitnessChallenges />
             )}
             {currentView === "success-stories" && user && (
               <SuccessView />

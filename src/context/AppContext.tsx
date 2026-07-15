@@ -63,7 +63,7 @@ interface AppContextType {
   updateWaterIntake: (amountMl: number) => Promise<void>;
   
   // Subscriptions & Payments
-  upgradeWithPaystack: (reference: string, plan: "monthly" | "yearly" | "multi") => Promise<void>;
+  upgradeWithPaystack: (reference: string, plan?: "monthly" | "yearly" | "multi") => Promise<void>;
   cancelSubscription: () => Promise<void>;
   
   // AI Coach Chat
@@ -1155,7 +1155,7 @@ ${milestones.map(m => `*   **${m}**`).join("\n")}
 
   // --- ACTIONS & PAYMENTS HANDLERS ---
 
-  const upgradeWithPaystack = async (reference: string, plan: "monthly" | "yearly" | "multi") => {
+  const upgradeWithPaystack = async (reference: string, plan?: "monthly" | "yearly" | "multi") => {
     if (!user) return;
     
     setLoading(true);
@@ -1172,19 +1172,34 @@ ${milestones.map(m => `*   **${m}**`).join("\n")}
       const verifyRes = await res.json();
       
       if (verifyRes.success) {
+        // Retrieve plan from server response metadata to handle redirect flow seamlessly
+        let resolvedPlan: "monthly" | "yearly" | "multi" = plan || "monthly";
+        
+        let txMetadata = verifyRes.data?.metadata;
+        if (typeof txMetadata === "string") {
+          try {
+            txMetadata = JSON.parse(txMetadata);
+          } catch (e) {}
+        }
+        
+        if (txMetadata && txMetadata.plan) {
+          resolvedPlan = txMetadata.plan;
+        }
+
         const updated: UserProfile = {
           ...user,
           subscriptionStatus: "premium",
-          subscriptionTier: plan === "multi" ? "monthly" : plan,
-          subscriptionExpiry: new Date(Date.now() + (plan === "yearly" ? 365 : plan === "multi" ? 90 : 30) * 24 * 60 * 60 * 1000).toISOString()
+          subscriptionTier: resolvedPlan === "multi" ? "monthly" : resolvedPlan,
+          subscriptionPlan: resolvedPlan,
+          subscriptionExpiry: new Date(Date.now() + (resolvedPlan === "yearly" ? 365 : resolvedPlan === "multi" ? 90 : 30) * 24 * 60 * 60 * 1000).toISOString()
         };
         await syncUserToStorageAndPlatform(updated);
         
         const transaction: PaystackTransaction = {
           id: reference,
           reference,
-          amount: plan === "yearly" ? 215989 : plan === "multi" ? 59997 : 19999,
-          plan,
+          amount: resolvedPlan === "yearly" ? 215989 : resolvedPlan === "multi" ? 59997 : 19999,
+          plan: resolvedPlan,
           status: "success",
           paidAt: new Date().toISOString()
         };

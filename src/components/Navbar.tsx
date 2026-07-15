@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useApp } from "../context/AppContext";
 import { Menu, X, Shield, Lock, Award, Sun, Moon } from "lucide-react";
+import { motion } from "motion/react";
 
 interface NavbarProps {
   currentView: string;
@@ -60,12 +61,14 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
       { id: "workout-videos", label: "Videos", action: () => handleNav("workout-videos") },
       { id: "saved-exercises", label: "Saved", action: () => handleNav("saved-exercises") },
       { id: "nutrition", label: "Nutrition", action: () => handleNav("nutrition") },
+      { id: "challenges", label: "Challenges", action: () => handleNav("challenges") },
       { id: "community", label: "Community", action: () => handleNav("community") },
       { id: "coach", label: "AI Coach", action: () => handleNav("coach") },
     ] : [
       { id: "home", label: "Home", action: () => handleNav("home") },
       { id: "workout-videos", label: "Videos", action: () => handleNav("workout-videos") },
       { id: "saved-exercises", label: "Saved", action: () => handleNav("saved-exercises") },
+      { id: "challenges", label: "Challenges", action: () => handleNav("challenges") },
       { id: "pricing", label: "Pricing", action: () => handleNav("home", "pricing") },
     ]
   ) : [
@@ -134,6 +137,7 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
     { id: "nutrition", label: "Nutrition", sublabel: "Meal Config", action: () => handleCustomNav("nutrition") },
     { id: "daily-plan", label: "My Plan", sublabel: "Daily Schedules", action: () => handleCustomNav("daily-plan") },
     { id: "coach", label: "AI Coach", sublabel: "AI Optimization", action: () => handleCustomNav("coach") },
+    { id: "challenges", label: "Challenges", sublabel: "Monthly Competitions", action: () => handleCustomNav("challenges") },
     { id: "community", label: "Community", sublabel: "Discuss & Post", action: () => handleCustomNav("community") },
     { id: "weekly-reports", label: "Weekly Reports", sublabel: "Premium Audits", action: () => handleCustomNav("weekly-reports") },
     { id: "daily-habit-tracker", label: "Daily Habit Tracker", sublabel: "Routine Consistency", action: () => handleCustomNav("daily-habit-tracker") },
@@ -145,6 +149,7 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
     { id: "home", label: "Homepage", sublabel: "Public Hub", action: () => handleCustomNav("home") },
     { id: "workout-videos", label: "Videos", sublabel: "Workout Videos", action: () => handleCustomNav("workout-videos") },
     { id: "saved-exercises", label: "Saved", sublabel: "Saved Exercises", action: () => handleCustomNav("saved-exercises") },
+    { id: "challenges", label: "Challenges", sublabel: "Monthly Competitions", action: () => handleCustomNav("challenges") },
     { id: "pricing", label: "Pricing Plans", sublabel: "Upgrade Status", action: () => handleCustomNav("pricing") },
   ];
 
@@ -177,7 +182,9 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
               {menuItems.map((item) => {
                 const isActive = currentView === item.id;
                 return (
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.05, y: -1 }}
+                    whileTap={{ scale: 0.95 }}
                     key={item.id}
                     onClick={item.action}
                     className={`text-[10px] xl:text-[11px] font-sans font-black uppercase tracking-wider px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer whitespace-nowrap ${
@@ -187,7 +194,7 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
                     }`}
                   >
                     {item.label}
-                  </button>
+                  </motion.button>
                 );
               })}
             </nav>
@@ -197,33 +204,41 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
             <div className="flex items-center gap-3 shrink-0">
               
               {(!user || user.subscriptionStatus !== "premium") && (
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.05, y: -1 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => setView("pricing")}
-                  className="hidden md:inline-flex items-center gap-1.5 text-[11px] font-sans font-black uppercase tracking-wider h-9 px-5 rounded-full bg-white text-[#D32F2F] hover:bg-amber-100 hover:text-[#B71C1C] transition-all duration-200 cursor-pointer shadow-md animate-pulse"
+                  className="hidden md:inline-flex items-center gap-1.5 text-[11px] font-sans font-black uppercase tracking-wider h-9 px-5 rounded-full bg-white text-[#D32F2F] hover:bg-amber-100 hover:text-[#B71C1C] transition-all duration-200 cursor-pointer shadow-md"
                 >
                   <Award className="w-4 h-4 text-[#D32F2F]" />
                   <span>Access Premium</span>
-                </button>
+                </motion.button>
               )}
 
               {!user ? (
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.05, y: -1 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={onOpenAuth}
                   className="hidden sm:inline-flex text-[11px] font-sans font-bold uppercase tracking-wider h-9 px-5 rounded-full border border-white hover:bg-white hover:text-[#D32F2F] text-white transition-all duration-200 cursor-pointer"
                 >
                   Sign In
-                </button>
+                </motion.button>
               ) : (
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.05, y: -1 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={logout}
                   className="hidden sm:inline-flex text-[11px] font-sans font-bold uppercase tracking-wider h-9 px-5 rounded-full border border-white/40 text-white hover:bg-white/10 transition-all duration-200 cursor-pointer"
                 >
                   Sign Out
-                </button>
+                </motion.button>
               )}
 
               {/* Hamburger icon: 3 white lines */}
-              <button
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
                 onClick={() => setIsMenuOpen(true)}
                 className="p-2 text-white hover:opacity-80 transition focus:outline-none cursor-pointer"
                 aria-label="Open Navigation Menu"
@@ -233,7 +248,7 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
                   <span className="block h-0.5 w-6 bg-white rounded transition"></span>
                   <span className="block h-0.5 w-6 bg-white rounded transition"></span>
                 </div>
-              </button>
+              </motion.button>
 
             </div>
 
