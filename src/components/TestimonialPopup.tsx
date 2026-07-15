@@ -26,6 +26,26 @@ const getRandomBgColor = (name: string) => {
   return colors[sum % colors.length];
 };
 
+const getGenderForName = (name: string, content?: string): "female" | "male" | "neutral" => {
+  const norm = name.trim().toLowerCase();
+  
+  const femaleNames = ["amara", "chioma", "fatima", "yetunde", "amina", "funmi", "blessing", "ngozi", "aisha", "sarah", "emma", "olivia", "sophia", "mia", "grace", "lily", "chloe", "ava", "isabella", "amelia", "charlotte", "ella", "harper", "evelyn", "clara"];
+  const maleNames = ["tobi", "david", "babajide", "emeka", "chinedu", "osas", "kelechi", "tari", "ibrahim", "yusuf", "victor", "john", "michael", "james", "daniel", "noah", "ethan", "ryan", "lucas", "benjamin", "henry", "jack", "william", "mason", "sam", "samuel", "alex"];
+
+  for (const fn of femaleNames) {
+    if (norm.startsWith(fn)) return "female";
+  }
+  for (const mn of maleNames) {
+    if (norm.startsWith(mn)) return "male";
+  }
+
+  const text = (content || "").toLowerCase();
+  if (/\b(she|her|hers)\b/.test(text)) return "female";
+  if (/\b(he|his|him)\b/.test(text)) return "male";
+
+  return "neutral";
+};
+
 export const TestimonialPopup: React.FC = () => {
   const { popupTestimonials } = useApp();
   const [currentReview, setCurrentReview] = useState<PopupTestimonial | null>(null);
@@ -44,24 +64,18 @@ export const TestimonialPopup: React.FC = () => {
   const showNextPopup = () => {
     if (activeReviews.length === 0) return;
 
-    // Rebuild and shuffle queue using the true mathematical Fisher-Yates algorithm
+    // Rebuild and sort queue by gender (female, then male, then neutral)
     if (queueRef.current.length === 0 || indexRef.current >= queueRef.current.length) {
-      const shuffled = [...activeReviews];
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        const temp = shuffled[i];
-        shuffled[i] = shuffled[j];
-        shuffled[j] = temp;
-      }
+      const sorted = [...activeReviews].sort((a, b) => {
+        const genA = getGenderForName(a.name, a.review || a.action);
+        const genB = getGenderForName(b.name, b.review || b.action);
+        if (genA !== genB) {
+          return genA.localeCompare(genB);
+        }
+        return a.name.localeCompare(b.name);
+      });
       
-      // Prevent consecutive duplicates across shuffles
-      if (shuffled.length > 1 && shuffled[0].id === lastShownIdRef.current) {
-        const temp = shuffled[0];
-        shuffled[0] = shuffled[shuffled.length - 1];
-        shuffled[shuffled.length - 1] = temp;
-      }
-      
-      queueRef.current = shuffled;
+      queueRef.current = sorted;
       indexRef.current = 0;
     }
 

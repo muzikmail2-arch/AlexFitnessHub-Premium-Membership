@@ -52,6 +52,18 @@ export default function DashboardView({ activeView = "dashboard", setView }: Das
 
   const isPremium = user && (user.subscriptionStatus === "premium" || user.role === "admin");
 
+  const getSubscriptionExpiryDays = () => {
+    if (!user || !user.subscriptionExpiry || user.subscriptionStatus !== "premium") return null;
+    const expiry = new Date(user.subscriptionExpiry);
+    const now = new Date();
+    const diffTime = expiry.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  const expiryDays = getSubscriptionExpiryDays();
+  const showExpiryAlert = expiryDays !== null && expiryDays >= 0 && expiryDays <= 7;
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleProfilePicUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -289,6 +301,37 @@ export default function DashboardView({ activeView = "dashboard", setView }: Das
             ========================================== */}
         <div className="lg:col-span-9 space-y-6">
           
+          {/* Expiry Notification Banner */}
+          {showExpiryAlert && (
+            <div className="bg-amber-500/10 dark:bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in shadow-xs">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl shrink-0">
+                  <AlertCircle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-sans font-black uppercase tracking-wider text-amber-800 dark:text-amber-400">
+                    Premium Subscription Expiring Soon
+                  </h4>
+                  <p className="text-[11px] text-amber-700/95 dark:text-amber-500/90 mt-1 leading-relaxed font-semibold">
+                    Your premium subscription is expiring in <strong className="font-extrabold">{expiryDays === 0 ? "today" : expiryDays === 1 ? "1 day" : `${expiryDays} days`}</strong> on {new Date(user!.subscriptionExpiry!).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}. Renew now to preserve full access to elite training library, custom nutritional splits, active AI coaching, and biometrics.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setView("home");
+                  setTimeout(() => {
+                    const el = document.getElementById("pricing");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }, 150);
+                }}
+                className="w-full sm:w-auto px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-sans font-black uppercase tracking-wider rounded-xl transition shadow-xs whitespace-nowrap cursor-pointer shrink-0"
+              >
+                Renew Premium Now
+              </button>
+            </div>
+          )}
+
           {/* Main workspace section renderer */}
           <div className="transition-all duration-300 bg-white dark:bg-slate-950 p-6 sm:p-8 rounded-3xl border border-slate-200/60 dark:border-slate-900 shadow-sm min-h-[75vh]">
             

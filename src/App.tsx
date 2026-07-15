@@ -70,7 +70,7 @@ function FitnessAppContent() {
   // General Guard to catch any unauthorized entries to completely off-limit standalone premium features
   React.useEffect(() => {
     if (user && user.subscriptionStatus !== "premium" && user.role !== "admin") {
-      const standalonePremiumViews = ["workout-generator"];
+      const standalonePremiumViews = ["library", "workout-generator", "workout-videos", "saved-exercises", "coach", "nutrition"];
       if (standalonePremiumViews.includes(currentView)) {
         console.log(`[DevOps Security] Free user attempted to access standalone premium view: ${currentView}. Redirecting to Home pricing.`);
         setView("home");
@@ -150,14 +150,14 @@ function FitnessAppContent() {
       return;
     }
 
-    if ((["coach", "nutrition", "community", "challenges", "success-stories", "workout-generator", "daily-plan", "dashboard", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory"].includes(targetView)) && !user) {
+    if ((["coach", "nutrition", "community", "challenges", "success-stories", "workout-generator", "daily-plan", "dashboard", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory", "library", "workout-videos", "saved-exercises"].includes(targetView)) && !user) {
       setIsAuthOpen(true);
       return;
     }
 
     // If the user is on the free plan, only block completely off-limits standalone premium views
     if (user && user.subscriptionStatus !== "premium" && user.role !== "admin") {
-      const standalonePremiumViews = ["workout-generator"];
+      const standalonePremiumViews = ["library", "workout-generator", "workout-videos", "saved-exercises", "coach", "nutrition"];
       if (standalonePremiumViews.includes(targetView)) {
         setView("home");
         setTimeout(() => {

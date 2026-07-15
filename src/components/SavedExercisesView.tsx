@@ -364,7 +364,7 @@ export default function SavedExercisesView({ setView }: SavedExercisesViewProps)
 
                   {/* Muscles Worked Matrix Map */}
                   <div className="p-5 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-850/40">
-                    <h5 className="text-[10px] font-mono font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Target Anatomy Map Activation</h5>
+                    <h5 className="text-[10px] font-mono font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Target Muscles Worked</h5>
                     <div className="flex flex-wrap gap-1.5">
                       {selectedExercise.musclesWorked.map((muscle) => (
                         <span key={muscle} className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 dark:text-emerald-400 text-[10px] font-sans font-bold px-2.5 py-1 rounded">

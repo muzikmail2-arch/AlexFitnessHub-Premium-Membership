@@ -163,7 +163,7 @@ const db = getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId);
 // Authenticate server as Admin to allow it to read user profiles securely
 const backendAuth = getAuth(firebaseApp);
 const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "alexfitnesshub@gmail.com").trim();
-const ADMIN_PASS = (process.env.ADMIN_PASS || "AlexAdminPass777!").trim();
+const ADMIN_PASS = (process.env.ADMIN_PASS || "Mbajugha12345@").trim();
 
 async function authenticateServer() {
   try {
@@ -611,6 +611,52 @@ async function requireAdmin(req: any, res: any, next: any) {
     return res.status(500).json({ error: "Internal server error during admin verification." });
   }
 }
+
+// Durable Firebase logger for administrative tasks
+async function logAdminActivityOnFirebase(email: string, userId: string, actionType: string, description: string, details?: any) {
+  if (!email || email.toLowerCase().trim() !== "alexfitnesshub@gmail.com") return;
+  
+  const id = "act_" + Math.random().toString(36).substring(2, 11) + "_" + Date.now();
+  const timestamp = new Date().toISOString();
+  
+  const activityData = {
+    id,
+    userId,
+    email: email.toLowerCase().trim(),
+    actionType,
+    description,
+    details: details || null,
+    timestamp
+  };
+  
+  try {
+    await setServerFirestoreDoc("admin_activities", id, activityData, false);
+    console.log(`[Firebase Admin Activity Logged] ${actionType}: ${description}`);
+  } catch (err) {
+    console.error("Failed to write admin activity log to Firestore:", err);
+  }
+}
+
+// POST endpoint for client-side admin activity logging
+app.post("/api/admin/log-activity", requireAdmin, async (req: any, res: any) => {
+  const { actionType, description, details } = req.body;
+  if (!actionType || !description) {
+    return res.status(400).json({ success: false, error: "actionType and description are required." });
+  }
+
+  try {
+    await logAdminActivityOnFirebase(
+      req.user.email || "",
+      req.user.uid || "",
+      actionType,
+      description,
+      details
+    );
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
 // 1. AI COACH PROFILE PROXY
 app.post("/api/gemini/coach", requirePremium, async (req, res) => {
@@ -1759,8 +1805,14 @@ app.get("/api/exercises/custom-media", (req, res) => {
 });
 
 // POST to save custom media override to local JSON file
-app.post("/api/exercises/save-custom-media", requireAdmin, async (req, res) => {
+app.post("/api/exercises/save-custom-media", requireAdmin, async (req: any, res: any) => {
   let { exerciseId, customMediaUrl, customMediaType } = req.body;
+
+  // Restrict manually uploading GIF/media to alexfitnesshub@gmail.com alone!
+  if (!req.user || req.user.email?.toLowerCase().trim() !== "alexfitnesshub@gmail.com") {
+    console.warn(`[Security Infringement Blocked] User with email ${req.user?.email} attempted custom media upload.`);
+    return res.status(403).json({ success: false, error: "Only the principal administrator (alexfitnesshub@gmail.com) is authorized to upload custom GIF/media assets." });
+  }
 
   if (!exerciseId) {
     return res.status(400).json({ success: false, error: "Exercise ID is required." });
@@ -1856,6 +1908,16 @@ app.post("/api/exercises/save-custom-media", requireAdmin, async (req, res) => {
 
     fs.writeFileSync(OVERRIDES_FILE_PATH, JSON.stringify(overrides, null, 2), "utf-8");
     console.log(`Successfully saved custom media for exercise ${exerciseId} to local overrides file!`);
+    
+    // Log admin activity on Firebase
+    await logAdminActivityOnFirebase(
+      req.user?.email || "",
+      req.user?.uid || "",
+      "CUSTOM_MEDIA_UPLOAD",
+      `Uploaded custom demo GIF/media for exercise ${exerciseId}`,
+      { exerciseId, customMediaUrl, customMediaType }
+    );
+
     res.json({ success: true, message: "Successfully saved to local server files.", customMediaUrl });
   } catch (error: any) {
     console.error("Failed to write custom exercise overrides file:", error);
@@ -2784,7 +2846,7 @@ app.get("/api/diagnostics/audit", requireAdmin, async (req: any, res: any) => {
 app.get("/api/payments/config", (req, res) => {
   res.json({
     success: true,
-    publicKey: PAYSTACK_PUBLIC_KEY
+    publicKey: PAYSTACK_PUBLIC_KEY || "pk_test_mock_paystack_public_key_for_sandbox"
   });
 });
 
@@ -2808,7 +2870,10 @@ app.post("/api/payments/initialize", async (req, res) => {
 
   const amountInKobo = amountNGN * 100;
   const reference = "ref_ps_" + crypto.randomBytes(8).toString("hex").toUpperCase();
-  const resolvedCallbackUrl = `${APP_URL.replace(/\/$/, "")}/payment/success`;
+  
+  // Dynamically resolve base URL if APP_URL is not set
+  const requestBaseUrl = APP_URL || `${req.protocol}://${req.get("host")}`;
+  const resolvedCallbackUrl = `${requestBaseUrl.replace(/\/$/, "")}/payment/success`;
 
   console.log(`[Checkout Creation] Initializing Paystack transaction:
   - User ID: ${userId}
@@ -3092,7 +3157,7 @@ app.get("/api/payments/status", async (req, res) => {
   const secretKey = PAYSTACK_SECRET_KEY;
   const publicKey = PAYSTACK_PUBLIC_KEY;
   
-  const baseUrl = APP_URL.replace(/\/$/, "");
+  const baseUrl = (APP_URL || `${req.protocol}://${req.get("host")}`).replace(/\/$/, "");
   const resolvedCallbackUrl = `${baseUrl}/`;
   const resolvedWebhookUrl = `${baseUrl}/api/payments/webhook`;
 
@@ -3335,7 +3400,7 @@ ${milestones.map(m => `*   **${m}**`).join("\n")}
 }
 
 // POST /api/weekly-reports/trigger - Trigger AI generation of a new weekly report manually for a user
-app.post("/api/weekly-reports/trigger", requireAdmin, async (req, res) => {
+app.post("/api/weekly-reports/trigger", requireAdmin, async (req: any, res: any) => {
   const { userId, userEmail, displayName, activityLogs, weightLogs } = req.body;
   if (!userId) {
     return res.status(400).json({ success: false, error: "userId is required." });
@@ -3352,6 +3417,15 @@ app.post("/api/weekly-reports/trigger", requireAdmin, async (req, res) => {
       weightLogs || []
     );
 
+    // Log admin activity on Firebase
+    await logAdminActivityOnFirebase(
+      req.user?.email || "",
+      req.user?.uid || "",
+      "TRIGGER_WEEKLY_REPORT",
+      `Triggered custom weekly progress report for user ${displayName || "Athlete"} (${userEmail || "premium@athlete.com"})`,
+      { userId, userEmail, displayName }
+    );
+
     return res.json({ success: true, report: reportData });
   } catch (error: any) {
     console.error("Weekly report generator failed:", error);
@@ -3360,7 +3434,7 @@ app.post("/api/weekly-reports/trigger", requireAdmin, async (req, res) => {
 });
 
 // POST /api/weekly-reports/trigger-all - Scheduled job trigger for ALL premium users (Firebase Functions trigger-equivalent)
-app.post("/api/weekly-reports/trigger-all", requireAdmin, async (req, res) => {
+app.post("/api/weekly-reports/trigger-all", requireAdmin, async (req: any, res: any) => {
   console.log("[Scheduled Job] Triggering bulk weekly progress reports compilation for all premium members...");
   try {
     const usersSnapshot = await getServerFirestoreQuery("users", "subscriptionStatus", "==", "premium");
@@ -3382,6 +3456,15 @@ app.post("/api/weekly-reports/trigger-all", requireAdmin, async (req, res) => {
         results.push({ userId, email: userEmail, status: "failed", error: err.message });
       }
     }
+
+    // Log admin activity on Firebase
+    await logAdminActivityOnFirebase(
+      req.user?.email || "",
+      req.user?.uid || "",
+      "TRIGGER_ALL_WEEKLY_REPORTS",
+      `Triggered bulk compilation of weekly progress reports for all premium users`,
+      { totalProcessed: results.length, successful: results.filter(r => r.status === "success").length }
+    );
 
     return res.json({
       success: true,

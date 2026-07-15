@@ -249,6 +249,26 @@ const verifiedUserReviews = [
   }
 ];
 
+const getGenderForName = (name: string, content?: string): "female" | "male" | "neutral" => {
+  const norm = name.trim().toLowerCase();
+  
+  const femaleNames = ["amara", "chioma", "fatima", "yetunde", "amina", "funmi", "blessing", "ngozi", "aisha", "sarah", "emma", "olivia", "sophia", "mia", "grace", "lily", "chloe", "ava", "isabella", "amelia", "charlotte", "ella", "harper", "evelyn", "clara"];
+  const maleNames = ["tobi", "david", "babajide", "emeka", "chinedu", "osas", "kelechi", "tari", "ibrahim", "yusuf", "victor", "john", "michael", "james", "daniel", "noah", "ethan", "ryan", "lucas", "benjamin", "henry", "jack", "william", "mason", "sam", "samuel", "alex"];
+
+  for (const fn of femaleNames) {
+    if (norm.startsWith(fn)) return "female";
+  }
+  for (const mn of maleNames) {
+    if (norm.startsWith(mn)) return "male";
+  }
+
+  const text = (content || "").toLowerCase();
+  if (/\b(she|her|hers)\b/.test(text)) return "female";
+  if (/\b(he|his|him)\b/.test(text)) return "male";
+
+  return "neutral";
+};
+
 interface HomeViewProps {
   setView: (view: string) => void;
   onOpenAuth: () => void;
@@ -259,6 +279,18 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
   const [submittingPlan, setSubmittingPlan] = useState<"monthly" | "yearly" | "multi" | null>(null);
   const [activePaymentModal, setActivePaymentModal] = useState<"monthly" | "yearly" | "multi" | null>(null);
 
+  // Sort the verified user reviews according to their name gender
+  const sortedVerifiedReviews = React.useMemo(() => {
+    return [...verifiedUserReviews].sort((a, b) => {
+      const genA = getGenderForName(a.name, a.content);
+      const genB = getGenderForName(b.name, b.content);
+      if (genA !== genB) {
+        return genA.localeCompare(genB); // Grouping females first, then males, then neutrals
+      }
+      return a.name.localeCompare(b.name);
+    });
+  }, []);
+
   // Carousel slider state for Hero
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -268,14 +300,14 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
       wordOne: "FORGE",
       wordTwo: "ATHLETICISM",
       desc: "Experience world-class body sculpting. Unified by certified clinical kinesiologists, interactive progress logs, and advanced multi-modal Gemini AI coaching. Track actual metric goals with absolute precision.",
-      imageUrl: "https://bodybuilding-wizard.com/wp-content/uploads/2026/02/flat-barbell-bench-press-exercise-guide-1.jpg"
+      imageUrl: "https://github.com/muzikmail2-arch/bb/blob/main/ChatGPT%20Image%20Jul%2015,%202026,%2007_10_48%20PM.png?raw=true"
     },
     {
       eyebrow: "NUTRITIONAL METRICS",
       wordOne: "SHRED",
       wordTwo: "PLATEAUS",
       desc: "Calibrate localized macronutrient diet plans tailored precisely for high protein staples, tracking absolute body weight goals daily with the assistance of interactive progress reports.",
-      imageUrl: "https://i.insider.com/5f2c18413ad8613df725ff69?width=1200&format=jpeg"
+      imageUrl: "https://github.com/muzikmail2-arch/bb/blob/main/ChatGPT%20Image%20Jul%2015,%202026,%2006_45_05%20PM.png?raw=true"
     },
     {
       eyebrow: "AI POWERED SOLUTIONS",
@@ -439,7 +471,7 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
         {/* Cinematic Background Image showing extremely bright with no dark overlays covering it */}
         <div className="absolute inset-0 z-0 select-none pointer-events-none">
           <img 
-            src="https://github.com/muzikmail2-arch/bb/blob/main/ChatGPT%20Image%20Jul%2015,%202026,%2006_45_05%20PM.png?raw=true" 
+            src="https://raw.githubusercontent.com/muzikmail2-arch/bb/341f223de2ede2ba7829f27c60961f6e9ce037f4/ChatGPT%20Image%20Jul%2015%2C%202026%2C%2011_01_15%20PM.png" 
             alt="Alex Fitness Hub Elite Training Facility"
             className="w-full h-full object-cover object-center scale-100 filter brightness-125 contrast-[1.05]"
             referrerPolicy="no-referrer"
@@ -1411,7 +1443,7 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
 
           {/* Testimonials Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {verifiedUserReviews
+            {sortedVerifiedReviews
               .filter(r => reviewFilter === "All" || r.goal === reviewFilter)
               .slice(0, showAllReviews ? undefined : 6)
               .map((review, idx) => (
@@ -1462,7 +1494,7 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
           </div>
 
           {/* Load More Button */}
-          {verifiedUserReviews.filter(r => reviewFilter === "All" || r.goal === reviewFilter).length > 6 && (
+          {sortedVerifiedReviews.filter(r => reviewFilter === "All" || r.goal === reviewFilter).length > 6 && (
             <div className="text-center mt-12">
               <button
                 onClick={() => setShowAllReviews(!showAllReviews)}

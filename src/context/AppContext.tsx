@@ -799,6 +799,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const cred = await signInWithEmailAndPassword(auth, email, pass);
       const uid = cred.user.uid;
       
+      // Log admin login activity on Firebase
+      if (email.toLowerCase().trim() === "alexfitnesshub@gmail.com") {
+        try {
+          const token = await cred.user.getIdToken();
+          await fetch("/api/admin/log-activity", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              actionType: "ADMIN_LOGIN",
+              description: "Admin logged into the portal successfully."
+            })
+          });
+        } catch (e) {
+          console.warn("Failed to log admin login activity:", e);
+        }
+      }
+
       // Cache credentials for subsequent visits
       localStorage.setItem("fit_saved_email", email);
       localStorage.setItem("fit_saved_password", pass);
@@ -1315,10 +1335,31 @@ ${milestones.map(m => `*   **${m}**`).join("\n")}
 
   // --- ADMIN CUSTOMIZERS ---
 
+  const logAdminAction = async (actionType: string, description: string, details?: any) => {
+    if (!user || user.email?.toLowerCase().trim() !== "alexfitnesshub@gmail.com") return;
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) return;
+      await fetch("/api/admin/log-activity", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ actionType, description, details })
+      });
+      console.log(`[Admin Front Log] Registered admin action: ${actionType}`);
+    } catch (err) {
+      console.warn("Failed to log admin action on server:", err);
+    }
+  };
+
   const adminTogglePremium = (exerciseId: string) => {
     const updatedExercises = exercises.map(ex => {
       if (ex.id === exerciseId) {
-        return { ...ex, isPremium: !ex.isPremium };
+        const nextPremium = !ex.isPremium;
+        logAdminAction("TOGGLE_PREMIUM_EXERCISE", `Toggled premium status for exercise ID ${exerciseId} to ${nextPremium}`, { exerciseId, isPremium: nextPremium });
+        return { ...ex, isPremium: nextPremium };
       }
       return ex;
     });
@@ -1331,9 +1372,15 @@ ${milestones.map(m => `*   **${m}**`).join("\n")}
 
     // 1. Persist to local server-side JSON file (and translate physical Base64 payload into static files)
     try {
+      const token = await auth.currentUser?.getIdToken();
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       const res = await fetch("/api/exercises/save-custom-media", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           exerciseId,
           customMediaUrl: mediaUrl,
@@ -1396,6 +1443,8 @@ ${milestones.map(m => `*   **${m}**`).join("\n")}
       setAllSystemUsers(list);
       safeSetItem("all_system_users", JSON.stringify(list));
       
+      logAdminAction("UPDATE_USER_TIER", `Updated user ${uid} tier to status: ${level}, tier: ${tier}`, { targetUid: uid, level, tier });
+
       // If editing current user, sync immediately
       if (user && user.uid === uid) {
         setUser(list[editIndex]);
@@ -1455,6 +1504,8 @@ ${milestones.map(m => `*   **${m}**`).join("\n")}
       list[editIndex] = updatedUser;
       setAllSystemUsers(list);
       safeSetItem("all_system_users", JSON.stringify(list));
+
+      logAdminAction("MODIFY_USER_SUBSCRIPTION", `Modified subscription of user ${uid} to status: ${updatedUser.subscriptionStatus}, tier: ${updatedUser.subscriptionTier} (Action: ${action})`, { targetUid: uid, action, email: updatedUser.email });
 
       // Synchronize immediately if targeting current user
       if (user && user.uid === uid) {

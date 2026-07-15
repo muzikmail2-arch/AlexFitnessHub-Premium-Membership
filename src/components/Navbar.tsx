@@ -66,15 +66,13 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
       { id: "coach", label: "AI Coach", action: () => handleNav("coach") },
     ] : [
       { id: "home", label: "Home", action: () => handleNav("home") },
-      { id: "workout-videos", label: "Videos", action: () => handleNav("workout-videos") },
-      { id: "saved-exercises", label: "Saved", action: () => handleNav("saved-exercises") },
+      { id: "daily-plan", label: "My Plan", action: () => handleNav("daily-plan") },
       { id: "challenges", label: "Challenges", action: () => handleNav("challenges") },
+      { id: "community", label: "Community", action: () => handleNav("community") },
       { id: "pricing", label: "Pricing", action: () => handleNav("home", "pricing") },
     ]
   ) : [
     { id: "home", label: "Home", action: () => handleNav("home") },
-    { id: "workout-videos", label: "Videos", action: () => handleNav("workout-videos") },
-    { id: "saved-exercises", label: "Saved", action: () => handleNav("saved-exercises") },
     { id: "pricing", label: "Pricing", action: () => handleNav("home", "pricing") },
     { id: "testimonials-segment", label: "Reviews", action: () => handleNav("home", "testimonials-segment") },
     { id: "contact", label: "Contact", action: () => handleNav("home", "contact") },
@@ -92,16 +90,17 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
   const handleCustomNav = (targetView: string, subview?: string, elementId?: string) => {
     setIsMenuOpen(false);
     
-    // Check if view is restricted
-    const restrictedViews = ["daily-plan", "nutrition", "coach", "workout-generator", "library", "community", "dashboard", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory"];
-    if (restrictedViews.includes(targetView) && !user) {
+    // Check if view is restricted (requires login)
+    const loginRequiredViews = ["daily-plan", "nutrition", "coach", "workout-generator", "library", "community", "dashboard", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory", "workout-videos", "saved-exercises", "challenges"];
+    if (loginRequiredViews.includes(targetView) && !user) {
       onOpenAuth();
       return;
     }
     
-    // If the user is on the free trial, block premium features and redirect to pricing section on Home
+    // If the user is on the free plan, block premium workouts and redirect to pricing section on Home
     if (user && user.subscriptionStatus !== "premium" && user.role !== "admin") {
-      if (restrictedViews.includes(targetView)) {
+      const standalonePremiumViews = ["library", "workout-generator", "workout-videos", "saved-exercises", "coach", "nutrition"];
+      if (standalonePremiumViews.includes(targetView)) {
         setView("home");
         setTimeout(() => {
           const el = document.getElementById("pricing");
@@ -147,9 +146,11 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
     { id: "pricing", label: "Pricing Plans", sublabel: "Upgrade Status", action: () => handleCustomNav("pricing") },
   ] : [
     { id: "home", label: "Homepage", sublabel: "Public Hub", action: () => handleCustomNav("home") },
-    { id: "workout-videos", label: "Videos", sublabel: "Workout Videos", action: () => handleCustomNav("workout-videos") },
-    { id: "saved-exercises", label: "Saved", sublabel: "Saved Exercises", action: () => handleCustomNav("saved-exercises") },
+    { id: "daily-plan", label: "My Plan", sublabel: "Daily Schedules", action: () => handleCustomNav("daily-plan") },
+    { id: "nutrition", label: "Nutrition", sublabel: "Meal Config", action: () => handleCustomNav("nutrition") },
+    { id: "coach", label: "AI Coach", sublabel: "AI Optimization", action: () => handleCustomNav("coach") },
     { id: "challenges", label: "Challenges", sublabel: "Monthly Competitions", action: () => handleCustomNav("challenges") },
+    { id: "community", label: "Community", sublabel: "Discuss & Post", action: () => handleCustomNav("community") },
     { id: "pricing", label: "Pricing Plans", sublabel: "Upgrade Status", action: () => handleCustomNav("pricing") },
   ];
 

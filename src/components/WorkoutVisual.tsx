@@ -29,6 +29,8 @@ export default function WorkoutVisual({
   muscleGroups = [], 
   className = "w-full", 
   exerciseName = "",
+  customMediaUrl,
+  customMediaType,
   isCard = false
 }: WorkoutVisualProps) {
 
@@ -43,54 +45,87 @@ export default function WorkoutVisual({
   const displayEquipment = exercise?.equipment || [];
   const displayDifficulty = exercise?.difficulty || "Beginner";
 
+  const resolvedMediaUrl = customMediaUrl || exercise?.customMediaUrl;
+  const resolvedMediaType = customMediaType || exercise?.customMediaType || "image";
+
   // Card Mode Layout Helper
   if (isCard) {
     return (
       <div 
         id={`visual-card-${(exerciseName || exercise?.name || "exercise").replace(/\s+/g, '-').toLowerCase()}`} 
-        className={`relative overflow-hidden ${className} bg-gradient-to-br from-slate-50 via-slate-100/30 to-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col justify-between`}
+        className={`relative overflow-hidden ${className} bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col justify-between`}
       >
-        <div className="flex flex-col h-full justify-between relative z-10">
+        {resolvedMediaUrl ? (
+          <div className="absolute inset-0 w-full h-full">
+            {resolvedMediaType === "video" ? (
+              <video 
+                src={resolvedMediaUrl} 
+                className="w-full h-full object-cover opacity-80" 
+                autoPlay 
+                loop 
+                muted 
+                playsInline
+              />
+            ) : (
+              <img 
+                src={resolvedMediaUrl} 
+                alt={exerciseName || "Exercise Preview"} 
+                className="w-full h-full object-cover opacity-80" 
+                referrerPolicy="no-referrer"
+              />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
+          </div>
+        ) : null}
+        
+        <div className="flex flex-col h-full justify-between relative z-10 p-4">
           {/* Top spacer to guarantee absolute safety under absolute parent badges */}
           <div className="h-6" />
           
           {/* Central graphic: stylized glowing biomechanical radar schematic */}
-          <div className="my-auto flex flex-col items-center justify-center space-y-2">
-            <div className="relative flex items-center justify-center">
-              {/* Outer pulsing ring */}
-              <div className="absolute inset-0 rounded-full bg-[#C0392B]/5 border border-[#C0392B]/10 animate-ping duration-[3000ms]" />
+          {!resolvedMediaUrl ? (
+            <div className="my-auto flex flex-col items-center justify-center space-y-2">
+              <div className="relative flex items-center justify-center">
+                {/* Outer pulsing ring */}
+                <div className="absolute inset-0 rounded-full bg-[#C0392B]/5 border border-[#C0392B]/10 animate-ping duration-[3000ms]" />
+                
+                {/* Middle concentric ring with dashed border */}
+                <div className="absolute h-16 w-16 rounded-full border border-dashed border-[#C0392B]/20 animate-spin-slow" style={{ animationDuration: '20s' }} />
+                
+                {/* Inner glowing circle */}
+                <div className="h-12 w-12 rounded-full bg-red-50 border border-red-200/50 flex items-center justify-center shadow-inner">
+                  <Dumbbell className="w-5 h-5 text-[#C0392B]" />
+                </div>
+              </div>
               
-              {/* Middle concentric ring with dashed border */}
-              <div className="absolute h-16 w-16 rounded-full border border-dashed border-[#C0392B]/20 animate-spin-slow" style={{ animationDuration: '20s' }} />
-              
-              {/* Inner glowing circle */}
-              <div className="h-12 w-12 rounded-full bg-red-50 border border-red-200/50 flex items-center justify-center shadow-inner">
-                <Dumbbell className="w-5 h-5 text-[#C0392B]" />
+              <div className="text-center space-y-0.5">
+                <span className="text-[8px] font-mono font-black text-[#C0392B] uppercase tracking-widest bg-red-50 px-2 py-0.5 rounded border border-red-100">
+                  KINETIC PROTOCOL
+                </span>
+                <p className="text-[10px] text-slate-500 font-sans font-bold tracking-tight">
+                  {displayMuscles.length > 0 ? `Target: ${displayMuscles[0].toUpperCase()}` : "BIOMECHANIC ANALYSIS"}
+                </p>
               </div>
             </div>
-            
-            <div className="text-center space-y-0.5">
-              <span className="text-[8px] font-mono font-black text-[#C0392B] uppercase tracking-widest bg-red-50 px-2 py-0.5 rounded border border-red-100">
-                KINETIC PROTOCOL
-              </span>
-              <p className="text-[10px] text-slate-500 font-sans font-bold tracking-tight">
-                {displayMuscles.length > 0 ? `Target: ${displayMuscles[0].toUpperCase()}` : "BIOMECHANIC ANALYSIS"}
-              </p>
+          ) : (
+            <div className="my-auto flex flex-col items-center justify-center">
+              {/* Optional overlay spacer */}
             </div>
-          </div>
+          )}
           
           {/* Footer bar */}
-          <div className="flex justify-between items-center border-t border-slate-100 pt-2 text-[7.5px] font-mono text-slate-400 uppercase tracking-widest">
-            <span>ALEX KINESIOLOGY</span>
+          <div className="flex justify-between items-center border-t border-slate-200/10 pt-2 text-[7.5px] font-mono text-slate-400 dark:text-slate-300 uppercase tracking-widest">
+            <span>{exerciseName || exercise?.name || "ALEX KINESIOLOGY"}</span>
             <div className="flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>SYSTEM ACTIVE</span>
+              <span>{resolvedMediaUrl ? "GIF ACTIVE" : "SYSTEM ACTIVE"}</span>
             </div>
           </div>
         </div>
         
-        {/* Subtle grid lines background overlay for a super premium clean technical feel */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000003_1px,transparent_1px),linear-gradient(to_bottom,#00000003_1px,transparent_1px)] bg-[size:12px_12px] pointer-events-none" />
+        {!resolvedMediaUrl && (
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000003_1px,transparent_1px),linear-gradient(to_bottom,#00000003_1px,transparent_1px)] bg-[size:12px_12px] pointer-events-none" />
+        )}
       </div>
     );
   }
@@ -125,6 +160,29 @@ export default function WorkoutVisual({
           </div>
         </div>
       </div>
+
+      {/* Manually uploaded GIF / custom media display */}
+      {resolvedMediaUrl && (
+        <div id="exercise-demo-media-box" className="w-full h-80 rounded-xl overflow-hidden bg-slate-950 border border-slate-200 dark:border-slate-850/80 flex items-center justify-center">
+          {resolvedMediaType === "video" ? (
+            <video 
+              src={resolvedMediaUrl} 
+              className="w-full h-full object-contain" 
+              autoPlay 
+              loop 
+              muted 
+              playsInline
+            />
+          ) : (
+            <img 
+              src={resolvedMediaUrl} 
+              alt={exerciseName || "Exercise Demo GIF"} 
+              className="w-full h-full object-contain" 
+              referrerPolicy="no-referrer"
+            />
+          )}
+        </div>
+      )}
 
       {/* 3-Part Movement Biomechanics Details */}
       {exercise && (

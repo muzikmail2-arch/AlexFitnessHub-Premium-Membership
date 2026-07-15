@@ -931,11 +931,13 @@ export default function WorkoutLibrary({ setView }: { setView?: (view: string) =
                 </div>
               </div>
 
-              {/* Anatomical Muscle Activation Overlay map */}
-              <MuscleAnatomyVisual 
-                muscleGroups={selectedExercise.muscleGroups}
-                musclesWorked={selectedExercise.musclesWorked}
-              />
+              {/* Manually upload custom demonstration GIF */}
+              {user?.email?.toLowerCase().trim() === "alexfitnesshub@gmail.com" && (
+                <CustomPerformanceUpload 
+                  exercise={selectedExercise} 
+                  uploadExerciseMedia={uploadExerciseMedia} 
+                />
+              )}
 
               {/* LOG COMPLETION STATE CONFORM LOGIC */}
               {user ? (
@@ -2098,11 +2100,13 @@ export default function WorkoutLibrary({ setView }: { setView?: (view: string) =
                       />
                     </div>
 
-                    {/* Anatomical Muscle Activation Overlay map */}
-                    <MuscleAnatomyVisual 
-                      muscleGroups={selectedExercise.muscleGroups}
-                      musclesWorked={selectedExercise.musclesWorked}
-                    />
+                    {/* Manually upload custom demonstration GIF */}
+                    {user?.email?.toLowerCase().trim() === "alexfitnesshub@gmail.com" && (
+                      <CustomPerformanceUpload 
+                        exercise={selectedExercise} 
+                        uploadExerciseMedia={uploadExerciseMedia} 
+                      />
+                    )}
                   </div>
 
                   {/* HOW TO PERFORM & TARGET MUSCLES */}
