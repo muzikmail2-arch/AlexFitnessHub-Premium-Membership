@@ -465,31 +465,49 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
   return (
     <div id="home-view-root" className="bg-white text-black min-h-screen relative font-sans animate-fade-in">
       
-      {/* 1. HERO SECTION WITH LUXURY BRIGHT CINEMATIC BACKGROUND */}
-      <section id="hero-segment" className="relative py-20 lg:py-28 flex items-center bg-slate-50 overflow-hidden border-b border-slate-200 min-h-[75vh] lg:min-h-[80vh]">
+      {/* 1. HERO SECTION - COMPELLING BRIGHT SOLO VISUAL BANNER */}
+      <section id="hero-segment" className="relative h-[55vh] sm:h-[65vh] lg:h-[75vh] w-full overflow-hidden bg-white border-b border-slate-200">
         
-        {/* Cinematic Background Image showing extremely bright with no dark overlays covering it */}
+        {/* Cinematic Background Image - Ultra-Bright, High-Exposure & Clear */}
         <div className="absolute inset-0 z-0 select-none pointer-events-none">
           <img 
-            src="https://raw.githubusercontent.com/muzikmail2-arch/bb/341f223de2ede2ba7829f27c60961f6e9ce037f4/ChatGPT%20Image%20Jul%2015%2C%202026%2C%2011_01_15%20PM.png" 
+            src="https://github.com/muzikmail2-arch/bb/blob/main/ChatGPT%20Image%20Jul%2015,%202026,%2006_45_05%20PM.png?raw=true" 
             alt="Alex Fitness Hub Elite Training Facility"
-            className="w-full h-full object-cover object-center scale-100 filter brightness-125 contrast-[1.05]"
+            className="w-full h-full object-cover object-center scale-100 filter brightness-125 contrast-110 saturate-105"
             referrerPolicy="no-referrer"
           />
+          {/* Subtle light vignettes just to frame the layout gently while keeping everything bright and white-based */}
+          <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/10 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white/15 to-transparent" />
         </div>
-        
-        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 z-10 relative">
-          <div className="flex flex-col items-center justify-center">
+
+        {/* Dynamic visual badge for the solo hero */}
+        <div className="absolute bottom-6 right-6 z-10 bg-white/95 backdrop-blur-md border border-slate-200 rounded-full px-5 py-2 flex items-center gap-2 shadow-lg">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+          <p className="text-[10px] font-mono font-black text-slate-800 tracking-widest uppercase">
+            ALEX FIT CENTER • LIVE SESSION READY
+          </p>
+        </div>
+      </section>
+
+      {/* 1.1 INTERACTIVE ENGINE & PREMIUM SLIDESHOW - PLACED DIRECTLY BELOW THE HERO */}
+      <section id="hero-carousel-segment" className="py-12 sm:py-16 lg:py-20 bg-white border-b border-slate-200/80 relative overflow-hidden">
+        {/* Decorative background visual accents */}
+        <div className="absolute top-1/4 -left-32 w-80 h-80 bg-red-500/5 rounded-full filter blur-3xl pointer-events-none select-none" />
+        <div className="absolute bottom-1/4 -right-32 w-80 h-80 bg-amber-500/5 rounded-full filter blur-3xl pointer-events-none select-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="flex flex-col items-center">
             
-            {/* Expanded Center Column: Carousel Text & Actions - Restructured with premium bright glass box */}
-            <div className="w-full max-w-3xl bg-white/95 backdrop-blur-md rounded-[2.5rem] border border-white/80 p-8 sm:p-12 shadow-2xl flex flex-col justify-center items-center text-center text-slate-900 relative">
-              <div className="relative min-h-[380px] sm:min-h-[300px] md:min-h-[260px] lg:min-h-[220px] w-full">
+            {/* Premium bright high-contrast card ensuring absolutely no word is hidden */}
+            <div className="w-full max-w-4xl bg-slate-50 rounded-[2.5rem] border border-slate-200 p-6 sm:p-10 lg:p-12 shadow-xl flex flex-col justify-center items-center text-center text-slate-900 relative">
+              <div className="relative min-h-[340px] sm:min-h-[260px] md:min-h-[220px] lg:min-h-[180px] w-full">
                 {heroSlides.map((slide, idx) => {
                   const isActive = idx === currentSlide;
                   return (
                     <div 
                       key={idx}
-                      className={`transition-all duration-[350ms] ease-out space-y-6 flex flex-col items-center ${
+                      className={`transition-all duration-[350ms] ease-out space-y-5 flex flex-col items-center ${
                         isActive 
                           ? "opacity-100 translate-y-0 scale-100" 
                           : "opacity-0 translate-y-4 scale-98 absolute inset-0 pointer-events-none"
@@ -499,11 +517,11 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                         {slide.eyebrow}
                       </span>
                       
-                      <h1 className="text-4xl sm:text-5xl md:text-6xl font-sans font-black tracking-tight leading-none uppercase select-none">
+                      <h1 className="text-3xl sm:text-4xl md:text-5xl font-sans font-black tracking-tight leading-tight uppercase select-none">
                         <span className="bg-gradient-to-r from-red-600 to-amber-500 bg-clip-text text-transparent">
                           {slide.wordOne}
                         </span>{" "}
-                        <span className="text-slate-900">
+                        <span className="text-slate-950">
                           {slide.wordTwo}
                         </span>
                       </h1>
@@ -512,7 +530,7 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                         {slide.desc}
                       </p>
 
-                      <div className="flex flex-wrap justify-center gap-4 pt-2">
+                      <div className="flex flex-wrap justify-center gap-4 pt-1">
                         <motion.button
                           whileHover={{ scale: 1.05, y: -2, boxShadow: "0 10px 20px rgba(211,47,47,0.4)" }}
                           whileTap={{ scale: 0.95 }}
@@ -528,7 +546,7 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                             const el = document.getElementById("pricing");
                             if (el) el.scrollIntoView({ behavior: "smooth" });
                           }}
-                          className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-900 font-sans font-black text-xs uppercase rounded-full border border-slate-300 shadow-md transition-all duration-200 cursor-pointer"
+                          className="px-6 py-3 bg-white hover:bg-slate-50 text-slate-900 font-sans font-black text-xs uppercase rounded-full border border-slate-200 shadow-md transition-all duration-200 cursor-pointer"
                         >
                           View Pricing
                         </motion.button>
@@ -538,10 +556,10 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                 })}
               </div>
 
-              {/* Carousel Layout Mechanics */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t border-slate-200/80 w-full">
+              {/* Carousel Navigation Mechanics */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t border-slate-200 w-full">
                 
-                {/* Pagination dots: active = red dot, inactive = slate dash */}
+                {/* Pagination dots: active = red dot, inactive = slate-200 */}
                 <div className="flex items-center gap-3">
                   {heroSlides.map((_, idx) => (
                     <button
@@ -557,18 +575,18 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                   ))}
                 </div>
 
-                {/* Round arrow nav buttons: dark circle, white chevron */}
+                {/* Round arrow nav buttons: light circle, dark chevron */}
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handlePrevSlide}
-                    className="p-3 rounded-full bg-slate-100 text-slate-800 hover:bg-[#D32F2F] hover:text-white transition-colors duration-200 shadow-sm cursor-pointer border border-slate-200"
+                    className="p-3 rounded-full bg-white text-slate-800 hover:bg-[#D32F2F] hover:text-white transition-colors duration-200 shadow-sm cursor-pointer border border-slate-200"
                     aria-label="Previous slide"
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
                   <button
                     onClick={handleNextSlide}
-                    className="p-3 rounded-full bg-slate-100 text-slate-800 hover:bg-[#D32F2F] hover:text-white transition-colors duration-200 shadow-sm cursor-pointer border border-slate-200"
+                    className="p-3 rounded-full bg-white text-slate-800 hover:bg-[#D32F2F] hover:text-white transition-colors duration-200 shadow-sm cursor-pointer border border-slate-200"
                     aria-label="Next slide"
                   >
                     <ArrowRight className="w-5 h-5" />
@@ -578,9 +596,7 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
             </div>
 
           </div>
-
         </div>
-
       </section>
 
       {/* 1.1 ELITE PERFORMANCE GALLERY & DEMONSTRATION */}

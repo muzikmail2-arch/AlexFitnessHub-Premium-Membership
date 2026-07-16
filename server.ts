@@ -138,24 +138,7 @@ function logDetailedError(category: string, error: any, context?: any) {
 const firebaseConfigPath = path.join(process.cwd(), "firebase-applet-config.json");
 let firebaseConfig = JSON.parse(fs.readFileSync(firebaseConfigPath, "utf-8"));
 
-// Dynamically patch the firebaseConfig to use the actual Google Cloud Project ID of this environment
-if (process.env.AUTHORIZED_SERVICE_ACCOUNT_EMAIL) {
-  const parts = process.env.AUTHORIZED_SERVICE_ACCOUNT_EMAIL.split("@");
-  if (parts.length > 1) {
-    const domainParts = parts[1].split(".");
-    if (domainParts.length > 0) {
-      const realProjectId = domainParts[0];
-      if (realProjectId && firebaseConfig.projectId !== realProjectId) {
-        console.log(`[Firebase Patch] Patching firebaseConfig.projectId: ${firebaseConfig.projectId} -> ${realProjectId}`);
-        firebaseConfig.projectId = realProjectId;
-        firebaseConfig.authDomain = `${realProjectId}.firebaseapp.com`;
-        firebaseConfig.storageBucket = `${realProjectId}.firebasestorage.app`;
-        // Write the patched configuration back to disk so client-side and server-side both use the correct project id
-        fs.writeFileSync(firebaseConfigPath, JSON.stringify(firebaseConfig, null, 2), "utf-8");
-      }
-    }
-  }
-}
+// No patching logic is allowed to override the user's correct, fully-provisioned Firebase project config.
 
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId);

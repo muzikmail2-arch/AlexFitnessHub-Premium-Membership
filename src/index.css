@@ -1,9 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;750&display=swap');
 @import "tailwindcss";
 
 /* Completely deactivate Tailwind v4 dark: styles globally so that user OS preferences (prefers-color-scheme) never break the clean light theme */
 @variant dark (&:where(.never-match-this-class-name));
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;750&display=swap');
 
 :root {
   --bg-primary: #FFFFFF;
@@ -68,7 +67,7 @@ html, body, #root, #home-view-root, main, section, footer, article, aside {
 
 /* Force white/midnight-dark backgrounds for all cards, list rows, bento blocks, tabs, code, drawers, and overlays */
 .bg-white, .bg-slate-50, .bg-slate-100, .bg-slate-200, .bg-slate-300, .bg-slate-900, .bg-slate-950, 
-.bg-gray-50, .bg-gray-100, .bg-gray-200, .bg-gray-900, .bg-zinc-900, .bg-black, .bg-[#1C1C1C], .bg-emerald-950\/20,
+.bg-gray-50, .bg-gray-100, .bg-gray-200, .bg-gray-900, .bg-zinc-900, .bg-black, .bg-\[\#1C1C1C\], .bg-emerald-950\/20,
 .bg-slate-50\/50, .bg-slate-900\/40, .bg-slate-900\/60, .bg-slate-50\/50, .bg-slate-900\/40, .bg-slate-900\/60,
 .bg-red-50, .bg-red-100, .bg-sky-50, .bg-emerald-500\/5, .bg-emerald-550 {
   background-color: var(--bg-card) !important;

@@ -15,7 +15,8 @@ try {
     app = getApp();
   }
   
-  db = getFirestore(app);
+  const dbId = (firebaseConfig as any).firestoreDatabaseId || "(default)";
+  db = getFirestore(app, dbId);
   auth = getAuth(app);
 } catch (error) {
   console.error("FATAL ERROR: Firebase initialization failed. Real production mode is required.", error);
