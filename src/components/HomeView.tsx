@@ -466,7 +466,7 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
     <div id="home-view-root" className="bg-white text-black min-h-screen relative font-sans animate-fade-in">
       
       {/* 1. HERO SECTION WITH LUXURY BRIGHT CINEMATIC BACKGROUND */}
-      <section id="hero-segment" className="relative py-20 lg:py-28 flex items-center bg-slate-50 overflow-hidden border-b border-slate-200 min-h-[70vh] lg:min-h-[75vh]">
+      <section id="hero-segment" className="relative py-20 lg:py-28 flex items-center bg-slate-50 overflow-hidden border-b border-slate-200 min-h-[75vh] lg:min-h-[80vh]">
         
         {/* Cinematic Background Image showing extremely bright with no dark overlays covering it */}
         <div className="absolute inset-0 z-0 select-none pointer-events-none">
@@ -481,9 +481,9 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 z-10 relative">
           <div className="flex flex-col items-center justify-center">
             
-            {/* Expanded Center Column: Carousel Text & Actions */}
-            <div className="w-full max-w-4xl flex flex-col justify-center items-center text-center text-white">
-              <div className="relative min-h-[350px] sm:min-h-[300px] md:min-h-[280px] lg:min-h-[240px] w-full">
+            {/* Expanded Center Column: Carousel Text & Actions - Restructured with premium bright glass box */}
+            <div className="w-full max-w-3xl bg-white/95 backdrop-blur-md rounded-[2.5rem] border border-white/80 p-8 sm:p-12 shadow-2xl flex flex-col justify-center items-center text-center text-slate-900 relative">
+              <div className="relative min-h-[380px] sm:min-h-[300px] md:min-h-[260px] lg:min-h-[220px] w-full">
                 {heroSlides.map((slide, idx) => {
                   const isActive = idx === currentSlide;
                   return (
@@ -499,14 +499,16 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                         {slide.eyebrow}
                       </span>
                       
-                      <h1 className="text-4xl sm:text-5xl md:text-6xl font-sans font-black tracking-tight leading-none uppercase select-none" style={{ color: '#DFB15B', textShadow: '0 3px 10px rgba(0,0,0,0.9)' }}>
-                        {slide.wordOne}{" "}
-                        <span className="text-white" style={{ textShadow: '0 3px 10px rgba(0,0,0,0.9)' }}>
+                      <h1 className="text-4xl sm:text-5xl md:text-6xl font-sans font-black tracking-tight leading-none uppercase select-none">
+                        <span className="bg-gradient-to-r from-red-600 to-amber-500 bg-clip-text text-transparent">
+                          {slide.wordOne}
+                        </span>{" "}
+                        <span className="text-slate-900">
                           {slide.wordTwo}
                         </span>
                       </h1>
 
-                      <p className="text-xs sm:text-sm text-white max-w-2xl leading-relaxed font-sans font-black" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.95)' }}>
+                      <p className="text-xs sm:text-sm text-slate-700 max-w-2xl leading-relaxed font-sans font-semibold">
                         {slide.desc}
                       </p>
 
@@ -520,7 +522,7 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                           Start Training
                         </motion.button>
                         <motion.button
-                          whileHover={{ scale: 1.05, y: -2, boxShadow: "0 10px 20px rgba(0,0,0,0.1)" }}
+                          whileHover={{ scale: 1.05, y: -2, boxShadow: "0 10px 20px rgba(0,0,0,0.05)" }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => {
                             const el = document.getElementById("pricing");
@@ -537,9 +539,9 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
               </div>
 
               {/* Carousel Layout Mechanics */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t border-slate-300/50 w-full">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t border-slate-200/80 w-full">
                 
-                {/* Pagination dots bottom-left: active = gold dot, inactive = slate dash */}
+                {/* Pagination dots: active = red dot, inactive = slate dash */}
                 <div className="flex items-center gap-3">
                   {heroSlides.map((_, idx) => (
                     <button
@@ -547,26 +549,26 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                       onClick={() => setCurrentSlide(idx)}
                       className={`transition-all duration-300 cursor-pointer ${
                         idx === currentSlide 
-                          ? "bg-[#D4AF37] w-8 h-2 rounded-full shadow-[0_0_10px_rgba(212,175,55,0.8)]" 
-                          : "bg-slate-400 w-3 h-2 rounded-full hover:bg-slate-500"
+                          ? "bg-[#D32F2F] w-8 h-2 rounded-full shadow-[0_0_10px_rgba(211,47,47,0.4)]" 
+                          : "bg-slate-300 w-3 h-2 rounded-full hover:bg-slate-400"
                       }`}
                       aria-label={`Go to slide ${idx + 1}`}
                     />
                   ))}
                 </div>
 
-                {/* Round arrow nav buttons bottom-right: red/gold circle, dark chevron */}
+                {/* Round arrow nav buttons: dark circle, white chevron */}
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handlePrevSlide}
-                    className="p-3 rounded-full bg-white/90 text-slate-800 hover:bg-[#D4AF37] hover:text-white transition-colors duration-200 shadow-md cursor-pointer border border-slate-200"
+                    className="p-3 rounded-full bg-slate-100 text-slate-800 hover:bg-[#D32F2F] hover:text-white transition-colors duration-200 shadow-sm cursor-pointer border border-slate-200"
                     aria-label="Previous slide"
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
                   <button
                     onClick={handleNextSlide}
-                    className="p-3 rounded-full bg-white/90 text-slate-800 hover:bg-[#D4AF37] hover:text-white transition-colors duration-200 shadow-md cursor-pointer border border-slate-200"
+                    className="p-3 rounded-full bg-slate-100 text-slate-800 hover:bg-[#D32F2F] hover:text-white transition-colors duration-200 shadow-sm cursor-pointer border border-slate-200"
                     aria-label="Next slide"
                   >
                     <ArrowRight className="w-5 h-5" />
@@ -583,7 +585,13 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
 
       {/* 1.1 ELITE PERFORMANCE GALLERY & DEMONSTRATION */}
       <section id="elite-gallery-segment" className="py-16 bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+        >
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
             {/* Left side: Premium High-Definition Video Player Container (Moved from Hero) */}
@@ -699,14 +707,20 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
             </div>
 
           </div>
-        </div>
+        </motion.div>
       </section>
 
 
 
       {/* 1.2 THE SPECTACULAR CORE HD WORKOUT COACHING STREAM */}
       <section id="hd-video-stream" className="py-20 bg-[#F7F7F7] border-b border-gray-150">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+        >
           
           <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
             <span className="text-[10px] font-sans font-black tracking-[0.25em] text-[#D32F2F] uppercase bg-red-50 px-3.5 py-1.5 rounded-full inline-block">
@@ -844,12 +858,18 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
             </div>
 
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* 1.3 INTERACTIVE LIFESTYLE & EXERCISE DIRECTORY */}
       <section id="lifestyle-exercise-directory" className="py-24 bg-white border-b border-gray-150">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+        >
           
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-2">
             <span className="text-[10px] font-sans font-black tracking-[0.2em] text-[#6B6B6B] uppercase block">
@@ -988,12 +1008,18 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
 
           </div>
 
-        </div>
+        </motion.div>
       </section>
 
       {/* 1.5 INTERACTIVE PLATFORM TECHNIQUE GUIDE */}
       <section id="technique-walkthrough" className="py-24 bg-slate-50 border-b border-gray-150">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+        >
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
             <span className="text-[10px] font-mono font-bold tracking-[0.25em] text-[#C0392B] uppercase bg-[#C0392B]/10 px-3.5 py-1 rounded-full inline-block">
               MASTER YOUR MECHANICS
@@ -1070,12 +1096,18 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
             </div>
 
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* 2. ALTERNATING ROW SECTIONS: CLINICAL METHODOLOGY */}
       <section id="why-choose-us" className="py-24 bg-white border-b border-gray-100">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8"
+        >
           
           <div className="text-center max-w-2xl mx-auto mb-20 space-y-2">
             <span className="text-[10px] font-sans font-black tracking-[0.2em] text-[#6B6B6B] uppercase block">
@@ -1134,12 +1166,18 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
             </div>
           </div>
 
-        </div>
+        </motion.div>
       </section>
 
       {/* 3. SHOWCASE OF CATEGORIES SECTION */}
       <section id="categories-segment" className="py-24 bg-[#F7F7F7] border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+        >
           
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-2">
             <span className="text-[10px] font-sans font-black tracking-[0.2em] text-[#6B6B6B] uppercase block">
@@ -1198,12 +1236,18 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
             ))}
           </div>
 
-        </div>
+        </motion.div>
       </section>
 
       {/* 4. PREMIUM INSTRUMENTS SECTION */}
       <section className="py-24 bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+        >
           
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-2">
             <span className="text-[10px] font-sans font-black tracking-[0.2em] text-[#6B6B6B] uppercase block">
@@ -1257,12 +1301,18 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
             </div>
           </div>
 
-        </div>
+        </motion.div>
       </section>
 
       {/* 4.6 THE SCIENCE OF BELLY FAT OXIDATION & WEIGHT REDUCTION */}
       <section id="fat-loss-blueprint" className="py-24 bg-slate-50 border-b border-gray-150">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+        >
           
           <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
             <span className="text-[10px] font-sans font-black tracking-[0.25em] text-[#D32F2F] uppercase bg-red-50 px-3.5 py-1.5 rounded-full inline-block">
@@ -1402,12 +1452,18 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
             </div>
 
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* 4.5 SOCIAL PROOF TESTIMONIALS */}
       <section id="social-proof" className="py-24 bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+        >
           
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-2">
             <span className="text-[10px] font-sans font-black tracking-[0.2em] text-[#6B6B6B] uppercase block">
@@ -1505,12 +1561,18 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
             </div>
           )}
 
-        </div>
+        </motion.div>
       </section>
 
       {/* 5. PRICING PLANS */}
       <section id="pricing" className="py-24 bg-[#F7F7F7] border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+        >
           
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-2">
             <span className="text-[10px] font-sans font-black tracking-[0.2em] text-[#6B6B6B] uppercase block">
@@ -1725,12 +1787,18 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
             </p>
           </div>
 
-        </div>
+        </motion.div>
       </section>
 
       {/* 6. DYNAMIC ACCORDION FAQS SYSTEM */}
       <section id="faqs-segment" className="py-24 bg-white border-b border-gray-100">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"
+        >
           
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-2">
             <span className="text-[10px] font-sans font-black tracking-[0.2em] text-[#6B6B6B] uppercase block">
@@ -1773,12 +1841,18 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
             ))}
           </div>
 
-        </div>
+        </motion.div>
       </section>
 
       {/* 7. CONTACT / PREMIUM CONSULTATION FORM */}
       <section id="contact" className="py-24 bg-[#F7F7F7] border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"
+        >
           
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-2">
             <span className="text-[10px] font-sans font-black tracking-[0.2em] text-[#6B6B6B] uppercase block">
@@ -1881,7 +1955,7 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
             )}
           </div>
 
-        </div>
+        </motion.div>
       </section>
 
       {/* 8. FLOATING ACTION BUTTON: Fixed circular red chat bubble bottom-right */}

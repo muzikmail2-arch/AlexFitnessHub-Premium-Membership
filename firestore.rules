@@ -23,6 +23,13 @@ service cloud.firestore {
       );
     }
 
+    function isPremium() {
+      return isSignedIn() && (
+        isAdmin() ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.subscriptionStatus == 'premium'
+      );
+    }
+
     function isValidId(id) {
       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
@@ -75,7 +82,7 @@ service cloud.firestore {
 
     // --- AI Coach Chats ---
     match /ai_coach_chats/{chatId} {
-      allow read, write: if isSignedIn() && (
+      allow read, write: if isPremium() && (
         (resource == null && request.resource.data.userId == request.auth.uid) ||
         (resource != null && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid) ||
         isAdmin()
@@ -84,7 +91,7 @@ service cloud.firestore {
 
     // --- Custom Programs ---
     match /custom_programs/{programId} {
-      allow read, write: if isSignedIn() && (
+      allow read, write: if isPremium() && (
         (resource == null && request.resource.data.userId == request.auth.uid) ||
         (resource != null && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid) ||
         isAdmin()
@@ -93,7 +100,7 @@ service cloud.firestore {
 
     // --- Favorite Videos ---
     match /favorite_videos/{favoriteId} {
-      allow read, write: if isSignedIn() && (
+      allow read, write: if isPremium() && (
         (resource == null && request.resource.data.userId == request.auth.uid) ||
         (resource != null && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid) ||
         isAdmin()
@@ -102,7 +109,7 @@ service cloud.firestore {
 
     // --- Video Search History ---
     match /video_search_history/{historyId} {
-      allow read, write: if isSignedIn() && (
+      allow read, write: if isPremium() && (
         (resource == null && request.resource.data.userId == request.auth.uid) ||
         (resource != null && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid) ||
         isAdmin()
@@ -129,7 +136,7 @@ service cloud.firestore {
 
     // --- Weekly Reports ---
     match /weekly_reports/{reportId} {
-      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow read: if isPremium() && (resource.data.userId == request.auth.uid || isAdmin());
       allow write: if isAdmin();
     }
 
@@ -144,8 +151,8 @@ service cloud.firestore {
 
     // --- Community Posts ---
     match /community_posts/{postId} {
-      allow read: if isSignedIn();
-      allow write: if isSignedIn() && (
+      allow read: if isPremium();
+      allow write: if isPremium() && (
         (resource == null && request.resource.data.userId == request.auth.uid) ||
         (resource != null && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid) ||
         isAdmin()
@@ -160,7 +167,7 @@ service cloud.firestore {
 
     // --- User Inspirations (Poster Art Gallery) ---
     match /user_inspirations/{inspirationId} {
-      allow read, write: if isSignedIn() && (
+      allow read, write: if isPremium() && (
         (resource == null && request.resource.data.userId == request.auth.uid) ||
         (resource != null && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid) ||
         isAdmin()

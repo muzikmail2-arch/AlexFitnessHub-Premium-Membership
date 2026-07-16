@@ -29,6 +29,7 @@ import NutritionView from "./NutritionView";
 import DailyPlanView from "./DailyPlanView";
 import CoachView from "./CoachView";
 import CommunityView from "./CommunityView";
+import PageHero from "./PageHero";
 
 interface DashboardProps {
   activeView?: string;
@@ -1210,23 +1211,26 @@ function HabitTrackerView() {
   const streakDays = Object.keys(history).filter(k => history[k] >= 3).length;
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center border-b border-slate-150 dark:border-slate-900 pb-5">
-        <div>
-          <h2 className="text-xl font-sans font-black uppercase tracking-tight text-slate-900 dark:text-white">
-            Daily Athletic <span className="text-[#D32F2F]">Habits</span>
-          </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Build bulletproof athletic compliance by logging your priority baseline daily behaviors.
-          </p>
-        </div>
+    <div className="space-y-6 text-left">
+      <PageHero
+        title="Daily Athletic Habits"
+        subtitle="Bulletproof Compliance Engine"
+        description="Build bulletproof athletic compliance and support testosterone or physical transformation goals by logging your priority baseline daily behaviors."
+        imageUrl="https://images.unsplash.com/photo-1552674605-db6ffd4facb5?q=80&w=600&auto=format&fit=crop"
+        category="ATHLETIC COMPLIANCE"
+      />
 
+      <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-900 px-5 py-4 rounded-2xl border border-slate-200/60 dark:border-slate-850">
+        <div className="text-left">
+          <h3 className="text-xs font-black uppercase text-slate-800 dark:text-white font-sans">Streak Checkpoint</h3>
+          <p className="text-[10px] text-slate-500 font-medium">Log 3 or more daily habits to retain your active streak.</p>
+        </div>
         {/* Continuous Active Streak indicators */}
-        <div className="bg-amber-500/10 text-amber-500 px-4 py-2 rounded-2xl border border-amber-500/15 flex items-center gap-2">
-          <Flame className="w-5 h-5 fill-amber-500/20" />
-          <div>
+        <div className="bg-amber-500/10 text-amber-600 dark:text-amber-400 px-4 py-2.5 rounded-2xl border border-amber-500/15 flex items-center gap-2">
+          <Flame className="w-5 h-5 fill-amber-500/20 shrink-0 animate-pulse" />
+          <div className="text-left">
             <p className="text-[8px] font-mono uppercase text-amber-600 leading-none">Compliance Streak</p>
-            <p className="text-sm font-black mt-0.5 leading-none">{streakDays} Active Days</p>
+            <p className="text-xs font-black mt-1 leading-none">{streakDays} Active Days</p>
           </div>
         </div>
       </div>

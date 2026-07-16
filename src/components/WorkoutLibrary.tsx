@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import WorkoutVisual from "./WorkoutVisual";
 import MuscleAnatomyVisual from "./MuscleAnatomyVisual";
+import PageHero from "./PageHero";
 
 const getQueryTargetGroup = (q: string): string | null => {
   const normalized = q.trim().toLowerCase();
@@ -1226,26 +1227,13 @@ export default function WorkoutLibrary({ setView }: { setView?: (view: string) =
       )}
 
       {/* 1. HEADER TITLE SECTION (Fully customized Red & White) */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 border-b border-red-100 pb-6">
-        <div>
-          <span className="text-[11px] font-bold font-mono text-[#C0392B] bg-red-50 py-1 px-3 border border-red-100 rounded-full uppercase tracking-widest leading-none">
-            Verified Kinesiology Engine
-          </span>
-          <h2 className="text-4xl font-black text-[#C0392B] tracking-tight mt-3">
-            Exercise Library
-          </h2>
-          <p className="text-xs text-slate-600 max-w-xl mt-2 leading-relaxed">
-            Explore hundreds of compound and isolation exercises with step-by-step clinical instructions, kinesiologist tutorials, and proper target technique tracking. Style-crafted with our signature red and white aesthetic.
-          </p>
-        </div>
-        
-        {/* Core database metrics */}
-        <div id="core-database-metrics" className="p-3.5 rounded-2xl border border-red-150 bg-red-50/30 text-[10px] text-[#C0392B] font-mono tracking-wide flex items-center gap-4 shrink-0 shadow-sm font-sans">
-          <div><span className="text-[#C0392B] font-black">{isUserPremium ? exercises.length : exercises.filter(e => !e.isPremium).length}</span> EXERCISES LOADED</div>
-          <div className="w-px h-4 bg-red-200" />
-          <div><span className="text-[#C0392B] font-black">{PROGRAMS.length}</span> ENROLLABLE PROGRAMS</div>
-        </div>
-      </div>
+      <PageHero
+        title="Workout Library"
+        subtitle="Verified Kinesiology Engine"
+        description="Explore hundreds of compound and isolation exercises with step-by-step clinical instructions, kinesiologist tutorials, and proper target technique tracking. Active database is fully calibrated for optimal physique transformation."
+        imageUrl="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600&auto=format&fit=crop"
+        category="PHYSIQUE TRANSFORMATION"
+      />
 
       {/* 2. INSTANT SEARCH ENGINE BAR */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-6">

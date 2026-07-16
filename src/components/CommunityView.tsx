@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
+import PageHero from "./PageHero";
 import { 
   MessageSquare, Heart, AlertTriangle, Send, ShieldAlert, Check,
   Sparkles, Filter, PlusCircle, CheckCircle, Tag, Image, Trash 
@@ -78,24 +79,22 @@ export default function CommunityView() {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8 animate-fade-in">
       
       {/* HEADER SECTION banner */}
-      <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-6">
-        <div className="absolute top-0 right-0 h-40 w-40 bg-radial-[circle_at_center,_rgba(16,185,129,0.03)_15%,_transparent_60%]" />
-        
-        <div>
-          <span className="text-[10px] font-bold text-emerald-500 font-mono uppercase tracking-widest bg-emerald-500/10 px-2.5 py-1 rounded-full">
-            ALEXFITNESSHUB ATHLE-NET
-          </span>
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white mt-3 leading-none tracking-tight">
-            Athlete Community & Forum
-          </h1>
-          <p className="text-xs text-slate-500 mt-2 max-w-lg leading-relaxed">
-            Discuss routines, share progress weights, motivate fellow warriors, and coordinate fitness challenges in real time.
-          </p>
-        </div>
+      <PageHero
+        title="Athlete Community Forum"
+        subtitle="AlexFitnessHub Athle-Net"
+        description="Discuss routines, share progress weights, motivate fellow warriors, and coordinate fitness challenges in real-time. Share your transformation journey with the world."
+        imageUrl="https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?q=80&w=600&auto=format&fit=crop"
+        category="COMMUNITY ARENA"
+      />
 
+      <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-900 px-5 py-4 rounded-2xl border border-slate-200/60 dark:border-slate-850">
+        <div className="text-left">
+          <h3 className="text-xs font-black uppercase text-slate-800 dark:text-white font-sans">Share your Progress</h3>
+          <p className="text-[10px] text-slate-500 font-medium font-sans">Publish an update, post a lifting photo, or discuss training tips with elite athletes.</p>
+        </div>
         <button
           onClick={() => setShowAddForm(!showAddForm)}
-          className="py-3 px-5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-black font-mono uppercase tracking-widest flex items-center gap-2 transition duration-200 shadow-md shadow-emerald-900/10 shrink-0"
+          className="py-3 px-5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-black font-mono uppercase tracking-widest flex items-center gap-2 transition duration-200 shadow-md shadow-emerald-900/10 shrink-0 cursor-pointer"
         >
           <PlusCircle className="w-4 h-4" />
           {showAddForm ? "CLOSE PUBLISHER" : "SHARE UPDATE"}

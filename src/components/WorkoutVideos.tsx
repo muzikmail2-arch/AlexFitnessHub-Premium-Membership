@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useApp } from "../context/AppContext";
 import { db, auth, OperationType, handleFirestoreError } from "../lib/firebase";
+import PageHero from "./PageHero";
 import { 
   collection, 
   addDoc, 
@@ -388,21 +389,13 @@ export default function WorkoutVideos() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-8 min-h-screen">
       
       {/* Visual Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-[#1E3A8A]/90 to-slate-900 border border-slate-800 p-8 sm:p-12 mb-8 shadow-2xl">
-        <div className="absolute top-0 right-0 h-40 w-40 bg-blue-500/10 blur-3xl rounded-full" />
-        <div className="relative z-10 max-w-2xl">
-          <div className="inline-flex items-center gap-1.5 bg-blue-500/20 text-blue-400 text-xs font-bold px-3 py-1 rounded-full border border-blue-500/20 uppercase tracking-widest mb-4 animate-pulse">
-            <Sparkles className="w-3.5 h-3.5" />
-            VOD Studio
-          </div>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-sans font-extrabold tracking-tight text-white mb-3">
-            Workout Videos <span className="text-blue-400">Library</span>
-          </h1>
-          <p className="text-sm sm:text-base text-slate-300">
-            Search, discover, and play along with premium fitness videos from world-leading coaches directly inside our application. Filters and bookmark lists save instantly.
-          </p>
-        </div>
-      </div>
+      <PageHero
+        title="Workout Videos Library"
+        subtitle="VOD Studio"
+        description="Search, discover, and play along with premium fitness videos from world-leading coaches directly inside our application. Filters and bookmark lists save instantly to your personal cloud profile."
+        imageUrl="https://images.unsplash.com/photo-1518310383802-640c2de311b2?q=80&w=600&auto=format&fit=crop"
+        category="VIDEO TUTORIALS"
+      />
 
       {/* Tabs navigation */}
       <div className="flex border-b border-slate-200 dark:border-slate-800 mb-8 overflow-hidden">

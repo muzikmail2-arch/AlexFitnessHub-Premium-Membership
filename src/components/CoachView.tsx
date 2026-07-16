@@ -3,6 +3,7 @@ import { useApp } from "../context/AppContext";
 import { Sparkles, Send, Trash2, ShieldAlert, Cpu, Heart, CheckCircle2, Flame, Clock, BookOpen, Info, Apple, Award, Image as ImageIcon, Download, Trash, Check, Loader2, RefreshCw, Palette, Layers, HelpCircle } from "lucide-react";
 import { collection, addDoc, getDocs, query, where, deleteDoc, doc } from "firebase/firestore";
 import { db, isMockFirebase, auth } from "../lib/firebase";
+import PageHero from "./PageHero";
 
 interface InspirationItem {
   id: string;
@@ -257,32 +258,13 @@ export default function CoachView() {
     <div className="max-w-5xl mx-auto px-4 py-8 min-h-[80vh] flex flex-col justify-between font-sans">
       
       {/* Top Coach Ribbon */}
-      <div className="p-4 rounded-2xl bg-white border border-slate-200 flex justify-between items-center shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 bg-[#C0392B] rounded-xl flex items-center justify-center shadow">
-            <Cpu className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h3 className="text-sm font-black text-[#C0392B] uppercase tracking-wide flex items-center gap-1.5">
-              Coach Alex Premium AI
-              <span className="text-[8px] font-bold bg-red-100 text-[#C0392B] px-1.5 py-0.5 rounded uppercase tracking-wider font-mono">
-                Active
-              </span>
-            </h3>
-            <p className="text-[10px] text-slate-500 font-mono">GEMINI 3.5 FLASH COGNITIVE CORE</p>
-          </div>
-        </div>
-
-        {activeTab === "chat" && (
-          <button
-            onClick={clearCoachChat}
-            title="Clear chat context"
-            className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg border border-transparent hover:border-rose-100 transition cursor-pointer"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        )}
-      </div>
+      <PageHero
+        title="Coach Alex Premium AI"
+        subtitle="Gemini 3.5 Flash Cognitive Core"
+        description="Interact with Coach Alex, your direct kinesiologist and nutrition expert. Leverage custom biomechanics, rapid stance tuning, and real-time exercise feedback."
+        imageUrl="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=600&auto=format&fit=crop"
+        category="AI COGNITIVE COACH"
+      />
 
       {/* Tab switcher */}
       <div className="flex border-b border-slate-200 mt-4 mb-2 shrink-0">
@@ -549,6 +531,17 @@ export default function CoachView() {
 
       {activeTab === "chat" && (
         <>
+          {chatMessages.length > 0 && (
+            <div className="flex justify-end px-2 shrink-0 my-2">
+              <button
+                onClick={clearCoachChat}
+                className="text-[10px] font-mono font-black text-[#C0392B] hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg border border-red-200 transition-all uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-sm"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Clear Chat History
+              </button>
+            </div>
+          )}
           {/* CHAT LOG AREA */}
           <div className="flex-1 overflow-y-auto my-4 py-4 space-y-4 px-1 scrollbar-thin">
             

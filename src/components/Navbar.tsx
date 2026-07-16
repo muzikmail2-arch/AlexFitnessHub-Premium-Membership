@@ -66,10 +66,9 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
       { id: "coach", label: "AI Coach", action: () => handleNav("coach") },
     ] : [
       { id: "home", label: "Home", action: () => handleNav("home") },
-      { id: "daily-plan", label: "My Plan", action: () => handleNav("daily-plan") },
-      { id: "challenges", label: "Challenges", action: () => handleNav("challenges") },
-      { id: "community", label: "Community", action: () => handleNav("community") },
       { id: "pricing", label: "Pricing", action: () => handleNav("home", "pricing") },
+      { id: "testimonials-segment", label: "Reviews", action: () => handleNav("home", "testimonials-segment") },
+      { id: "contact", label: "Contact", action: () => handleNav("home", "contact") },
     ]
   ) : [
     { id: "home", label: "Home", action: () => handleNav("home") },
@@ -99,7 +98,7 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
     
     // If the user is on the free plan, block premium workouts and redirect to pricing section on Home
     if (user && user.subscriptionStatus !== "premium" && user.role !== "admin") {
-      const standalonePremiumViews = ["library", "workout-generator", "workout-videos", "saved-exercises", "coach", "nutrition"];
+      const standalonePremiumViews = ["library", "workout-generator", "workout-videos", "saved-exercises", "coach", "nutrition", "daily-plan", "challenges", "community", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory", "dashboard"];
       if (standalonePremiumViews.includes(targetView)) {
         setView("home");
         setTimeout(() => {
@@ -146,11 +145,6 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
     { id: "pricing", label: "Pricing Plans", sublabel: "Upgrade Status", action: () => handleCustomNav("pricing") },
   ] : [
     { id: "home", label: "Homepage", sublabel: "Public Hub", action: () => handleCustomNav("home") },
-    { id: "daily-plan", label: "My Plan", sublabel: "Daily Schedules", action: () => handleCustomNav("daily-plan") },
-    { id: "nutrition", label: "Nutrition", sublabel: "Meal Config", action: () => handleCustomNav("nutrition") },
-    { id: "coach", label: "AI Coach", sublabel: "AI Optimization", action: () => handleCustomNav("coach") },
-    { id: "challenges", label: "Challenges", sublabel: "Monthly Competitions", action: () => handleCustomNav("challenges") },
-    { id: "community", label: "Community", sublabel: "Discuss & Post", action: () => handleCustomNav("community") },
     { id: "pricing", label: "Pricing Plans", sublabel: "Upgrade Status", action: () => handleCustomNav("pricing") },
   ];
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useApp } from "../context/AppContext";
 import { db, auth } from "../lib/firebase";
+import PageHero from "./PageHero";
 import { 
   collection, 
   doc, 
@@ -373,47 +374,33 @@ export default function FitnessChallenges() {
     <div id="fitness_challenges_root" className="min-h-screen bg-slate-50 text-slate-900 pb-20 font-sans">
       
       {/* Premium Red Banner / Header Section */}
-      <div className="bg-[#D32F2F] text-white py-14 px-4 shadow-md relative overflow-hidden">
-        {/* Subtle geometric pattern overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-red-700/30 to-black/15 opacity-80" />
-        <div className="absolute right-[-10%] top-[-50%] w-[30rem] h-[30rem] bg-white/5 rounded-full blur-3xl pointer-events-none" />
-        
-        <div className="max-w-7xl mx-auto relative z-10 text-left">
-          <motion.div 
-            initial={{ opacity: 0, y: -15 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 px-3.5 py-1.5 rounded-full mb-4 text-xs font-black uppercase tracking-wider"
-          >
-            <Trophy className="h-4 w-4 text-amber-300 animate-bounce" />
-            <span>Athletic Arena</span>
-          </motion.div>
-          
-          <h1 className="text-4xl md:text-5xl font-black tracking-tight uppercase mb-3">
-            Fitness Challenges
-          </h1>
-          <p className="text-white/80 text-sm md:text-base max-w-2xl font-medium leading-relaxed">
-            Join monthly community challenges, push past individual physical ceilings, track your live progress against elite competitors, and claim authentic digital badges.
-          </p>
+      <PageHero
+        title="Fitness Challenges"
+        subtitle="Athletic Arena"
+        description="Join monthly community challenges, push past individual physical ceilings, track your live progress against elite competitors, and claim authentic digital badges."
+        imageUrl="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600&auto=format&fit=crop"
+        category="ATHLETIC ARENA"
+      />
 
-          {/* Quick stats board */}
-          <div className="flex flex-wrap gap-4 mt-8">
-            <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl px-5 py-3 text-left">
-              <span className="text-xs text-white/60 font-black uppercase tracking-wider">Active Challenges</span>
-              <p className="text-2xl font-black mt-0.5">{activeCount}</p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl px-5 py-3 text-left">
-              <span className="text-xs text-white/60 font-black uppercase tracking-wider">Completed / Badges</span>
-              <p className="text-2xl font-black mt-0.5 text-amber-300 flex items-center gap-1.5">
-                <Crown className="h-5 w-5 fill-amber-300 text-amber-300" />
-                {completedCount}
-              </p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl px-5 py-3 text-left">
-              <span className="text-xs text-white/60 font-black uppercase tracking-wider">Global Rank Tier</span>
-              <p className="text-2xl font-black mt-0.5 uppercase tracking-tight text-amber-300">
-                {completedCount >= 4 ? "Elite Sentinel" : completedCount >= 2 ? "Crucible Knight" : "Vanguard Initiate"}
-              </p>
-            </div>
+      {/* Quick stats board */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-5 text-left shadow-sm">
+            <span className="text-[10px] text-slate-500 font-mono font-black uppercase tracking-widest">Active Challenges</span>
+            <p className="text-3xl font-black mt-1 text-[#D32F2F] font-sans">{activeCount}</p>
+          </div>
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-5 text-left shadow-sm">
+            <span className="text-[10px] text-slate-500 font-mono font-black uppercase tracking-widest">Completed / Badges</span>
+            <p className="text-3xl font-black mt-1 text-amber-500 flex items-center gap-1.5 font-sans">
+              <Crown className="h-6 w-6 fill-amber-400 text-amber-500 shrink-0" />
+              {completedCount}
+            </p>
+          </div>
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-5 text-left shadow-sm">
+            <span className="text-[10px] text-slate-500 font-mono font-black uppercase tracking-widest">Global Rank Tier</span>
+            <p className="text-lg font-black mt-2 uppercase tracking-tight text-amber-600 font-sans">
+              {completedCount >= 4 ? "Elite Sentinel" : completedCount >= 2 ? "Crucible Knight" : "Vanguard Initiate"}
+            </p>
           </div>
         </div>
       </div>

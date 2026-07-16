@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { useApp } from "../context/AppContext";
 import { Exercise } from "../data/exercises";
 import WorkoutVisual from "./WorkoutVisual";
+import PageHero from "./PageHero";
 import { 
   Sparkles, Lock, ChevronRight, Bookmark, Search, Trash2, 
   Dumbbell, CheckCircle2, Award, Calendar, HelpCircle, X, Check, Clipboard
@@ -106,35 +107,13 @@ export default function SavedExercisesView({ setView }: SavedExercisesViewProps)
     <div id="saved-exercises-root" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 bg-white text-slate-900 min-h-screen">
       
       {/* 1. HERO TITLE BLOCK (Beautiful customized Red & White header) */}
-      <div className="relative bg-white border-2 border-[#C0392B] rounded-3xl p-6 sm:p-8 overflow-hidden shadow-md">
-        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-          <Bookmark className="w-48 h-48 text-[#C0392B]" />
-        </div>
-        <div className="absolute inset-0 bg-red-50/20 pointer-events-none" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
-            <div className="inline-flex items-center gap-2 bg-red-50 border border-red-100 px-3.5 py-1.5 rounded-full mb-3">
-              <span className="w-2 h-2 rounded-full bg-[#C0392B] animate-pulse" />
-              <span className="text-[10px] sm:text-xs font-mono font-bold text-[#C0392B] uppercase tracking-widest">
-                Dynamic Saved Vault ({bookmarkedExercises.length} Exercises)
-              </span>
-            </div>
-            <h1 className="text-2xl sm:text-4xl font-sans font-black tracking-tight text-[#C0392B] leading-tight">
-              YOUR SAVED WORKOUTS & EXERCISES
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-600 max-w-2xl mt-2 font-sans leading-relaxed">
-              Curate and master your core biomechanical patterns. Pin your favorites here, preview video templates, and log performance history.
-            </p>
-          </div>
-          <button
-            onClick={() => setView("library")}
-            className="self-start md:self-center px-5 py-3 rounded-xl text-xs font-mono font-black uppercase tracking-wider bg-[#C0392B] hover:bg-[#A82E22] text-white transition-all flex items-center gap-1.5 shadow-lg cursor-pointer"
-          >
-            <Dumbbell className="w-4 h-4" />
-            <span>Discover Exercises</span>
-          </button>
-        </div>
-      </div>
+      <PageHero
+        title="Your Saved Workouts"
+        subtitle={`Curated Saved Vault (${bookmarkedExercises.length} Exercises)`}
+        description="Curate and master your core biomechanical patterns. Pin your favorites here, preview video templates, log performance history, and sync stats automatically to the secure cloud."
+        imageUrl="https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=600&auto=format&fit=crop"
+        category="CURATED WORKOUT VAULT"
+      />
 
       {/* 2. SEARCH & RECOMMENDATION SECTION */}
       {bookmarkedExercises.length > 0 && (

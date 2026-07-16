@@ -930,31 +930,10 @@ You recently completed a workout featuring **${latestEx}**! Here is your dynamic
 });
 
 // 1.7. AI-POWERED PERSONAL FITNESS PLAN GENERATOR ENDPOINT
-app.post("/api/gemini/generate-plan", async (req, res) => {
-  const authHeader = req.headers.authorization;
-  let token = "";
-  if (authHeader && authHeader.startsWith("Bearer ")) {
-    token = authHeader.split("Bearer ")[1];
-  }
-
-  let { profile, scaleDaysState = "Normal" } = req.body;
-  let isPremium = profile && (profile.subscriptionStatus === "premium" || profile.role === "admin");
-
-  if (token) {
-    const decoded = await verifyFirebaseIdToken(token);
-    if (decoded) {
-      try {
-        const userSnap = await getServerFirestoreDoc("users", decoded.uid);
-        if (userSnap.exists) {
-          const dbProfile = userSnap.data();
-          isPremium = isPremium || dbProfile.subscriptionStatus === "premium" || dbProfile.role === "admin";
-          profile = profile || dbProfile;
-        }
-      } catch (err) {
-        console.error("Error loading user profile in generate-plan auth check:", err);
-      }
-    }
-  }
+app.post("/api/gemini/generate-plan", requirePremium, async (req: any, res: any) => {
+  let { scaleDaysState = "Normal" } = req.body;
+  let profile = req.user.profile;
+  const isPremium = true;
 
   if (!profile) {
     return res.status(400).json({ success: false, error: "Profile details are required." });
@@ -1759,7 +1738,7 @@ Please analyze this target drill or routine, deduce its biomechanics, and return
 }`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.5-flash",
       contents,
     });
 
@@ -2274,7 +2253,7 @@ async function scrapeYouTubeSearch(query: string): Promise<any[]> {
 }
 
 // Workout videos search API
-app.get("/api/videos/search", async (req, res) => {
+app.get("/api/videos/search", requirePremium, async (req: any, res: any) => {
   const qStr = (req.query.q as string || "").trim();
   const filterVal = (req.query.filter as string || "").trim();
   const getTrending = req.query.trending === "true";
@@ -2389,7 +2368,7 @@ app.get("/api/videos/search", async (req, res) => {
 });
 
 // GET query instant suggestions list
-app.get("/api/videos/suggestions", (req, res) => {
+app.get("/api/videos/suggestions", requirePremium, (req: any, res: any) => {
   const query = (req.query.q as string || "").trim().toLowerCase();
   
   if (!query) {
@@ -3178,10 +3157,16 @@ app.get("/api/payments/status", async (req, res) => {
 // --- WEEKLY PROGRESS REPORTS FOR PREMIUM USERS ---
 
 // GET /api/weekly-reports - Fetch user's generated reports
-app.post("/api/weekly-reports", async (req, res) => {
+app.post("/api/weekly-reports", requirePremium, async (req: any, res: any) => {
   const { userId } = req.body;
   if (!userId) {
     return res.status(400).json({ success: false, error: "userId is required." });
+  }
+
+  // Enforce access control: user can only fetch their own reports, unless they are admin!
+  if (req.user.uid !== userId && req.user.role !== "admin") {
+    console.warn(`[Access Denial] User UID ${req.user.uid} tried to query weekly reports of UID ${userId}`);
+    return res.status(403).json({ success: false, error: "Access Denied. You can only fetch your own reports." });
   }
 
   try {

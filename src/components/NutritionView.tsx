@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useApp } from "../context/AppContext";
 import { auth } from "../lib/firebase";
+import PageHero from "./PageHero";
 import { 
   Apple, Flame, Award, HelpCircle, Utensils, RotateCcw, 
   Sparkles, Check, ChevronRight, CheckCircle2, ChevronDown,
@@ -444,37 +445,13 @@ export default function NutritionView() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in">
       
       {/* HEADER INDEX CARDS */}
-      <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-6">
-        <div className="absolute top-0 right-0 h-40 w-40 bg-radial-[circle_at_center,_rgba(16,185,129,0.03)_15%,_transparent_60%]" />
-        
-        <div>
-          <span className="text-[10px] font-bold text-emerald-500 font-mono uppercase tracking-widest bg-emerald-500/10 px-2.5 py-1 rounded-full">
-            NUTRITION CALIBRATION ENGINE
-          </span>
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white mt-3 leading-none tracking-tight">
-            African & International Macro Hub
-          </h1>
-          <p className="text-xs text-slate-500 mt-2 max-w-lg leading-relaxed">
-            Real BMR algorithms calibrated to dietary preferences, African foods (Egusi, Jollof, Akara), and healthy macro subdivisions.
-          </p>
-        </div>
-
-        {/* Dynamic Target Metrics summary */}
-        <div className="grid grid-cols-2 gap-3 min-w-[240px]">
-          <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800/80">
-            <div className="text-[20px] font-black text-[#1E3A8A] dark:text-blue-400 font-mono">
-              {metrics.calories}
-            </div>
-            <div className="text-[9px] text-slate-500 font-bold uppercase font-mono mt-0.5">TDEE Intake (kCal)</div>
-          </div>
-          <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800/80">
-            <div className="text-[20px] font-black text-emerald-500 font-mono">
-              {metrics.protein}g
-            </div>
-            <div className="text-[9px] text-slate-500 font-bold uppercase font-mono mt-0.5">Protein Target</div>
-          </div>
-        </div>
-      </div>
+      <PageHero
+        title="African & International Macro Hub"
+        subtitle="Nutrition Calibration Engine"
+        description="Real BMR algorithms calibrated to dietary preferences, African foods (Egusi, Jollof, Akara, Fufu, Plantains), and healthy macro subdivisions. Fully customized daily nutrition targets."
+        imageUrl="https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=600&auto=format&fit=crop"
+        category="MACRONUTRIENT BALANCE"
+      />
 
       {successToast && (
         <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-500 animate-pulse flex items-center gap-2">
