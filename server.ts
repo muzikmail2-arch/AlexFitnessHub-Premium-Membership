@@ -71,6 +71,61 @@ if (!fs.existsSync(ASSETS_DIR)) {
   fs.mkdirSync(ASSETS_DIR, { recursive: true });
 }
 
+// Custom asset restoration handler for stateless, ephemeral Cloud Run containers
+app.get("/assets/:filename", async (req, res, next) => {
+  const { filename } = req.params;
+  const filePath = path.join(ASSETS_DIR, filename);
+
+  // If the file already exists on the container's local disk, let express.static serve it
+  if (fs.existsSync(filePath)) {
+    return next();
+  }
+
+  // If it is a custom admin-uploaded exercise asset, restore it dynamically from Cloud Firestore backup
+  if (filename.startsWith("exercise_custom_")) {
+    try {
+      // Extract exerciseId from filename (e.g. exercise_custom_squats_101.png -> squats_101)
+      const rest = filename.replace("exercise_custom_", "");
+      const dotIndex = rest.lastIndexOf(".");
+      if (dotIndex !== -1) {
+        const exerciseId = rest.substring(0, dotIndex);
+        console.log(`[Asset Restoration] Ephemeral container reset detected. Restoring custom media for exercise ID: ${exerciseId} from Cloud Firestore...`);
+        
+        const mediaSnap = await getServerFirestoreDoc("exercise_media", exerciseId);
+        if (mediaSnap.exists) {
+          const mediaDoc = mediaSnap.data();
+          const rawUrlOrBase64 = mediaDoc.originalUrlOrBase64;
+          if (rawUrlOrBase64) {
+            if (rawUrlOrBase64.startsWith("data:")) {
+              const match = rawUrlOrBase64.match(/^data:([^;]+);base64,(.+)$/);
+              if (match) {
+                const base64Data = match[2];
+                fs.writeFileSync(filePath, Buffer.from(base64Data, "base64"));
+                console.log(`[Asset Restoration Success] Recreated Base64 file on local container disk: ${filePath}`);
+                return res.sendFile(filePath);
+              }
+            } else if (rawUrlOrBase64.startsWith("http://") || rawUrlOrBase64.startsWith("https://")) {
+              console.log(`[Asset Restoration] Fetching external source: ${rawUrlOrBase64}`);
+              const fetchRes = await fetch(rawUrlOrBase64);
+              if (fetchRes.ok) {
+                const buffer = await fetchRes.arrayBuffer();
+                fs.writeFileSync(filePath, Buffer.from(buffer));
+                console.log(`[Asset Restoration Success] Downloaded and recreated file on local container disk: ${filePath}`);
+                return res.sendFile(filePath);
+              }
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error(`[Asset Restoration Error] Failed to restore asset ${filename} from Firestore:`, err);
+    }
+  }
+
+  // Proceed if not found or couldn't restore
+  next();
+});
+
 // Expose the assets directory so that local GIF/image/video overrides can be served seamlessly
 app.use("/assets", express.static(ASSETS_DIR));
 
@@ -208,10 +263,34 @@ function parseFirestoreRestFields(fields: any): any {
   return parsed;
 }
 
-async function getServerFirestoreDoc(collectionName: string, docId: string) {
+async function getServerFirestoreDoc(collectionName: string, docId: string, userToken?: string) {
   const projectId = firebaseConfig.projectId;
   const dbId = firebaseConfig.firestoreDatabaseId || "(default)";
   
+  // 1. If userToken is provided, try retrieving the document via Firestore REST API using the user's token
+  if (userToken) {
+    try {
+      const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/${dbId}/documents/${collectionName}/${docId}`;
+      const docRes = await fetch(url, {
+        headers: { "Authorization": `Bearer ${userToken}` }
+      });
+      if (docRes.ok) {
+        const docData: any = await docRes.json();
+        return {
+          exists: true,
+          data: () => parseFirestoreRestFields(docData.fields)
+        };
+      } else if (docRes.status === 404) {
+        return { exists: false, data: () => null };
+      } else {
+        console.warn(`[Server Firestore REST UserToken] Request returned status ${docRes.status} for ${collectionName}/${docId}. Falling back.`);
+      }
+    } catch (err) {
+      console.warn(`[Server Firestore REST UserToken] Error fetching ${collectionName}/${docId}:`, err);
+    }
+  }
+
+  // 2. Try metadata service account credentials in Cloud Run
   if (process.env.K_SERVICE) {
     try {
       const tokenRes = await fetch("http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token", {
@@ -241,6 +320,7 @@ async function getServerFirestoreDoc(collectionName: string, docId: string) {
     }
   }
 
+  // 3. Fallback to standard Firebase Web SDK
   const docRef = doc(db, collectionName, docId);
   const snap = await getDoc(docRef);
   return {
@@ -524,6 +604,13 @@ async function checkPremiumStatus(req: any, res: any, next: any) {
     return res.status(401).json({ error: "Invalid session token. Access Denied." });
   }
 
+  // 0. Bypass database check for admin email
+  if (decoded.email && decoded.email.toLowerCase().trim() === "alexfitnesshub@gmail.com") {
+    console.log(`[Auth Security] Admin user verified via email claim in checkPremiumStatus: ${decoded.email}`);
+    req.user = { uid: decoded.uid, email: decoded.email, role: "admin", subscriptionStatus: "premium" };
+    return next();
+  }
+
   try {
     // 1. Validate custom claim premium: true (or check if email/user is admin)
     if (decoded && (decoded as any).premium === true) {
@@ -532,8 +619,8 @@ async function checkPremiumStatus(req: any, res: any, next: any) {
       return next();
     }
 
-    // 2. Fallback: Check their Firestore document
-    const userSnap = await getServerFirestoreDoc("users", decoded.uid);
+    // 2. Fallback: Check their Firestore document, passing the user's own token for secure REST access
+    const userSnap = await getServerFirestoreDoc("users", decoded.uid, token);
     if (!userSnap.exists) {
       console.warn(`[Auth Security Denial] User profile not found in Firestore for UID: ${decoded.uid}`);
       return res.status(403).json({ error: "Premium subscription required. Access Denied." });
@@ -574,8 +661,15 @@ async function requirePremium(req: any, res: any, next: any) {
     return res.status(401).json({ error: "Invalid session token. Access Denied." });
   }
 
+  // 0. Bypass database check for admin email
+  if (decoded.email && decoded.email.toLowerCase().trim() === "alexfitnesshub@gmail.com") {
+    console.log(`[Auth Security] Admin user verified via email claim in requirePremium: ${decoded.email}`);
+    req.user = { uid: decoded.uid, email: decoded.email, role: "admin", subscriptionStatus: "premium" };
+    return next();
+  }
+
   try {
-    const userSnap = await getServerFirestoreDoc("users", decoded.uid);
+    const userSnap = await getServerFirestoreDoc("users", decoded.uid, token);
     if (!userSnap.exists) {
       console.warn(`[Auth Security Denial] User profile not found in Firestore for UID: ${decoded.uid}`);
       return res.status(403).json({ error: "Premium subscription required. Access Denied." });
@@ -619,8 +713,15 @@ async function requireAdmin(req: any, res: any, next: any) {
     return res.status(401).json({ error: "Invalid session token. Access Denied." });
   }
 
+  // 0. Bypass database check for admin email
+  if (decoded.email && decoded.email.toLowerCase().trim() === "alexfitnesshub@gmail.com") {
+    console.log(`[Auth Security] Admin user verified via email claim in requireAdmin: ${decoded.email}`);
+    req.user = { uid: decoded.uid, email: decoded.email, role: "admin", subscriptionStatus: "premium" };
+    return next();
+  }
+
   try {
-    const userSnap = await getServerFirestoreDoc("users", decoded.uid);
+    const userSnap = await getServerFirestoreDoc("users", decoded.uid, token);
     if (!userSnap.exists) {
       console.warn(`[Auth Security Denial] User profile not found in Firestore for UID: ${decoded.uid}`);
       return res.status(403).json({ error: "Admin access required. Access Denied." });
@@ -1845,7 +1946,31 @@ app.post("/api/exercises/save-custom-media", requireAdmin, async (req: any, res:
 
     if (customMediaUrl === null) {
       delete overrides[exerciseId];
+      // Save empty/null record to Cloud Firestore backup collection 'exercise_media'
+      try {
+        await setServerFirestoreDoc("exercise_media", exerciseId, {
+          exerciseId,
+          originalUrlOrBase64: null,
+          customMediaType: customMediaType || "image",
+          updatedAt: new Date().toISOString()
+        }, false);
+      } catch (dbErr) {
+        console.error("[Firestore Media Backup Delete Error]:", dbErr);
+      }
     } else {
+      // Save the raw, original uploaded payload (Base64 data or external URL) to Cloud Firestore backup collection 'exercise_media'
+      try {
+        await setServerFirestoreDoc("exercise_media", exerciseId, {
+          exerciseId,
+          originalUrlOrBase64: customMediaUrl,
+          customMediaType: customMediaType || "image",
+          updatedAt: new Date().toISOString()
+        }, false);
+        console.log(`[Firestore Media Backup OK] Saved raw media backup for exercise ID ${exerciseId} to Cloud Firestore.`);
+      } catch (dbErr) {
+        console.error("[Firestore Media Backup Error]:", dbErr);
+      }
+
       // 1. Download and save remote file if it is an http or https URL
       if (customMediaUrl && (customMediaUrl.startsWith("http://") || customMediaUrl.startsWith("https://"))) {
         try {
