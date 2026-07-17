@@ -857,7 +857,7 @@ export default function WorkoutVideos() {
             {/* Embedded Iframe Player */}
             <div className="relative w-full aspect-video bg-black flex items-center justify-center min-h-[220px] sm:min-h-[440px]">
               <iframe
-                src={`https://www.youtube.com/embed/${currentVideo.id}?autoplay=1&rel=0&modestbranding=1`}
+                src={`https://www.youtube.com/embed/${currentVideo.id}?autoplay=1&rel=0&modestbranding=1&enablejsapi=1`}
                 title={currentVideo.title}
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"

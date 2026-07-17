@@ -18,6 +18,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
 
   React.useEffect(() => {
     if (isOpen) {
@@ -28,46 +29,6 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       };
     }
   }, [isOpen]);
-
-  // Automated credential-matching sign-in / registration trigger with 1.2s debounce to preserve typing flow
-  React.useEffect(() => {
-    if (isForgot || !isOpen) return;
-
-    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    const isValidPassword = password.length >= 6;
-    const isValidName = !isSignUp || name.trim().length >= 2;
-
-    if (isValidEmail && isValidPassword && isValidName) {
-      setError("");
-      
-      const timer = setTimeout(() => {
-        if (submitting) return;
-        
-        console.log("[Auto-Submit] Credentials are fully valid. Automatically authenticating...");
-        const performAutoSubmit = async () => {
-          setSubmitting(true);
-          setError("");
-          setMessage("");
-          try {
-            if (isSignUp) {
-              await signUpEmail(email, password, name);
-              onClose();
-            } else {
-              await loginEmail(email, password);
-              onClose();
-            }
-          } catch (err: any) {
-            setError(err?.message || "Auto-authentication failed.");
-          } finally {
-            setSubmitting(false);
-          }
-        };
-        performAutoSubmit();
-      }, 1200); // 1.2 seconds debounce to prevent early trigger while still typing the last character
-
-      return () => clearTimeout(timer);
-    }
-  }, [email, password, name, isSignUp, isForgot, isOpen]);
 
   if (!isOpen) return null;
 
@@ -85,10 +46,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         if (!name.trim()) {
           throw new Error("Please specify your athlete name.");
         }
-        await signUpEmail(email, password, name);
+        await signUpEmail(email, password, name, rememberMe);
         onClose();
       } else {
-        await loginEmail(email, password);
+        await loginEmail(email, password, rememberMe);
         onClose();
       }
     } catch (err: any) {
@@ -258,19 +219,19 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   </div>
                 </div>
               )}
-
-              {/* Dynamic Auto-Submit Progress Warning */}
-              {!isForgot && !submitting && (email || password || name) && (
-                <div className="py-1.5 px-3 text-center bg-slate-50 dark:bg-slate-900/40 rounded-lg border border-slate-100 dark:border-slate-800 animate-fade-in">
-                  {/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && password.length >= 6 && (!isSignUp || name.trim().length >= 2) ? (
-                    <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold animate-pulse flex items-center justify-center gap-1 font-sans">
-                      <Sparkles className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> Requirements met. Connecting automatically in 1s...
-                    </p>
-                  ) : (
-                    <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium font-sans">
-                      {isSignUp ? "Provide name, valid email, and 6+ character password for automated sign in." : "Provide valid email and 6+ character password for automated sign in."}
-                    </p>
-                  )}
+              
+              {!isForgot && (
+                <div className="flex items-center">
+                  <input
+                    id="remember-me"
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="w-4 h-4 text-[#C0392B] border-slate-300 rounded focus:ring-[#C0392B] cursor-pointer"
+                  />
+                  <label htmlFor="remember-me" className="ml-2 text-[10px] font-mono font-bold text-slate-600 cursor-pointer uppercase select-none">
+                    Remember Me
+                  </label>
                 </div>
               )}
 

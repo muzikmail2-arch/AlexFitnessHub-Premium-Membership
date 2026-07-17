@@ -448,7 +448,7 @@ async function getGooglePublicKeys() {
   }
 }
 
-async function verifyFirebaseIdToken(token: string): Promise<{ uid: string; email?: string } | null> {
+async function verifyFirebaseIdToken(token: string): Promise<{ uid: string; email?: string; premium?: boolean } | null> {
   try {
     const parts = token.split(".");
     if (parts.length !== 3) {
@@ -498,10 +498,60 @@ async function verifyFirebaseIdToken(token: string): Promise<{ uid: string; emai
       return null;
     }
 
-    return { uid: payload.sub, email: payload.email };
+    return { uid: payload.sub, email: payload.email, premium: payload.premium };
   } catch (error) {
     console.error("Error verifying Firebase ID token:", error);
     return null;
+  }
+}
+
+// Middleware to check premium status, validating user's custom claim 'premium: true' or checking their Firestore document
+async function checkPremiumStatus(req: any, res: any, next: any) {
+  const authHeader = req.headers.authorization;
+  let token = "";
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.split("Bearer ")[1];
+  }
+
+  if (!token) {
+    console.warn("[Auth Security Denial] Missing authorization token in checkPremiumStatus.");
+    return res.status(401).json({ error: "Authentication required. Access Denied." });
+  }
+
+  const decoded = await verifyFirebaseIdToken(token);
+  if (!decoded) {
+    console.warn("[Auth Security Denial] Invalid or expired token in checkPremiumStatus.");
+    return res.status(401).json({ error: "Invalid session token. Access Denied." });
+  }
+
+  try {
+    // 1. Validate custom claim premium: true (or check if email/user is admin)
+    if (decoded && (decoded as any).premium === true) {
+      console.log(`[Auth Security] Premium custom claim verified for UID: ${decoded.uid}`);
+      req.user = { uid: decoded.uid, email: decoded.email, role: "user", subscriptionStatus: "premium" };
+      return next();
+    }
+
+    // 2. Fallback: Check their Firestore document
+    const userSnap = await getServerFirestoreDoc("users", decoded.uid);
+    if (!userSnap.exists) {
+      console.warn(`[Auth Security Denial] User profile not found in Firestore for UID: ${decoded.uid}`);
+      return res.status(403).json({ error: "Premium subscription required. Access Denied." });
+    }
+
+    const profile = userSnap.data();
+    const isPremium = profile.subscriptionStatus === "premium" || profile.role === "admin" || decoded.email === "alexfitnesshub@gmail.com";
+    
+    if (!isPremium) {
+      console.warn(`[Auth Security Denial] User UID ${decoded.uid} does not have premium status.`);
+      return res.status(403).json({ error: "Premium subscription required to access this feature." });
+    }
+
+    req.user = { uid: decoded.uid, email: decoded.email, role: profile.role || "user", subscriptionStatus: "premium", profile };
+    next();
+  } catch (error: any) {
+    console.error("Error in checkPremiumStatus middleware:", error);
+    return res.status(500).json({ error: "Internal server error during premium verification." });
   }
 }
 
@@ -3443,6 +3493,61 @@ app.post("/api/weekly-reports/trigger-all", requireAdmin, async (req: any, res: 
     console.error("[Scheduled Bulk Job Exception] Fatal error in batch progress compilation:", error);
     return res.status(500).json({ success: false, error: "Batch progress compilation failed: " + error.message });
   }
+});
+
+// GET /api/premium/belly-fat-shred/content - Securely returns sensitive 5-Month program guide data to premium users
+app.get("/api/premium/belly-fat-shred/content", checkPremiumStatus, (req: any, res: any) => {
+  return res.json({
+    success: true,
+    programName: "5-Month Belly Fat Shred Program",
+    scientificFramework: {
+      spotReductionMyth: "Spot reduction is a physiological impossibility. Adipose tissue breakdown occurs systemically. Our program focuses on full-body metabolic stimulation combined with core mechanical tension to draw out permanent definition as overall body fat falls.",
+      phases: [
+        { phase: 1, title: "Month 1: Foundational Core & Metabolic Prep", description: "Awakening deep stabilizer muscles (transversus abdominis, multifidus) and ramping up steady-state aerobic conditioning to enhance lipid transport pathways." },
+        { phase: 2, title: "Month 2: Hypertrophic Core Tension", description: "Adding progressive resistance load to core exercises to build muscle density, which pushes the abdominal wall outward for visible structure." },
+        { phase: 3, title: "Month 3: High-Intensity Metabolic Conditioning (MetCon)", description: "Incorporating calorie-crushing compound sets and active recovery intervals to elevate EPOC (Excess Post-exercise Oxygen Consumption)." },
+        { phase: 4, title: "Month 4: Deep Visceral Fat Target Suite", description: "Aggressive calorie deficit consolidation paired with high-volume mechanical core exhaustion and steady-state cardio overrides." },
+        { phase: 5, title: "Month 5: Final Definition & Peak Toning", description: "Peak-week formatting, low-sodium/flush hydration tracking, and maximum abdominal striation density preservation." }
+      ]
+    },
+    eliteWorkouts: [
+      {
+        id: "core_foundational_a",
+        name: "Transversus Abdominis Activation & Deadbug Sequence",
+        duration: "15 mins",
+        exercises: [
+          { name: "Deadbugs (with 3s holds)", sets: 3, reps: 12, instructions: "Keep your lower back absolutely flat against the ground. Exhale fully as you extend." },
+          { name: "Plank with Posterior Pelvic Tilt", sets: 3, reps: "45 seconds", instructions: "Squeeze your glutes and pull your belly button towards your chest to eliminate lower back arch." },
+          { name: "Bird-Dog Isometric Holds", sets: 3, reps: 10, instructions: "Hold arm and opposite leg extension for 4 seconds at the peak. Do not let hip rotate." }
+        ]
+      },
+      {
+        id: "core_hypertrophy_b",
+        name: "Mechanical Tension Core Builder",
+        duration: "20 mins",
+        exercises: [
+          { name: "Hanging Knee Raises (Slow Negative)", sets: 4, reps: 10, instructions: "Take 3 full seconds to lower your legs. Do not swing." },
+          { name: "Kneeling Cable Crunches", sets: 4, reps: 15, instructions: "Focus on flexing the spine and bringing elbows toward knees, not pulling with your arms." },
+          { name: "Weighted Decline Sit-Ups", sets: 3, reps: 12, instructions: "Hold a light plate on your chest. Squeeze abdominals tightly at the contraction." }
+        ]
+      },
+      {
+        id: "metcon_burner_c",
+        name: "Abdominal Calorie Crusher Circuit",
+        duration: "25 mins",
+        exercises: [
+          { name: "Kettlebell Goblet Squats into Plank Jacks", sets: 3, reps: "45 seconds each", instructions: "Maintain continuous movement. Perfect for high-intensity lipid oxidation." },
+          { name: "Russian Twists with Medicine Ball", sets: 3, reps: 30, instructions: "Touch the ball to the ground on each side. Rotate through your torso, not just arms." },
+          { name: "Mountain Climbers (Sprinting pace)", sets: 3, reps: "45 seconds", instructions: "Keep hips low and drive knees straight into the chest dynamically." }
+        ]
+      }
+    ],
+    secretHacks: [
+      { title: "The Post-Meal Thermic Effect", details: "A simple 15-minute walk immediately following your highest-carbohydrate meals reduces postprandial insulin spikes, favoring fatty acid mobilization over fat storage." },
+      { title: "Lemon-Cucumber Hydration Chemistry", details: "Lemon juice stimulates bile production to support digestion, while cucumber adds key trace silica and electrolytes. This combo naturalizes fluid retention, revealing abdominal definition fast." },
+      { title: "The Empty-Stomach Cardio Window", details: "Doing your steady-state aerobic run of 3-5 KM in a fasted state accelerates lipolysis by tapping directly into stored subcutaneous fats." }
+    ]
+  });
 });
 
 // Serve frontend via Vite (development/production fallback configuration)

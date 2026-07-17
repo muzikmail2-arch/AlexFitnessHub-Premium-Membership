@@ -137,12 +137,12 @@ export const TestimonialPopup: React.FC = () => {
           exit={{ opacity: 0, y: 30, scale: 0.95 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
           // high z-index fixed to bottom-right corner for maximum consistency and responsiveness across desktop & mobile
-          className="fixed bottom-6 right-6 z-[9999] max-w-[340px] w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-slate-200 p-4 select-none pointer-events-auto overflow-hidden"
+          className="fixed bottom-6 right-6 z-[9999] max-w-[340px] w-[calc(100vw-2rem)] bg-white dark:bg-slate-900 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-slate-200 dark:border-slate-800 p-4 select-none pointer-events-auto overflow-hidden"
         >
           {/* Close button */}
           <button
             onClick={handleClose}
-            className="absolute top-3 right-3 text-slate-400 hover:text-slate-800 transition-colors cursor-pointer"
+            className="absolute top-3 right-3 text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 transition-colors cursor-pointer"
             id="close-social-proof"
             aria-label="Close"
           >
@@ -150,25 +150,13 @@ export const TestimonialPopup: React.FC = () => {
           </button>
 
           <div className="flex items-start gap-3.5 pb-2">
-            {/* Avatar image or initials */}
-            {currentReview.avatar ? (
-              <div className="relative shrink-0">
-                <img
-                  src={currentReview.avatar}
-                  alt={currentReview.name}
-                  className="w-11 h-11 rounded-full object-cover border border-slate-200 shadow-sm"
-                  referrerPolicy="no-referrer"
-                />
-                <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white" />
+            {/* Always use initials for social proof popout as requested */}
+            <div className="relative shrink-0">
+              <div className={`w-11 h-11 rounded-full flex items-center justify-center font-black text-xs shadow-sm uppercase ${getRandomBgColor(currentReview.name)}`}>
+                {getInitials(currentReview.name)}
               </div>
-            ) : (
-              <div className="relative shrink-0">
-                <div className={`w-11 h-11 rounded-full flex items-center justify-center font-black text-xs shadow-sm uppercase ${getRandomBgColor(currentReview.name)}`}>
-                  {getInitials(currentReview.name)}
-                </div>
-                <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white" />
-              </div>
-            )}
+              <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900" />
+            </div>
 
             <div className="flex-1 min-w-0 pr-5">
               {/* Star Rating & Verified Badge */}
@@ -178,26 +166,26 @@ export const TestimonialPopup: React.FC = () => {
                     <Star key={i} className="w-3.5 h-3.5 fill-current text-amber-500" />
                   ))}
                 </div>
-                <span className="inline-flex items-center gap-1 text-[9px] font-black font-mono tracking-wider text-emerald-700 uppercase bg-emerald-50 px-1.5 py-0.5 rounded">
+                <span className="inline-flex items-center gap-1 text-[9px] font-black font-mono tracking-wider text-emerald-700 uppercase bg-emerald-50 dark:bg-slate-950 px-1.5 py-0.5 rounded">
                   <Check className="w-2.5 h-2.5 stroke-[3]" /> Verified
                 </span>
               </div>
 
               {/* Action content & time */}
-              <p className="text-xs text-slate-900 leading-snug">
-                <span className="font-extrabold text-slate-950 mr-1">
+              <p className="text-xs text-slate-900 dark:text-slate-100 leading-snug">
+                <span className="font-extrabold text-slate-950 dark:text-white mr-1">
                   {currentReview.name}
                 </span>
                 {currentReview.action || "signed up"}
               </p>
               
-              <span className="text-slate-500 text-[10px] font-bold font-mono block mt-0.5">
+              <span className="text-slate-500 dark:text-slate-400 text-[10px] font-bold font-mono block mt-0.5">
                 {currentReview.timeText || "today"}
               </span>
 
               {/* Optional Trust message */}
               {currentReview.review && (
-                <p className="text-[11px] text-slate-800 font-medium italic mt-2 border-l-2 border-slate-200 pl-2 leading-relaxed">
+                <p className="text-[11px] text-slate-800 dark:text-slate-200 font-medium italic mt-2 border-l-2 border-slate-200 dark:border-slate-700 pl-2 leading-relaxed">
                   “{currentReview.review}”
                 </p>
               )}

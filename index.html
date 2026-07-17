@@ -64,9 +64,14 @@
         });
       }
 
-      // Ensure local storage is set to light theme permanently
+      // Immediately set theme from localStorage on load to prevent light theme flash
       try {
-        localStorage.setItem("fit_theme", "light");
+        var savedTheme = localStorage.getItem("fit_theme");
+        if (savedTheme === "dark" || (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
       } catch (e) {}
     </script>
   </head>

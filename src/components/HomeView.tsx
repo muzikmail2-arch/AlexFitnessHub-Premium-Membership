@@ -471,7 +471,7 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
         {/* Cinematic Background Image - Ultra-Bright, High-Exposure & Clear */}
         <div className="absolute inset-0 z-0 select-none pointer-events-none">
           <img 
-            src="https://github.com/muzikmail2-arch/bb/blob/main/ChatGPT%20Image%20Jul%2015,%202026,%2006_45_05%20PM.png?raw=true" 
+            src="https://github.com/muzikmail2-arch/bb/blob/main/ChatGPT%20Image%20Jul%2017,%202026,%2011_13_31%20AM.png?raw=true" 
             alt="Alex Fitness Hub Elite Training Facility"
             className="w-full h-full object-cover object-center scale-100 filter brightness-125 contrast-110 saturate-105"
             referrerPolicy="no-referrer"
@@ -679,16 +679,15 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                     <img 
                       src={slide.imageUrl} 
                       alt={slide.eyebrow}
-                      className="w-full h-full object-cover transition-transform duration-[700ms]"
+                      className="w-full h-full object-cover transition-transform duration-[700ms] filter brightness-110"
                       referrerPolicy="no-referrer"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-90" />
                     
-                    <div className="absolute inset-x-0 bottom-0 p-3 text-left">
-                      <p className="text-[8px] font-mono font-black tracking-widest text-amber-400 uppercase">
+                    <div className="absolute inset-x-0 bottom-0 p-2 bg-white/95 backdrop-blur-xs border-t border-slate-100 text-left">
+                      <p className="text-[8px] font-mono font-black tracking-widest text-[#D32F2F] uppercase">
                         {slide.wordOne}
                       </p>
-                      <h4 className="text-[11px] font-sans font-black text-white uppercase mt-0.5 leading-tight">
+                      <h4 className="text-[11px] font-sans font-black text-slate-900 uppercase mt-0.5 leading-tight">
                         {slide.wordTwo} Suite
                       </h4>
                     </div>
@@ -1211,24 +1210,23 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                 key={cat.id}
                 className="group relative rounded-2xl overflow-hidden border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between h-[360px]"
               >
-                <div className="h-44 w-full overflow-hidden relative">
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
-                  <img 
-                    src={cat.image} 
-                    alt={cat.title}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = "https://i0.wp.com/www.muscleandfitness.com/wp-content/uploads/2020/07/Muscular-Fitness-Model-With-A-Six-Pack.jpg?w=1109&h=614&crop=1&quality=86&strip=all";
-                    }}
-                  />
-                  <span className="absolute top-3 left-3 bg-[#1C1C1C]/90 text-[9px] font-sans font-black tracking-wider text-white px-2.5 py-1 rounded-md uppercase z-20">
-                    {cat.tag}
-                  </span>
-                  <span className="absolute bottom-3 right-3 bg-[#C0392B] text-white text-[10px] font-sans font-black px-2.5 py-1 rounded-md z-20">
-                    {cat.exercises}
-                  </span>
-                </div>
+                 <div className="h-44 w-full overflow-hidden relative">
+                   <img 
+                     src={cat.image} 
+                     alt={cat.title}
+                     referrerPolicy="no-referrer"
+                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 filter brightness-110"
+                     onError={(e) => {
+                       (e.target as HTMLImageElement).src = "https://i0.wp.com/www.muscleandfitness.com/wp-content/uploads/2020/07/Muscular-Fitness-Model-With-A-Six-Pack.jpg?w=1109&h=614&crop=1&quality=86&strip=all";
+                     }}
+                   />
+                   <span className="absolute top-3 left-3 bg-white/95 border border-slate-200 text-[#D32F2F] text-[9px] font-sans font-black tracking-wider px-2.5 py-1 rounded-md uppercase z-20 shadow-sm">
+                     {cat.tag}
+                   </span>
+                   <span className="absolute bottom-3 right-3 bg-[#D32F2F] text-white text-[10px] font-sans font-black px-2.5 py-1 rounded-md z-20 shadow-sm">
+                     {cat.exercises}
+                   </span>
+                 </div>
 
                 <div className="p-5 flex-1 flex flex-col justify-between">
                   <div className="space-y-1 text-left">
@@ -1577,6 +1575,161 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
             </div>
           )}
 
+        </motion.div>
+      </section>
+
+      {/* 4.5 PREMIUM TRANSLATION SHOWCASE: 5-MONTH BELLY FAT SHRED PROGRAM */}
+      <section className="py-24 bg-white border-b border-slate-200 overflow-hidden relative">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full opacity-10 pointer-events-none">
+          <div className="absolute top-1/4 right-10 w-96 h-96 rounded-full bg-[#D32F2F] filter blur-[150px]" />
+          <div className="absolute bottom-1/4 left-10 w-96 h-96 rounded-full bg-amber-500 filter blur-[150px]" />
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10"
+        >
+          <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
+            <span className="text-[10px] font-mono font-black tracking-[0.25em] text-[#D32F2F] uppercase bg-[#D32F2F]/10 border border-[#D32F2F]/20 px-4 py-1.5 rounded-full inline-block">
+              👑 ELITE CORE TRANSFORMATION
+            </span>
+            <h2 className="text-3xl sm:text-5xl font-sans font-black tracking-tight text-slate-900 uppercase leading-none">
+              5 Month <span className="text-[#D32F2F]">Belly Fat Shred</span> Program
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-700 max-w-xl mx-auto leading-relaxed font-sans font-semibold">
+              Deploy our masterfully sequenced, science-first transformation suite. 
+              Accelerate metabolic conditioning and target sustainable deep visceral fat loss.
+            </p>
+            <div className="h-1 w-20 bg-[#D32F2F] mx-auto mt-4" />
+          </div>
+
+          <div className="grid lg:grid-cols-12 gap-8 items-center">
+            
+            {/* Left: Scientific Integrity Panel */}
+            <div className="lg:col-span-7 bg-slate-50 border border-slate-200 p-8 rounded-3xl space-y-6 text-left shadow-sm">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-[#D32F2F]/10 border border-[#D32F2F]/20 rounded-2xl flex items-center justify-center text-[#D32F2F] shrink-0">
+                  <Shield className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black uppercase text-slate-900 font-display">Biomechanical Fact Check</h3>
+                  <p className="text-xs text-slate-700 mt-1 leading-relaxed font-semibold">
+                    Spot reduction is a biological myth. Adipose tissue breakdown is systemic. 
+                    Our program centers on maximizing full-body metabolic output, compound mechanical tension, and calorie-deficit preservation. 
+                    As total body fat decreases, your midsection defines itself permanently.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4 pt-4 border-t border-slate-200">
+                
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-slate-900">
+                    <Flame className="w-4 h-4 text-[#D32F2F]" />
+                    <h4 className="text-xs font-black uppercase text-[#D32F2F]">Metabolic Conditioning</h4>
+                  </div>
+                  <p className="text-[11px] text-slate-600 leading-relaxed font-semibold">
+                    Progressive core isolation mixed with compound calorie crushers (Day 1, 3, 5, 7).
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-slate-900">
+                    <Zap className="w-4 h-4 text-[#D32F2F]" />
+                    <h4 className="text-xs font-black uppercase text-[#D32F2F]">Aerobic Runs (2-3x/Wk)</h4>
+                  </div>
+                  <p className="text-[11px] text-slate-600 leading-relaxed font-semibold">
+                    Sequenced 3-5 KM steady-state cardio to maximize lipid transport and oxidation.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-slate-900">
+                    <Activity className="w-4 h-4 text-emerald-600" />
+                    <h4 className="text-xs font-black uppercase text-emerald-600">Thermal Post-Meal Walks</h4>
+                  </div>
+                  <p className="text-[11px] text-slate-600 leading-relaxed font-semibold">
+                    Activating 10-20 minute walks after major meals to elevate immediate caloric dispersion.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-slate-900">
+                    <CheckCircle className="w-4 h-4 text-[#D32F2F]" />
+                    <h4 className="text-xs font-black uppercase text-[#D32F2F]">Fluid Balance Ring</h4>
+                  </div>
+                  <p className="text-[11px] text-slate-600 leading-relaxed font-semibold">
+                    Hourly calculated hydration targets combined with 3x weekly Lemon-Cucumber water infusions.
+                  </p>
+                </div>
+
+              </div>
+            </div>
+
+            {/* Right: Immersive Product Preview and CTA Callout */}
+            <div className="lg:col-span-5 bg-slate-50 border border-slate-200 p-8 rounded-3xl text-center flex flex-col justify-between h-full min-h-[380px] relative overflow-hidden group shadow-sm">
+              <div className="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-[#D32F2F]/5 group-hover:bg-[#D32F2F]/10 transition-colors duration-500" />
+              
+              <div className="space-y-4 relative z-10 text-left">
+                <span className="text-[8px] font-mono font-black text-amber-600 bg-amber-500/10 px-2.5 py-1 rounded uppercase border border-amber-200">
+                  👑 PREMIUM GOLD LABEL
+                </span>
+                <h3 className="text-lg font-black uppercase text-slate-950 font-display">
+                  Interactive Dashboard Included
+                </h3>
+                
+                <p className="text-xs text-slate-700 leading-relaxed font-sans font-semibold">
+                  Gain a persistent, premium dashboard to track your 20-week milestones, log weight/waist metrics, 
+                  upload progress diaries, calculate daily scores, and configure alert schedules.
+                </p>
+
+                <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-2.5 shadow-xs">
+                  <div className="flex items-center justify-between text-[10px] text-slate-600 font-bold uppercase">
+                    <span>Program Duration</span>
+                    <span className="text-slate-900 font-black">5 Months (20 Weeks)</span>
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-slate-600 font-bold uppercase">
+                    <span>Target Frequency</span>
+                    <span className="text-slate-900 font-black">3-4 Workouts / Week</span>
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-slate-600 font-bold uppercase">
+                    <span>Nutrition Framework</span>
+                    <span className="text-emerald-700 font-black">Caloric Deficit Matrix</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-8 relative z-10">
+                {user && (user.subscriptionStatus === "premium" || user.role === "admin") ? (
+                  <button
+                    onClick={() => setView("belly-fat-shred")}
+                    className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-sans font-black text-xs uppercase tracking-widest rounded-xl transition shadow-lg flex items-center justify-center gap-2 cursor-pointer border-0"
+                  >
+                    <span>LAUNCH MY TRANSFORMATION DASHBOARD</span>
+                    <ArrowRight className="w-4 h-4 text-white" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      const el = document.getElementById("pricing");
+                      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }}
+                    className="w-full py-4 bg-[#D32F2F] hover:bg-[#B71C1C] text-white font-sans font-black text-xs uppercase tracking-widest rounded-xl transition shadow-lg flex items-center justify-center gap-2 cursor-pointer border-0"
+                  >
+                    <Lock className="w-4 h-4 text-white" />
+                    <span>UNLOCK WITH PREMIUM ACTIVE</span>
+                  </button>
+                )}
+                <p className="text-[8px] text-slate-500 font-mono mt-3 uppercase font-semibold">
+                  Zero additional cost for Premium Subscriptions.
+                </p>
+              </div>
+            </div>
+
+          </div>
         </motion.div>
       </section>
 
@@ -1991,15 +2144,15 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
 
       {/* 9. EMBEDDED PREMIUM ACTIVATION OVERLAY (PAYSTACK DISPLAY NAVIGATOR) */}
       {activePaymentModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 p-4 backdrop-blur-md">
-          <div className="w-full max-w-lg rounded-2xl bg-[#111111] border border-gray-800 overflow-hidden shadow-2xl relative text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-md">
+          <div className="w-full max-w-lg rounded-2xl bg-white border border-slate-200 overflow-hidden shadow-2xl relative text-slate-900">
             
             {/* HUD portal header */}
-            <div className="bg-[#1C1C1C] p-5 flex items-center justify-between border-b border-gray-800">
+            <div className="bg-slate-50 p-5 flex items-center justify-between border-b border-slate-200">
               <div className="flex items-center gap-2">
-                <Shield className="w-5 h-5 text-[#C0392B] fill-[#C0392B]" />
-                <span className="font-display font-black tracking-wider text-xs uppercase text-gray-100">
-                  PAYSTACK TRANSACTION INITIATION NODE
+                <Shield className="w-5 h-5 text-[#D32F2F] fill-[#D32F2F]" />
+                <span className="font-display font-black tracking-wider text-xs uppercase text-slate-800">
+                  PAYSTACK SECURE TRANSFORMATION GATEWAY
                 </span>
               </div>
               {checkoutError && (
@@ -2009,7 +2162,7 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                     setSubmittingPlan(null);
                     setCheckoutError(null);
                   }} 
-                  className="p-1.5 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors no-scroll-top"
+                  className="p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors no-scroll-top border-0 cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -2020,8 +2173,8 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
               
               {checkoutError ? (
                 <div className="space-y-4 py-4">
-                  <div className="p-4 rounded-xl bg-red-950/50 border border-red-900 text-red-400 leading-relaxed font-sans text-left">
-                    <strong className="text-sm font-bold block mb-1">Initialization Failed</strong>
+                  <div className="p-4 rounded-xl bg-red-50 border border-red-100 text-red-600 leading-relaxed font-sans text-left font-semibold">
+                    <strong className="text-sm font-bold block mb-1 text-red-700">Initialization Failed</strong>
                     {checkoutError}
                   </div>
                   <button
@@ -2031,7 +2184,7 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                       setSubmittingPlan(null);
                       setCheckoutError(null);
                     }}
-                    className="w-full py-3 bg-[#C0392B] hover:bg-[#A82E22] text-white font-sans font-bold text-xs uppercase rounded-xl transition duration-200 no-scroll-top cursor-pointer"
+                    className="w-full py-3 bg-[#D32F2F] hover:bg-[#B71C1C] text-white font-sans font-bold text-xs uppercase rounded-xl transition duration-200 no-scroll-top cursor-pointer border-0 shadow-sm"
                   >
                     Return to pricing plans
                   </button>
@@ -2040,32 +2193,32 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                 <div className="space-y-6">
                   {/* Beautiful Loading Core Indicator */}
                   <div className="flex flex-col items-center justify-center space-y-4 text-center py-4">
-                    <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#C0392B] border-t-transparent" />
+                    <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#D32F2F] border-t-transparent" />
                     <div className="space-y-1">
-                      <h3 className="text-base font-bold text-white tracking-tight">
+                      <h3 className="text-base font-black text-slate-900 tracking-tight uppercase">
                         ALEXFITNESSHUB SECURE CONSOLE
                       </h3>
-                      <p className="text-[10px] text-gray-400 uppercase tracking-widest font-mono">
+                      <p className="text-[10px] text-slate-500 uppercase tracking-widest font-mono font-bold">
                         INITIALIZING PAYSTACK CHECKOUT GATEWAY
                       </p>
                     </div>
                   </div>
-
+ 
                   {/* Transaction Parameters */}
-                  <div className="rounded-xl bg-[#1A1A1A] p-4 border border-gray-800 space-y-3 text-left">
-                    <div className="flex justify-between items-center py-1.5 border-b border-gray-800/60 font-mono text-[10px] text-gray-400">
+                  <div className="rounded-xl bg-slate-50 p-4 border border-slate-200 space-y-3 text-left shadow-xs">
+                    <div className="flex justify-between items-center py-1.5 border-b border-slate-200 font-mono text-[10px] text-slate-500 font-bold">
                       <span>SECURE CONNECTION</span>
-                      <span className="text-emerald-500 font-bold uppercase">● ESTABLISHED</span>
+                      <span className="text-emerald-600 font-bold uppercase">● ESTABLISHED</span>
                     </div>
                     
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-gray-400 font-mono text-[10px] uppercase">ATHLETE PROFILE:</span>
-                      <span className="font-bold text-gray-100">{user?.email}</span>
+                      <span className="text-slate-500 font-mono text-[10px] uppercase font-semibold">ATHLETE PROFILE:</span>
+                      <span className="font-bold text-slate-800">{user?.email}</span>
                     </div>
-
+ 
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-gray-400 font-mono text-[10px] uppercase">MEMBERSHIP LEVEL:</span>
-                      <span className="font-bold text-[#C0392B] uppercase">
+                      <span className="text-slate-500 font-mono text-[10px] uppercase font-semibold">MEMBERSHIP LEVEL:</span>
+                      <span className="font-bold text-[#D32F2F] uppercase">
                         {activePaymentModal === "yearly" 
                           ? "VIP Elite Club (12M)" 
                           : activePaymentModal === "multi" 
@@ -2073,10 +2226,10 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                           : "Monthly Elite (1M)"}
                       </span>
                     </div>
-
+ 
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-gray-400 font-mono text-[10px] uppercase">DUE VALUE TODAY:</span>
-                      <span className="font-black text-white text-sm">
+                      <span className="text-slate-500 font-mono text-[10px] uppercase font-semibold">DUE VALUE TODAY:</span>
+                      <span className="font-black text-slate-900 text-sm">
                         ₦{(activePaymentModal === "yearly" 
                           ? yearlyPriceAnnual 
                           : activePaymentModal === "multi" 
@@ -2085,25 +2238,25 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                       </span>
                     </div>
                   </div>
-
+ 
                   {/* Connection log terminal simulation */}
-                  <div className="rounded-lg bg-black p-3.5 border border-gray-900 font-mono text-[9px] text-gray-500 space-y-1.5 text-left leading-normal">
+                  <div className="rounded-lg bg-slate-100 p-3.5 border border-slate-200 font-mono text-[9px] text-slate-600 space-y-1.5 text-left leading-normal">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[#C0392B]">&gt;</span>
+                      <span className="text-[#D32F2F] font-bold">&gt;</span>
                       <span>Enabling SSL/TLS 1.3 socket tunnel...</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[#C0392B]">&gt;</span>
+                      <span className="text-[#D32F2F] font-bold">&gt;</span>
                       <span>Requesting checkout redirect from paystack.co...</span>
                     </div>
                     <div className="flex items-center gap-1.5 animate-pulse">
-                      <span className="text-[#C0392B]">&gt;</span>
-                      <span className="text-gray-300">Awaiting secure authorization handshakes...</span>
+                      <span className="text-[#D32F2F] font-bold">&gt;</span>
+                      <span className="text-slate-800 font-bold">Awaiting secure authorization handshakes...</span>
                     </div>
                   </div>
-
+ 
                   {/* Redirection Notice */}
-                  <p className="text-[10px] text-gray-400 leading-normal text-center max-w-sm mx-auto">
+                  <p className="text-[10px] text-slate-500 leading-normal text-center max-w-sm mx-auto font-semibold">
                     Please do not close, refresh, or navigate away. Redirection takes place automatically. After successful payment, your Premium account access will unlock instantly.
                   </p>
                 </div>

@@ -48,7 +48,9 @@ export default function DashboardView({ activeView = "dashboard", setView }: Das
     weeklyReports,
     loadWeeklyReports,
     triggerWeeklyReportGeneration,
-    activityLogs
+    activityLogs,
+    theme,
+    setTheme
   } = useApp();
 
   const isPremium = user && (user.subscriptionStatus === "premium" || user.role === "admin");
@@ -243,6 +245,33 @@ export default function DashboardView({ activeView = "dashboard", setView }: Das
                   ⭐ Free Plan
                 </span>
               )}
+
+              {/* Theme Selector inside settings card */}
+              <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <span className="text-[8px] font-sans font-black uppercase tracking-wider text-slate-400">Theme</span>
+                <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5 border border-slate-200 dark:border-slate-700">
+                  <button 
+                    onClick={() => setTheme("light")}
+                    className={`px-2 py-0.5 rounded text-[8px] font-black uppercase cursor-pointer transition-all ${
+                      theme === "light" 
+                        ? "bg-white text-[#D32F2F] shadow-xs" 
+                        : "text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    Light
+                  </button>
+                  <button 
+                    onClick={() => setTheme("dark")}
+                    className={`px-2 py-0.5 rounded text-[8px] font-black uppercase cursor-pointer transition-all ${
+                      theme === "dark" 
+                        ? "bg-[#D32F2F] text-white shadow-xs" 
+                        : "text-slate-500 dark:text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    Dark
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1286,7 +1315,7 @@ function HabitTrackerView() {
 // 3. DAILY CALIBRATION DESK (LIVE DESK)
 // ==========================================
 function CalibrationDeskView() {
-  const { vitalsLogs, addVitalsLogAction } = useApp();
+  const { vitalsLogs, addVitalsLogAction, theme } = useApp();
   const [remTime, setRemTime] = useState(() => localStorage.getItem("alexfit_reminder_time") || "08:00");
   const [glasses, setGlasses] = useState(() => parseInt(localStorage.getItem("alexfit_hydration_today") || "0"));
   const [caloriesIn, setCaloriesIn] = useState(2100);
@@ -1520,11 +1549,11 @@ function CalibrationDeskView() {
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" className="opacity-40" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={theme === "dark" ? "#1F2937" : "#e2e8f0"} className="opacity-40" />
                   <XAxis dataKey="date" stroke="#94a3b8" fontSize={9} tickLine={false} />
                   <YAxis yAxisId="left" stroke="#D32F2F" fontSize={9} tickLine={false} domain={['dataMin - 5', 'dataMax + 5']} />
                   <YAxis yAxisId="right" orientation="right" stroke="#0ea5e9" fontSize={9} tickLine={false} domain={[0, 12]} />
-                  <Tooltip contentStyle={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '10px' }} />
+                  <Tooltip contentStyle={{ backgroundColor: theme === "dark" ? "#111827" : "#ffffff", color: theme === "dark" ? "#f8fafc" : "#0f172a", borderRadius: '12px', border: theme === "dark" ? "1px solid #1f2937" : "1px solid #e2e8f0", fontSize: '10px' }} />
                   <Legend verticalAlign="top" height={32} wrapperStyle={{ fontSize: '10px', fontWeight: 'black', textTransform: 'uppercase' }} />
                   <Line yAxisId="left" name="Heart Rate (bpm)" type="monotone" dataKey="Heart Rate (bpm)" stroke="#D32F2F" strokeWidth={3} activeDot={{ r: 6 }} dot={{ r: 3 }} />
                   <Line yAxisId="right" name="Sleep (hours)" type="monotone" dataKey="Sleep (hours)" stroke="#0ea5e9" strokeWidth={3} activeDot={{ r: 6 }} dot={{ r: 3 }} />

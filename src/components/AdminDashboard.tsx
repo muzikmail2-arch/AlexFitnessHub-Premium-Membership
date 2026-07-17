@@ -81,7 +81,8 @@ export default function AdminDashboard() {
 
   const filteredExercises = exercises.filter(e => 
     e.name.toLowerCase().includes(exerciseQuery.toLowerCase()) ||
-    e.category.toLowerCase().includes(exerciseQuery.toLowerCase())
+    e.category.toLowerCase().includes(exerciseQuery.toLowerCase()) ||
+    (e.categories && e.categories.some(cat => cat.toLowerCase().includes(exerciseQuery.toLowerCase())))
   );
 
   return (

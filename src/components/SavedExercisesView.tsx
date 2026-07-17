@@ -59,17 +59,54 @@ export default function SavedExercisesView({ setView }: SavedExercisesViewProps)
 
   // Unique categories in saved list
   const categories = useMemo(() => {
-    const list = new Set(bookmarkedExercises.map((e) => e.category));
+    const list = new Set<string>();
+    bookmarkedExercises.forEach(e => {
+      if (e.categories && Array.isArray(e.categories)) {
+        e.categories.forEach(cat => list.add(cat));
+      } else if (e.category) {
+        list.add(e.category);
+      }
+    });
     return ["All", ...Array.from(list)];
   }, [bookmarkedExercises]);
 
   // Filter and Search saved list
   const filteredExercises = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
     return bookmarkedExercises.filter((ex) => {
-      const matchesSearch = ex.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        ex.muscleGroups.some(m => m.toLowerCase().includes(searchQuery.toLowerCase()));
-      const matchesCategory = selectedCategory === "All" || ex.category === selectedCategory;
-      return matchesSearch && matchesCategory;
+      // 1. Category Filter
+      const matchesCategory = selectedCategory === "All" || 
+        ex.category === selectedCategory || 
+        (ex.categories && ex.categories.includes(selectedCategory));
+      
+      if (!matchesCategory) return false;
+      if (!query) return true;
+
+      const nameLower = ex.name.toLowerCase();
+      const catLower = ex.category.toLowerCase();
+      const bodyPartLower = (ex.bodyPart || "").toLowerCase();
+      const musclesWorkedLower = (ex.musclesWorked || []).map(m => m.toLowerCase());
+      const queryTerms = query.split(/\s+/).filter(t => t.length > 0);
+
+      // Check if all search terms match the exercise in some way
+      return queryTerms.every(term => {
+        if (nameLower.includes(term)) return true;
+        if (ex.categories && ex.categories.some(cat => cat.toLowerCase().includes(term))) return true;
+        if (ex.category && ex.category.toLowerCase().includes(term)) return true;
+        if (ex.muscleGroups && ex.muscleGroups.some(m => m.toLowerCase().includes(term))) return true;
+        if (musclesWorkedLower.some(m => m.includes(term))) return true;
+        if (bodyPartLower.includes(term)) return true;
+        if (ex.equipment && ex.equipment.some(eq => eq.toLowerCase().includes(term))) return true;
+        
+        // Movement pattern synonym logic
+        if (term === "push" || term === "pushing" || term === "chest") {
+          return nameLower.includes("push") || nameLower.includes("press") || nameLower.includes("extension") || nameLower.includes("dip") || nameLower.includes("kickback") || catLower.includes("chest") || catLower.includes("shoulders") || catLower.includes("triceps") || bodyPartLower.includes("chest");
+        }
+        if (term === "pull" || term === "pulling" || term === "back") {
+          return nameLower.includes("pull") || nameLower.includes("row") || nameLower.includes("curl") || nameLower.includes("deadlift") || nameLower.includes("raise") || catLower.includes("back") || catLower.includes("biceps") || bodyPartLower.includes("back");
+        }
+        return false;
+      });
     });
   }, [bookmarkedExercises, searchQuery, selectedCategory]);
 

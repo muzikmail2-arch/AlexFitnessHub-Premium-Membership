@@ -70,11 +70,11 @@ export default function WorkoutVisual({
               <img 
                 src={resolvedMediaUrl} 
                 alt={exerciseName || "Exercise Preview"} 
-                className="w-full h-full object-cover opacity-80" 
+                className="w-full h-full object-cover opacity-100 filter brightness-110" 
                 referrerPolicy="no-referrer"
               />
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
+            <div className="absolute inset-0 bg-white/10" />
           </div>
         ) : null}
         
@@ -114,7 +114,7 @@ export default function WorkoutVisual({
           )}
           
           {/* Footer bar */}
-          <div className="flex justify-between items-center border-t border-slate-200/10 pt-2 text-[7.5px] font-mono text-slate-400 dark:text-slate-300 uppercase tracking-widest">
+          <div className="flex justify-between items-center border-t border-slate-200/20 pt-2 text-[7.5px] font-mono text-slate-700 bg-white/95 backdrop-blur-md px-2 py-1.5 rounded-lg border border-slate-100 uppercase tracking-widest relative z-10 shadow-sm">
             <span>{exerciseName || exercise?.name || "ALEX KINESIOLOGY"}</span>
             <div className="flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />

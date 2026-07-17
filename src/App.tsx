@@ -21,14 +21,56 @@ import { TestimonialPopup } from "./components/TestimonialPopup";
 import DailyNotificationController from "./components/DailyNotificationController";
 import PaymentSuccessView from "./components/PaymentSuccessView";
 import FitnessChallenges from "./components/FitnessChallenges";
+import BellyFatShredView from "./components/BellyFatShredView";
 
+
+
+const PATH_TO_VIEW_MAP: Record<string, string> = {
+  "/": "home",
+  "/payment/success": "payment-success",
+  "/premium/library": "library",
+  "/premium/workout-generator": "workout-generator",
+  "/premium/workout-videos": "workout-videos",
+  "/premium/saved-exercises": "saved-exercises",
+  "/premium/coach": "coach",
+  "/premium/nutrition": "nutrition",
+  "/premium/daily-plan": "daily-plan",
+  "/premium/challenges": "challenges",
+  "/premium/community": "community",
+  "/premium/weekly-reports": "weekly-reports",
+  "/premium/daily-habit-tracker": "daily-habit-tracker",
+  "/premium/daily-calibration-desk": "daily-calibration-desk",
+  "/premium/handbook": "handbook",
+  "/premium/weight-trajectory": "weight-trajectory",
+  "/premium/dashboard": "dashboard",
+  "/premium/belly-fat-shred": "belly-fat-shred",
+};
+
+const VIEW_TO_PATH_MAP: Record<string, string> = Object.fromEntries(
+  Object.entries(PATH_TO_VIEW_MAP).map(([path, view]) => [view, path])
+);
 
 
 function FitnessAppContent() {
   const { user, loading } = useApp();
+
+  // Instantly apply theme from localStorage on initial render of App to guarantee no flashes
+  React.useLayoutEffect(() => {
+    try {
+      const savedTheme = localStorage.getItem("fit_theme");
+      const root = window.document.documentElement;
+      if (savedTheme === "dark" || (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+        root.classList.add("dark");
+      } else {
+        root.classList.remove("dark");
+      }
+    } catch (e) {}
+  }, []);
+
   const [currentView, setView] = useState(() => {
-    if (window.location.pathname === "/payment/success") {
-      return "payment-success";
+    const pathname = window.location.pathname;
+    if (PATH_TO_VIEW_MAP[pathname]) {
+      return PATH_TO_VIEW_MAP[pathname];
     }
     try {
       const activeUid = localStorage.getItem("fit_active_uid");
@@ -74,20 +116,64 @@ function FitnessAppContent() {
 
   // General Guard to catch any unauthorized entries to completely off-limit standalone premium features
   React.useEffect(() => {
-    if (user && user.subscriptionStatus !== "premium" && user.role !== "admin") {
-      const standalonePremiumViews = ["library", "workout-generator", "workout-videos", "saved-exercises", "coach", "nutrition", "daily-plan", "challenges", "community", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory", "dashboard"];
-      if (standalonePremiumViews.includes(currentView)) {
-        console.log(`[DevOps Security] Free user attempted to access standalone premium view: ${currentView}. Redirecting to Home pricing.`);
+    if (!loading) {
+      // Strict premium check for '/premium/belly-fat-shred' view
+      if (currentView === "belly-fat-shred") {
+        const isPremium = user && (user.subscriptionStatus === "premium" || user.role === "admin");
+        if (!isPremium) {
+          console.log("[DevOps Security] Unauthorized user attempted to access '/premium/belly-fat-shred'. Redirecting to pricing section.");
+          setView("home");
+          setTimeout(() => {
+            const el = document.getElementById("pricing");
+            if (el) {
+              el.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+          }, 150);
+          return;
+        }
+      }
+
+      const loginRequiredViews = ["coach", "nutrition", "community", "challenges", "success-stories", "workout-generator", "daily-plan", "dashboard", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory", "library", "workout-videos", "saved-exercises", "belly-fat-shred"];
+      const standalonePremiumViews = ["library", "workout-generator", "workout-videos", "saved-exercises", "coach", "nutrition", "daily-plan", "challenges", "community", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory", "dashboard", "belly-fat-shred"];
+
+      if (loginRequiredViews.includes(currentView) && !user) {
+        console.log(`[DevOps Security] Unauthenticated user attempted to access protected view: ${currentView}. Redirecting to Home and opening auth.`);
         setView("home");
-        setTimeout(() => {
-          const el = document.getElementById("pricing");
-          if (el) {
-            el.scrollIntoView({ behavior: "smooth", block: "start" });
-          }
-        }, 150);
+        setIsAuthOpen(true);
+      } else if (user && user.subscriptionStatus !== "premium" && user.role !== "admin") {
+        if (standalonePremiumViews.includes(currentView)) {
+          console.log(`[DevOps Security] Free user attempted to access standalone premium view: ${currentView}. Redirecting to Home pricing.`);
+          setView("home");
+          setTimeout(() => {
+            const el = document.getElementById("pricing");
+            if (el) {
+              el.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+          }, 150);
+        }
       }
     }
-  }, [user, currentView]);
+  }, [user, currentView, loading]);
+
+  // Keep window.location.pathname in sync with currentView
+  React.useEffect(() => {
+    const targetPath = VIEW_TO_PATH_MAP[currentView] || "/";
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState(null, "", targetPath);
+    }
+  }, [currentView]);
+
+  // Listen to popstate event for browser back/forward buttons
+  React.useEffect(() => {
+    const handlePopState = () => {
+      const targetView = PATH_TO_VIEW_MAP[window.location.pathname] || "home";
+      setView(targetView);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
 
   // Activate Tawk.to Live Chat dynamically on load
   React.useEffect(() => {
@@ -155,14 +241,14 @@ function FitnessAppContent() {
       return;
     }
 
-    if ((["coach", "nutrition", "community", "challenges", "success-stories", "workout-generator", "daily-plan", "dashboard", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory", "library", "workout-videos", "saved-exercises"].includes(targetView)) && !user) {
+    if ((["coach", "nutrition", "community", "challenges", "success-stories", "workout-generator", "daily-plan", "dashboard", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory", "library", "workout-videos", "saved-exercises", "belly-fat-shred"].includes(targetView)) && !user) {
       setIsAuthOpen(true);
       return;
     }
 
     // If the user is on the free plan, block completely off-limits premium views
     if (user && user.subscriptionStatus !== "premium" && user.role !== "admin") {
-      const standalonePremiumViews = ["library", "workout-generator", "workout-videos", "saved-exercises", "coach", "nutrition", "daily-plan", "challenges", "community", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory", "dashboard"];
+      const standalonePremiumViews = ["library", "workout-generator", "workout-videos", "saved-exercises", "coach", "nutrition", "daily-plan", "challenges", "community", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory", "dashboard", "belly-fat-shred"];
       if (standalonePremiumViews.includes(targetView)) {
         setView("home");
         setTimeout(() => {
@@ -180,7 +266,7 @@ function FitnessAppContent() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white text-slate-900 font-sans">
+      <div className="flex min-h-screen items-center justify-center bg-white dark:bg-[#090d16] text-slate-900 dark:text-[#F8FAFC] font-sans">
         <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#D32F2F] border-t-transparent" />
       </div>
     );
@@ -189,7 +275,7 @@ function FitnessAppContent() {
   // Force onboarding configuration on first sign up
   if (user && user.onboarded === false) {
     return (
-      <div className="min-h-screen bg-white text-slate-900 transition-colors duration-200">
+      <div className="min-h-screen bg-white dark:bg-[#090d16] text-slate-900 dark:text-[#F8FAFC] transition-colors duration-200">
         <Navbar 
           currentView={currentView} 
           setView={handleSetView} 
@@ -205,7 +291,7 @@ function FitnessAppContent() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 transition-colors duration-200">
+    <div className="min-h-screen bg-white dark:bg-[#090d16] text-slate-900 dark:text-[#F8FAFC] transition-colors duration-200">
       
       {/* Dynamic Header Navbar navigation */}
       <Navbar 
@@ -263,6 +349,9 @@ function FitnessAppContent() {
             )}
             {currentView === "workout-videos" && (
               <WorkoutVideos />
+            )}
+            {currentView === "belly-fat-shred" && user && (
+              <BellyFatShredView />
             )}
 
             {currentView === "admin" && user && user.role === "admin" && (

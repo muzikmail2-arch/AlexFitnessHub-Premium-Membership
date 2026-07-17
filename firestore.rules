@@ -173,5 +173,10 @@ service cloud.firestore {
         isAdmin()
       );
     }
+
+    // --- Belly Fat Shred Program ---
+    match /belly_fat_shred_progress/{userId} {
+      allow read, write: if isPremium() && isOwner(userId);
+    }
   }
 }

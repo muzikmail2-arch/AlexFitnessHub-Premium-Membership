@@ -6,6 +6,7 @@ export interface Exercise {
   instructions: string[];
   equipment: string[];
   category: string;
+  categories: string[];
   commonMistakes: string[];
   safetyTips: string[];
   alternativeExercises: string[];
@@ -319,10 +320,166 @@ const RAW_EXERCISES_DATA: RawExerciseData[] = [
   { name: "Military Style Fitness: Jump Squats", displayName: "Jump Squats", category: "Military Style Fitness", sub: "Military Fitness", equipment: ["Bodyweight"], primary: "Legs", secondary: ["Cardio"], diff: "Intermediate" }
 ];
 
+export function determineCategories(
+  name: string,
+  primary: string,
+  secondary: string[],
+  equipment: string[],
+  difficulty: string,
+  originalCategories: string[]
+): string[] {
+  const cats: string[] = [];
+  const nameL = name.toLowerCase();
+  const primaryL = primary.toLowerCase();
+  const secondaryL = secondary.map(s => s.toLowerCase());
+  const equipL = equipment.map(e => e.toLowerCase());
+  const allMuscles = [primaryL, ...secondaryL];
+
+  // 1. Muscle-based (Body parts)
+  if (allMuscles.includes("chest") || allMuscles.includes("pectoralis major") || nameL.includes("bench press") || nameL.includes("chest press") || nameL.includes("fly") || nameL.includes("pushup") || nameL.includes("push up")) {
+    cats.push("Chest");
+  }
+  if (allMuscles.includes("back") || allMuscles.includes("lats") || allMuscles.includes("traps") || allMuscles.includes("rhomboids") || nameL.includes("row") || nameL.includes("pullup") || nameL.includes("pull-up") || nameL.includes("pulldown") || nameL.includes("deadlift") || nameL.includes("extension")) {
+    cats.push("Back");
+  }
+  if (allMuscles.includes("shoulders") || allMuscles.includes("shoulder") || allMuscles.includes("delts") || allMuscles.includes("deltoid") || nameL.includes("press") || nameL.includes("raise") || nameL.includes("arnold")) {
+    cats.push("Shoulders");
+  }
+  if (allMuscles.includes("legs") || allMuscles.includes("quads") || allMuscles.includes("quadriceps") || allMuscles.includes("hamstrings") || nameL.includes("squat") || nameL.includes("lunge") || nameL.includes("leg press") || nameL.includes("split squat") || nameL.includes("calf raise") || nameL.includes("glute bridge") || nameL.includes("hip thrust")) {
+    cats.push("Legs");
+  }
+  if (allMuscles.includes("biceps") || allMuscles.includes("bicep") || nameL.includes("curl")) {
+    cats.push("Biceps");
+  }
+  if (allMuscles.includes("triceps") || allMuscles.includes("tricep") || nameL.includes("pushdown") || nameL.includes("skull crusher") || nameL.includes("kickback") || nameL.includes("dips") || nameL.includes("dip")) {
+    cats.push("Triceps");
+  }
+  if (allMuscles.includes("forearms") || allMuscles.includes("forearm") || nameL.includes("wrist") || nameL.includes("grip")) {
+    cats.push("Forearms");
+  }
+  if (allMuscles.includes("core") || allMuscles.includes("abs") || allMuscles.includes("obliques") || nameL.includes("plank") || nameL.includes("crunch") || nameL.includes("twist") || nameL.includes("sit up") || nameL.includes("situp") || nameL.includes("rollout") || nameL.includes("leg raise") || nameL.includes("flutter")) {
+    cats.push("Core");
+    cats.push("Abs");
+  }
+  if (allMuscles.includes("glutes") || allMuscles.includes("glute") || nameL.includes("glute") || nameL.includes("hip thrust") || nameL.includes("bridge") || nameL.includes("kickback")) {
+    cats.push("Glutes");
+  }
+  if (allMuscles.includes("calves") || allMuscles.includes("calf") || nameL.includes("calf")) {
+    cats.push("Calves");
+  }
+  if (allMuscles.includes("neck") || nameL.includes("neck")) {
+    cats.push("Neck");
+  }
+
+  // 2. Equipment / Styles
+  if (allMuscles.includes("cardio") || nameL.includes("run") || nameL.includes("walk") || nameL.includes("cycling") || nameL.includes("bike") || nameL.includes("jump rope") || nameL.includes("rowing") || nameL.includes("stair") || nameL.includes("elliptical") || nameL.includes("swim") || nameL.includes("hike") || nameL.includes("burpee") || nameL.includes("jumping jack") || nameL.includes("high knee") || nameL.includes("sprint")) {
+    cats.push("Cardio");
+  }
+  if (nameL.includes("hiit") || nameL.includes("burpee") || nameL.includes("jump") || nameL.includes("sprint") || nameL.includes("climber") || nameL.includes("jacks") || nameL.includes("high knee") || nameL.includes("kettlebell") || nameL.includes("battle ropes") || nameL.includes("box jump") || nameL.includes("skater")) {
+    cats.push("HIIT");
+  }
+  if (equipL.includes("bodyweight") || equipL.includes("pullup bar") || equipL.includes("dip bar") || nameL.includes("push up") || nameL.includes("pushup") || nameL.includes("pull up") || nameL.includes("pullup") || nameL.includes("dips") || nameL.includes("dip") || nameL.includes("plank") || nameL.includes("squat") || nameL.includes("lunge") || nameL.includes("muscle up") || nameL.includes("handstand") || nameL.includes("pistol") || nameL.includes("flag") || nameL.includes("lever")) {
+    cats.push("Calisthenics");
+  }
+
+  if (equipL.includes("bodyweight") || equipL.includes("dumbbell") || equipL.includes("kettlebell") || equipL.includes("resistance band") || equipL.includes("none")) {
+    cats.push("Home Workouts");
+  }
+  if (equipL.includes("barbell") || equipL.includes("cable machine") || equipL.includes("machine") || equipL.includes("ez-bar")) {
+    cats.push("Gym Workouts");
+  }
+
+  // 3. Modality-based
+  if (nameL.includes("mobility") || nameL.includes("stretch") || nameL.includes("yoga") || nameL.includes("pilates") || nameL.includes("recovery") || nameL.includes("stretching") || nameL.includes("warm up")) {
+    cats.push("Mobility");
+    cats.push("Stretching");
+    cats.push("Recovery");
+  }
+  if (nameL.includes("warm up") || nameL.includes("jacks") || nameL.includes("jump rope") || nameL.includes("high knee")) {
+    cats.push("Warm Up");
+  }
+  if (nameL.includes("cool down") || nameL.includes("stretch") || nameL.includes("walk")) {
+    cats.push("Cool Down");
+  }
+  if (nameL.includes("yoga") || nameL.includes("pose")) {
+    cats.push("Yoga");
+  }
+  if (nameL.includes("pilates") || nameL.includes("teaser")) {
+    cats.push("Pilates");
+  }
+  if (nameL.includes("swing") || nameL.includes("slam") || nameL.includes("carry") || nameL.includes("burpee") || nameL.includes("bear crawl") || nameL.includes("turkish getup")) {
+    cats.push("Functional Training");
+  }
+
+  // 4. Goal-based
+  if (difficulty === "Intermediate" || difficulty === "Advanced") {
+    cats.push("Strength");
+    cats.push("Bodybuilding");
+  }
+  if (nameL.includes("squat") || nameL.includes("bench press") || nameL.includes("deadlift")) {
+    cats.push("Powerlifting");
+  }
+  if (nameL.includes("clean") || nameL.includes("snatch") || nameL.includes("jerk")) {
+    cats.push("Olympic Lifting");
+  }
+  if (nameL.includes("kettlebell") || nameL.includes("box jump") || nameL.includes("burpee") || nameL.includes("thruster")) {
+    cats.push("Cross Training");
+  }
+  if (difficulty === "Intermediate" || difficulty === "Advanced") {
+    cats.push("Athletic Performance");
+  }
+
+  if (difficulty === "Beginner" && (equipL.includes("bodyweight") || equipL.includes("none")) && !nameL.includes("burpee") && !nameL.includes("jump")) {
+    cats.push("Senior Fitness");
+    cats.push("Pregnancy Safe");
+  }
+
+  cats.push(difficulty);
+
+  // Fallback map
+  originalCategories.forEach(c => {
+    if (c === "Gym Workouts" && !cats.includes("Gym Workouts")) cats.push("Gym Workouts");
+    if (c === "Home Workouts" && !cats.includes("Home Workouts")) cats.push("Home Workouts");
+    if (c === "Cardio Workouts" && !cats.includes("Cardio")) cats.push("Cardio");
+    if (c === "Calisthenics Workouts" && !cats.includes("Calisthenics")) cats.push("Calisthenics");
+    if (c === "Military Style Fitness" && !cats.includes("Athletic Performance")) cats.push("Athletic Performance");
+  });
+
+  return Array.from(new Set(cats));
+}
+
 const generateExercises = (): Exercise[] => {
-  return RAW_EXERCISES_DATA.map((raw, idx) => {
-    const id = `exercise-${raw.category.toLowerCase().replace(/[^a-z0-9]/g, "-")}-${raw.name.toLowerCase().replace(/[^a-z0-9]/g, "-")}`;
+  // Deduplicate RAW_EXERCISES_DATA by displayName || name
+  const uniqueRawMap = new Map<string, typeof RAW_EXERCISES_DATA[number] & { originalCategories: string[]; originalSubs: string[] }>();
+
+  RAW_EXERCISES_DATA.forEach(raw => {
     const displayName = raw.displayName || raw.name;
+    const key = displayName.toLowerCase().trim();
+
+    if (uniqueRawMap.has(key)) {
+      const existing = uniqueRawMap.get(key)!;
+      existing.equipment = Array.from(new Set([...existing.equipment, ...raw.equipment]));
+      existing.secondary = Array.from(new Set([...existing.secondary, ...raw.secondary]));
+      if (!existing.originalCategories.includes(raw.category)) {
+        existing.originalCategories.push(raw.category);
+      }
+      if (!existing.originalSubs.includes(raw.sub)) {
+        existing.originalSubs.push(raw.sub);
+      }
+    } else {
+      uniqueRawMap.set(key, {
+        ...raw,
+        originalCategories: [raw.category],
+        originalSubs: [raw.sub]
+      });
+    }
+  });
+
+  const deduplicatedRawList = Array.from(uniqueRawMap.values());
+
+  return deduplicatedRawList.map((raw, idx) => {
+    const displayName = raw.displayName || raw.name;
+    const id = `exercise-${displayName.toLowerCase().replace(/[^a-z0-9]/g, "-")}`;
     
     const instructions = [
       `Set up your starting alignment and stabilize your shoulders, lower back, and feet securely.`,
@@ -348,14 +505,24 @@ const generateExercises = (): Exercise[] => {
 
     const isPremium = raw.diff === "Advanced" || idx % 4 === 0;
 
+    const computedCats = determineCategories(
+      displayName,
+      raw.primary,
+      raw.secondary,
+      raw.equipment,
+      raw.diff,
+      raw.originalCategories
+    );
+
     return {
       id,
-      name: displayName, // display name is simple, concise and exactly as requested
+      name: displayName,
       muscleGroups: [raw.primary, ...raw.secondary],
       difficulty: raw.diff,
       instructions,
       equipment: raw.equipment,
-      category: raw.category,
+      category: raw.originalCategories[0] || raw.category,
+      categories: computedCats,
       commonMistakes,
       safetyTips,
       alternativeExercises: [raw.name.includes("Press") ? "Push Ups" : "Plank"],
@@ -376,7 +543,7 @@ const generateExercises = (): Exercise[] => {
       benefits,
       trainerTips: `Focus closely on active mind-muscle connection. Keep tension on the ${raw.primary} rather than neighboring joints.`,
       safetyNotes: "Always warm up with light sets before attempting heavier work. Secure weights safely.",
-      bodyPart: raw.sub
+      bodyPart: raw.originalSubs[0] || raw.sub
     };
   });
 };

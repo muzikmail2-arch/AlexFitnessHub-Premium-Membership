@@ -178,6 +178,32 @@
         "sentAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "userId", "email", "reportContent", "sentAt"]
+    },
+    "BellyFatShredProgress": {
+      "title": "Belly Fat Shred Progress",
+      "description": "Durable user progress for the 5-Month Belly Fat Shred Program.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "currentWeek": { "type": "number" },
+        "currentDay": { "type": "number" },
+        "completedWorkouts": { "type": "array" },
+        "completedRuns": { "type": "array" },
+        "waterIntake": { "type": "number" },
+        "hydrationHistory": { "type": "object" },
+        "walkingHistory": { "type": "object" },
+        "nutritionChecklist": { "type": "object" },
+        "weightHistory": { "type": "array" },
+        "waistHistory": { "type": "array" },
+        "progressPhotos": { "type": "array" },
+        "achievements": { "type": "array" },
+        "streaks": { "type": "object" },
+        "lemonCucumberWaterCompleted": { "type": "array" },
+        "dailyChecklistHistory": { "type": "object" },
+        "reminders": { "type": "object" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "currentWeek", "currentDay"]
     }
   },
   "firestore": {
@@ -224,6 +250,10 @@
     "weekly_reports/{reportId}": {
       "schema": "WeeklyReport",
       "description": "Durable weekly email reports dispatched to premium users."
+    },
+    "belly_fat_shred_progress/{userId}": {
+      "schema": "BellyFatShredProgress",
+      "description": "User specific progress tracking for the 5-Month Belly Fat Shred Program."
     }
   }
 }

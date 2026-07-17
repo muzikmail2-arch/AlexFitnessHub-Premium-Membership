@@ -63,6 +63,7 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
       { id: "nutrition", label: "Nutrition", action: () => handleNav("nutrition") },
       { id: "challenges", label: "Challenges", action: () => handleNav("challenges") },
       { id: "community", label: "Community", action: () => handleNav("community") },
+      { id: "belly-fat-shred", label: "Belly Shred", action: () => handleNav("belly-fat-shred") },
       { id: "coach", label: "AI Coach", action: () => handleNav("coach") },
     ] : [
       { id: "home", label: "Home", action: () => handleNav("home") },
@@ -90,7 +91,7 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
     setIsMenuOpen(false);
     
     // Check if view is restricted (requires login)
-    const loginRequiredViews = ["daily-plan", "nutrition", "coach", "workout-generator", "library", "community", "dashboard", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory", "workout-videos", "saved-exercises", "challenges"];
+    const loginRequiredViews = ["daily-plan", "nutrition", "coach", "workout-generator", "library", "community", "dashboard", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory", "workout-videos", "saved-exercises", "challenges", "belly-fat-shred"];
     if (loginRequiredViews.includes(targetView) && !user) {
       onOpenAuth();
       return;
@@ -98,7 +99,7 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
     
     // If the user is on the free plan, block premium workouts and redirect to pricing section on Home
     if (user && user.subscriptionStatus !== "premium" && user.role !== "admin") {
-      const standalonePremiumViews = ["library", "workout-generator", "workout-videos", "saved-exercises", "coach", "nutrition", "daily-plan", "challenges", "community", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory", "dashboard"];
+      const standalonePremiumViews = ["library", "workout-generator", "workout-videos", "saved-exercises", "coach", "nutrition", "daily-plan", "challenges", "community", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory", "dashboard", "belly-fat-shred"];
       if (standalonePremiumViews.includes(targetView)) {
         setView("home");
         setTimeout(() => {
@@ -138,6 +139,7 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
     { id: "challenges", label: "Challenges", sublabel: "Monthly Competitions", action: () => handleCustomNav("challenges") },
     { id: "community", label: "Community", sublabel: "Discuss & Post", action: () => handleCustomNav("community") },
     { id: "weekly-reports", label: "Weekly Reports", sublabel: "Premium Audits", action: () => handleCustomNav("weekly-reports") },
+    { id: "belly-fat-shred", label: "Belly Fat Shred Program", sublabel: "5-Month Transformation", action: () => handleCustomNav("belly-fat-shred") },
     { id: "daily-habit-tracker", label: "Daily Habit Tracker", sublabel: "Routine Consistency", action: () => handleCustomNav("daily-habit-tracker") },
     { id: "daily-calibration-desk", label: "Daily Calibration Desk", sublabel: "Live Desk", action: () => handleCustomNav("daily-calibration-desk") },
     { id: "handbook", label: "Alex Fitness Hub Handbook", sublabel: "Handbook & Guide", action: () => handleCustomNav("handbook") },
@@ -230,6 +232,22 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
                 </motion.button>
               )}
 
+              {/* Premium Smooth Animated Theme Toggle */}
+              <motion.button
+                whileHover={{ scale: 1.1, rotate: 15 }}
+                whileTap={{ scale: 0.9, rotate: -15 }}
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="p-2 text-white hover:bg-white/10 rounded-full transition-all duration-200 cursor-pointer flex items-center justify-center border border-white/10"
+                aria-label="Toggle Theme"
+                id="navbar-theme-toggle"
+              >
+                {theme === "dark" ? (
+                  <Sun className="w-4 h-4 text-amber-300 fill-amber-300" />
+                ) : (
+                  <Moon className="w-4 h-4 text-sky-100 fill-sky-100" />
+                )}
+              </motion.button>
+
               {/* Hamburger icon: 3 white lines */}
               <motion.button
                 whileHover={{ scale: 1.1 }}
@@ -273,6 +291,21 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
           <div className="space-y-4 flex flex-col h-full overflow-hidden">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3 shrink-0">
               <LogoElement />
+              {/* Sidebar Theme toggle */}
+              <motion.button
+                whileHover={{ scale: 1.1, rotate: 15 }}
+                whileTap={{ scale: 0.9, rotate: -15 }}
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200 cursor-pointer flex items-center justify-center border border-slate-200 dark:border-slate-800"
+                aria-label="Toggle Theme"
+                id="sidebar-theme-toggle"
+              >
+                {theme === "dark" ? (
+                  <Sun className="w-4 h-4 text-amber-500 fill-amber-500" />
+                ) : (
+                  <Moon className="w-4 h-4 text-slate-700 fill-slate-700" />
+                )}
+              </motion.button>
             </div>
 
             {/* User Profile Card with Premium Badge */}

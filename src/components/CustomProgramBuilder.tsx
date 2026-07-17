@@ -43,7 +43,8 @@ export default function CustomProgramBuilder({ onClose, onSuccess, setView }: Cu
   // Filter exercises based on search & muscle selection
   const filteredExercises = exercises.filter(ex => {
     const matchesSearch = ex.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          ex.category.toLowerCase().includes(searchQuery.toLowerCase());
+                          ex.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (ex.categories && ex.categories.some(cat => cat.toLowerCase().includes(searchQuery.toLowerCase())));
     const matchesMuscle = selectedMuscle === "All" || ex.muscleGroups.includes(selectedMuscle);
     return matchesSearch && matchesMuscle;
   });

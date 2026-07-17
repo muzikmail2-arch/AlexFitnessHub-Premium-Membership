@@ -385,8 +385,28 @@ export default function WorkoutLibrary({ setView }: { setView?: (view: string) =
 
   // Dynamic filter lists
   const categoriesList = useMemo(() => {
-    const list = new Set(exercises.map(e => e.category));
-    return ["All", ...Array.from(list)];
+    const list = new Set<string>();
+    exercises.forEach(e => {
+      if (e.categories && Array.isArray(e.categories)) {
+        e.categories.forEach(cat => list.add(cat));
+      } else if (e.category) {
+        list.add(e.category);
+      }
+    });
+    const ordered = [
+      "Chest", "Back", "Shoulders", "Legs", "Biceps", "Triceps", "Forearms", "Core", "Abs", "Glutes", "Calves", "Neck",
+      "Cardio", "HIIT", "Calisthenics", "Home Workouts", "Gym Workouts", "Mobility", "Stretching", "Recovery", "Warm Up", "Cool Down",
+      "Yoga", "Pilates", "Functional Training", "Strength", "Powerlifting", "Olympic Lifting", "Bodybuilding", "Cross Training",
+      "Athletic Performance", "Senior Fitness", "Pregnancy Safe", "Beginner", "Intermediate", "Advanced"
+    ];
+    const present = Array.from(list);
+    const sorted = ordered.filter(o => present.some(p => p.toLowerCase() === o.toLowerCase()));
+    present.forEach(p => {
+      if (!sorted.some(s => s.toLowerCase() === p.toLowerCase())) {
+        sorted.push(p);
+      }
+    });
+    return ["All", ...sorted];
   }, [exercises]);
 
   const muscleGroupsList = useMemo(() => {
@@ -428,7 +448,9 @@ export default function WorkoutLibrary({ setView }: { setView?: (view: string) =
       // Allow all exercises to be visible and explainable to everyone
       
       // Filter by Category, Difficulty, Muscle, Equipment, Type and Goal
-      const matchesCategory = selectedCategory === "All" || ex.category === selectedCategory;
+      const matchesCategory = selectedCategory === "All" || 
+        ex.category === selectedCategory || 
+        (ex.categories && ex.categories.includes(selectedCategory));
       const matchesDifficulty = selectedDifficulty === "All" || ex.difficulty === selectedDifficulty;
       const matchesMuscleGroup = selectedMuscleGroup === "All" || ex.muscleGroups.includes(selectedMuscleGroup);
       
@@ -484,64 +506,77 @@ export default function WorkoutLibrary({ setView }: { setView?: (view: string) =
       const bodyPartLower = (ex.bodyPart || "").toLowerCase();
       const musclesWorkedLower = ex.musclesWorked.map(m => m.toLowerCase());
 
-      // Try exact category / muscle group mapping first using the stripped/modified query
-      const queryTarget = getQueryTargetGroup(modifiedQuery);
-      if (queryTarget) {
-        const exGroup = getExerciseSystemGroup(ex);
-        return exGroup === queryTarget;
-      }
+      // Synonym and alias matching definitions
+      const queryClean = modifiedQuery.trim().toLowerCase();
+      const queryTerms = queryClean.split(/\s+/).filter(t => t.length > 0);
+      if (queryTerms.length === 0) return true;
 
-      // If it doesn't map to a primary target group, do strict direct matching
-      const isDirectMatch = 
-        nameLower.includes(modifiedQuery) ||
-        bodyPartLower.includes(modifiedQuery) ||
-        musclesWorkedLower.some(mw => mw.includes(modifiedQuery)) ||
-        ex.equipment.some(eq => eq.toLowerCase().includes(modifiedQuery));
+      // Check if all search terms match the exercise in some way
+      return queryTerms.every(term => {
+        // Direct name match
+        if (nameLower.includes(term)) return true;
 
-      if (isDirectMatch) return true;
+        // Categories match
+        if (ex.categories && ex.categories.some(cat => cat.toLowerCase().includes(term))) return true;
+        if (ex.category && ex.category.toLowerCase().includes(term)) return true;
 
-      // Special contextual expansions requested by the user:
-      // "when users search for back, the website will show, pull ups, Bent over row, deadlift and more"
-      if (modifiedQuery === "back" || modifiedQuery === "back workouts" || modifiedQuery === "back exercises") {
-        if (
-          catLower === "back" || 
-          nameLower.includes("pullup") || 
-          nameLower.includes("pull-up") || 
-          nameLower.includes("row") || 
-          nameLower.includes("deadlift") ||
-          nameLower.includes("lat")
-        ) {
-          return true;
+        // Muscles and body parts match
+        if (ex.muscleGroups && ex.muscleGroups.some(m => m.toLowerCase().includes(term))) return true;
+        if (ex.musclesWorked && ex.musclesWorked.some(m => m.toLowerCase().includes(term))) return true;
+        if (bodyPartLower.includes(term)) return true;
+
+        // Equipment match
+        if (ex.equipment && ex.equipment.some(eq => eq.toLowerCase().includes(term))) return true;
+
+        // Difficulty match
+        if (ex.difficulty && ex.difficulty.toLowerCase().includes(term)) return true;
+
+        // Special movement pattern synonym logic
+        if (term === "push" || term === "pushing" || term === "chest") {
+          const isPush = nameLower.includes("push") || nameLower.includes("press") || nameLower.includes("extension") || nameLower.includes("dip") || nameLower.includes("kickback") || catLower.includes("chest") || catLower.includes("shoulders") || catLower.includes("triceps") || bodyPartLower.includes("chest") || bodyPartLower.includes("shoulders");
+          if (isPush) return true;
         }
-      }
-      if (modifiedQuery.includes("pull up") || modifiedQuery.includes("pullup") || modifiedQuery.includes("pull-up")) {
-        if (nameLower.includes("pull-up") || nameLower.includes("pullup") || nameLower.includes("chin-up") || nameLower.includes("chinup") || nameLower.includes("inverted row") || nameLower.includes("bodyweight row") || catLower === "back" || bodyPartLower === "back" || musclesWorkedLower.includes("lats")) {
-          return true;
+        if (term === "pull" || term === "pulling" || term === "back") {
+          const isPull = nameLower.includes("pull") || nameLower.includes("row") || nameLower.includes("curl") || nameLower.includes("deadlift") || nameLower.includes("raise") || catLower.includes("back") || catLower.includes("biceps") || bodyPartLower.includes("back") || bodyPartLower.includes("biceps");
+          if (isPull) return true;
         }
-      }
-      if (modifiedQuery.includes("row") || modifiedQuery.includes("rows") || modifiedQuery.includes("bent over")) {
-        if (nameLower.includes("row") || nameLower.includes("bent-over") || catLower === "back" || bodyPartLower === "back") {
-          return true;
+        if (term === "upper" || term === "upperbody" || term === "upper body") {
+          const isUpper = !bodyPartLower.includes("leg") && !bodyPartLower.includes("calf") && !bodyPartLower.includes("glute") && (bodyPartLower.includes("chest") || bodyPartLower.includes("back") || bodyPartLower.includes("shoulder") || bodyPartLower.includes("arm") || bodyPartLower.includes("bicep") || bodyPartLower.includes("tricep") || nameLower.includes("pushup") || nameLower.includes("bench"));
+          if (isUpper) return true;
         }
-      }
-      if (modifiedQuery.includes("deadlift") || modifiedQuery.includes("deadlifts") || modifiedQuery.includes("rdl")) {
-        if (nameLower.includes("deadlift") || nameLower.includes("rdl")) {
-          return true;
+        if (term === "lower" || term === "lowerbody" || term === "lower body" || term === "legs") {
+          const isLower = bodyPartLower.includes("leg") || bodyPartLower.includes("calf") || bodyPartLower.includes("glute") || bodyPartLower.includes("thigh") || nameLower.includes("squat") || nameLower.includes("deadlift") || nameLower.includes("lunge");
+          if (isLower) return true;
         }
-      }
+        if (term === "hinge") {
+          if (nameLower.includes("deadlift") || nameLower.includes("hinge") || nameLower.includes("rdl") || nameLower.includes("good morning")) return true;
+        }
 
-      // Check keyword level matches
-      const keywords = modifiedQuery.replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(k => k.length > 0);
-      if (keywords.length > 0) {
-        return keywords.every(kw => 
-          nameLower.includes(kw) ||
-          bodyPartLower.includes(kw) ||
-          musclesWorkedLower.some(mw => mw.includes(kw)) ||
-          ex.equipment.some(eq => eq.toLowerCase().includes(kw))
-        );
-      }
+        // Levenshtein-based fuzzy match/typo tolerance (for words of length 4 or more)
+        if (term.length >= 4) {
+          const levenshtein = (s1: string, s2: string): number => {
+            const track = Array(s2.length + 1).fill(null).map(() => Array(s1.length + 1).fill(null));
+            for (let i = 0; i <= s1.length; i += 1) track[0][i] = i;
+            for (let j = 0; j <= s2.length; j += 1) track[j][0] = j;
+            for (let j = 1; j <= s2.length; j += 1) {
+              for (let i = 1; i <= s1.length; i += 1) {
+                const indicator = s1[i - 1] === s2[j - 1] ? 0 : 1;
+                track[j][i] = Math.min(
+                  track[j][i - 1] + 1,
+                  track[j - 1][i] + 1,
+                  track[j - 1][i - 1] + indicator
+                );
+              }
+            }
+            return track[s2.length][s1.length];
+          };
 
-      return false;
+          const nameWords = nameLower.split(/\s+/);
+          if (nameWords.some(w => w.length >= 4 && levenshtein(w, term) <= 1)) return true;
+        }
+
+        return false;
+      });
     });
 
     // Deduplicate any matched exercises by ID
