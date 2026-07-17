@@ -13,32 +13,38 @@
   --text-primary: #0F172A;
   --text-secondary: #475569;
   --text-tertiary: #64748B;
-  --text-highlight: #D32F2F;
+  --text-highlight: #B38F2D;
   
   --border-color: #E2E8F0;
-  --accent-red: #D32F2F;
+  --accent-red: #C0392B;
+  --accent-gold: #B38F2D;
+  --accent-gold-hover: #917120;
+  --gold-btn-text: #FFFFFF;
   --accent-green: #10B981;
   
   --overlay-bg: rgba(255, 255, 255, 0.9);
 }
 
 .dark {
-  --bg-primary: #090d16;
+  --bg-primary: #0A0E17;
   --bg-secondary: #111827;
   --bg-tertiary: #1F2937;
   --bg-card: #111827;
   --bg-surface-elevated: #1F2937;
   
-  --text-primary: #F8FAFC;
+  --text-primary: #FFFFFF;
   --text-secondary: #CBD5E1;
   --text-tertiary: #94A3B8;
-  --text-highlight: #EF4444;
+  --text-highlight: #E5C158;
   
   --border-color: #1F2937;
   --accent-red: #EF4444;
+  --accent-gold: #E5C158;
+  --accent-gold-hover: #C5A039;
+  --gold-btn-text: #0A0E17;
   --accent-green: #10B981;
   
-  --overlay-bg: rgba(9, 13, 22, 0.95);
+  --overlay-bg: rgba(10, 14, 23, 0.95);
 }
 
 @theme {
@@ -123,6 +129,10 @@ body, main, section, footer, article, aside, header, nav, .bg-white, .bg-slate-5
 .dark .text-slate-950,
 .dark .text-gray-900,
 .dark .text-zinc-900,
+.dark .text-[#1C1C1C],
+.dark .text-[#111111],
+.dark .text-[#111],
+.dark .text-[#1a1a1a],
 .dark .text-black {
   color: var(--text-primary) !important;
 }
@@ -130,20 +140,38 @@ body, main, section, footer, article, aside, header, nav, .bg-white, .bg-slate-5
 .dark .text-slate-700,
 .dark .text-slate-600,
 .dark .text-gray-700,
-.dark .text-gray-600 {
+.dark .text-gray-600,
+.dark .text-[#6B6B6B],
+.dark .text-[#4A4A4A] {
   color: var(--text-secondary) !important;
 }
 
 .dark .text-slate-500,
 .dark .text-slate-400,
 .dark .text-gray-500,
-.dark .text-gray-400 {
+.dark .text-gray-400,
+.dark .text-[#2D3142],
+.dark .text-[#5D6D7E] {
   color: var(--text-tertiary) !important;
 }
 
-/* Keep Brand Accent Colors crisp */
-.text-[#D32F2F], .text-[#C0392B], .text-red-500, .text-red-600, .text-rose-600 {
+/* Red remains for headings if matching the brand */
+h1, h2, h3, h4, h5, h6, .brand-heading {
   color: var(--accent-red) !important;
+}
+
+/* Ensure headings with color classes can still remain brand-red */
+h1.text-\[\#C0392B\], h2.text-\[\#C0392B\], h3.text-\[\#C0392B\], h4.text-\[\#C0392B\],
+h1.text-\[\#D32F2F\], h2.text-\[\#D32F2F\], h3.text-\[\#D32F2F\], h4.text-\[\#D32F2F\],
+h1.text-red-600, h2.text-red-600, h3.text-red-600, h4.text-red-600,
+h1.text-rose-600, h2.text-rose-600, h3.text-rose-600 {
+  color: var(--accent-red) !important;
+}
+
+/* Standard brand-red accents and text colors become premium Gold elsewhere */
+.text-\[\#D32F2F\], .text-\[\#C0392B\], .text-red-500, .text-red-600, .text-rose-600,
+.text-amber-500, .text-amber-600, .text-amber-700 {
+  color: var(--accent-gold) !important;
 }
 
 /* Success status green accents */
@@ -156,14 +184,74 @@ body, main, section, footer, article, aside, header, nav, .bg-white, .bg-slate-5
   color: var(--accent-green) !important;
 }
 
-/* Primary buttons styling should always stay solid red with crisp white text */
-.bg-\[\#D32F2F\], .bg-\[\#C0392B\], .bg-red-600, .bg-red-500, .bg-rose-600 {
-  background-color: var(--accent-red) !important;
-  color: #FFFFFF !important;
+/* Primary buttons and highlights styling stay solid Gold with high-contrast text */
+.bg-\[\#D32F2F\], .bg-\[\#C0392B\], .bg-red-600, .bg-red-500, .bg-rose-600,
+.bg-amber-600, .bg-amber-500, .bg-amber-700 {
+  background-color: var(--accent-gold) !important;
+  color: var(--gold-btn-text) !important;
+  border-color: var(--accent-gold) !important;
 }
 
-.bg-\[\#D32F2F\] *, .bg-\[\#C0392B\] *, .bg-red-600 *, .bg-red-500 *, .bg-rose-600 * {
-  color: #FFFFFF !important;
+.bg-\[\#D32F2F\] *, .bg-\[\#C0392B\] *, .bg-red-600 *, .bg-red-500 *, .bg-rose-600 *,
+.bg-amber-600 *, .bg-amber-500 *, .bg-amber-700 * {
+  color: var(--gold-btn-text) !important;
+}
+
+.bg-\[\#D32F2F\]:hover, .bg-\[\#C0392B\]:hover, .bg-red-600:hover, .bg-red-500:hover, .bg-rose-600:hover,
+.bg-amber-600:hover, .bg-amber-500:hover, .bg-amber-700:hover {
+  background-color: var(--accent-gold-hover) !important;
+}
+
+/* Centralized support for hardcoded utility backgrounds in Dark Mode */
+.dark .bg-\[\#F7F7F7\],
+.dark .bg-\[\#F5F5F5\],
+.dark .bg-\[\#F9F9F9\],
+.dark .bg-slate-50,
+.dark .bg-slate-100,
+.dark .bg-slate-150,
+.dark .bg-slate-200,
+.dark .bg-gray-50,
+.dark .bg-gray-100,
+.dark .bg-[#F7F7F7] {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Automatic card surface conversions in Dark Mode */
+.dark .bg-white,
+.dark .bg-slate-950,
+.dark .bg-black,
+.dark .bg-gray-950,
+.dark .bg-zinc-950 {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Convert the VIP red membership card to a glorious dark card with a thick gold border in Dark Mode */
+.dark .bg-\[\#C0392B\]:not(button),
+.dark .bg-red-600:not(button) {
+  background-color: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  border: 2px solid var(--accent-gold) !important;
+}
+
+.dark .bg-\[\#C0392B\]:not(button) *,
+.dark .bg-red-600:not(button) * {
+  color: var(--text-primary) !important;
+}
+
+.dark .bg-white\/20,
+.dark .bg-white\/10 {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--accent-gold) !important;
+}
+
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-slate-300 {
+  border-color: var(--border-color) !important;
 }
 
 /* Transparent overlays, modal backdrops & popups */

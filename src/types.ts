@@ -37,6 +37,8 @@ export interface UserProfile {
   waterGoal?: number; // calculated target in ml
   waterIntakeToday?: number; // accumulated ml
   waterLastLogged?: string; // date string YYYY-MM-DD
+  status?: string;
+  isBlocked?: boolean;
 }
 
 export interface SavedWorkout {

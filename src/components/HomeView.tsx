@@ -490,6 +490,82 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
         </div>
       </section>
 
+      {/* NEW PROMOTIONAL ADVERT BANNER - LIFESTYLE FITNESS ACADEMY */}
+      <section id="academy-promo-advert" className="py-8 bg-slate-50 border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div 
+            whileHover={{ y: -2 }}
+            className="bg-white rounded-3xl border border-slate-200 shadow-md overflow-hidden flex flex-col md:flex-row items-center justify-between p-6 sm:p-8 gap-8 text-left relative"
+          >
+            {/* Background absolute highlights */}
+            <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/5 rounded-full filter blur-xl pointer-events-none" />
+            
+            {/* Left side: Premium Image */}
+            <div className="w-full md:w-1/3 h-52 sm:h-60 rounded-2xl overflow-hidden relative shadow-inner shrink-0 bg-slate-100 border border-slate-150">
+              <img 
+                src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80&w=600" 
+                alt="Lifestyle Fitness Academy Stretching & Mobility Coaching"
+                className="w-full h-full object-cover object-center filter brightness-105 contrast-105"
+                referrerPolicy="no-referrer"
+              />
+              <div className="absolute top-3 left-3 bg-red-600 text-white font-mono font-black text-[9px] uppercase tracking-wider px-3 py-1 rounded-full shadow-md">
+                Coaching Course
+              </div>
+            </div>
+
+            {/* Middle: Content */}
+            <div className="flex-grow space-y-4">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-red-50 dark:bg-red-950/20 text-red-600 text-[10px] font-black uppercase tracking-wider rounded-lg">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  FREE TRIAL AVAILABLE
+                </div>
+                <h3 className="text-2xl sm:text-3xl font-black uppercase text-slate-900 tracking-tight leading-tight">
+                  LIFESTYLE FITNESS ACADEMY
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-600 font-semibold leading-relaxed max-w-xl">
+                  Learn to prevent and overcome modern health challenges. From <strong className="text-slate-900 uppercase font-bold">AI Desk Body Syndrome</strong> to <strong className="text-slate-900 uppercase font-bold">Sitting Disease</strong> and <strong className="text-slate-900 uppercase font-bold">Stress Burnout</strong>, build ironclad habits with Alex's structured corrective protocols.
+                </p>
+              </div>
+
+              {/* Quick Perks Row */}
+              <div className="grid grid-cols-2 gap-3 max-w-md pt-1">
+                <div className="flex items-center gap-2 text-xs text-slate-700 font-bold">
+                  <CheckCircle className="w-4 h-4 text-[#D32F2F] shrink-0" />
+                  <span>10 Core Wellness Programs</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-slate-700 font-bold">
+                  <CheckCircle className="w-4 h-4 text-[#D32F2F] shrink-0" />
+                  <span>Interactive Habit Sync</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-slate-700 font-bold">
+                  <CheckCircle className="w-4 h-4 text-[#D32F2F] shrink-0" />
+                  <span>Adaptive Training Plans</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-slate-700 font-bold">
+                  <CheckCircle className="w-4 h-4 text-[#D32F2F] shrink-0" />
+                  <span>Stretching Routines</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: CTA Button */}
+            <div className="shrink-0 w-full md:w-auto flex flex-col items-center sm:items-start md:items-end gap-2">
+              <button
+                onClick={() => setView("lifestyle-academy")}
+                className="w-full md:w-auto px-8 py-4 bg-[#D32F2F] hover:bg-[#B71C1C] text-white font-sans font-black text-xs uppercase rounded-full shadow-lg hover:shadow-red-500/20 hover:-translate-y-0.5 transition duration-200 cursor-pointer text-center whitespace-nowrap inline-flex items-center justify-center gap-2"
+              >
+                <span>ENTER THE ACADEMY</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              <span className="text-[10px] text-slate-400 font-mono font-bold uppercase tracking-wider">
+                First 2 challenges 100% Free
+              </span>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* 1.1 INTERACTIVE ENGINE & PREMIUM SLIDESHOW - PLACED DIRECTLY BELOW THE HERO */}
       <section id="hero-carousel-segment" className="py-12 sm:py-16 lg:py-20 bg-white border-b border-slate-200/80 relative overflow-hidden">
         {/* Decorative background visual accents */}
@@ -1734,7 +1810,7 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
       </section>
 
       {/* 5. PRICING PLANS */}
-      <section id="pricing" className="py-24 bg-[#F7F7F7] border-b border-gray-200">
+      <section id="pricing" className="py-24 bg-slate-50 dark:bg-slate-950 border-b border-slate-250 dark:border-slate-900 transition-colors duration-300">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -1744,13 +1820,13 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
         >
           
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-2">
-            <span className="text-[10px] font-sans font-black tracking-[0.2em] text-[#6B6B6B] uppercase block">
+            <span className="text-[10px] font-sans font-black tracking-[0.2em] text-slate-500 dark:text-slate-400 uppercase block">
               MEMBERSHIP TIERS
             </span>
-            <h2 className="text-3xl sm:text-4xl font-display font-black tracking-tight text-[#1C1C1C] uppercase">
-              CHOOSE YOUR <span className="text-[#C0392B]">TRAINING TIER</span>
+            <h2 className="text-3xl sm:text-4xl font-display font-black tracking-tight text-slate-900 dark:text-white uppercase">
+              CHOOSE YOUR <span className="text-[var(--accent-gold)]">TRAINING TIER</span>
             </h2>
-            <div className="h-1 w-16 bg-[#C0392B] mx-auto mt-3" />
+            <div className="h-1 w-16 bg-[var(--accent-gold)] mx-auto mt-3" />
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 items-stretch max-w-6xl mx-auto">
@@ -1758,41 +1834,41 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
             {/* TIER 1: MONTHLY */}
             <motion.div 
               whileHover={{ y: -8, scale: 1.02, boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)" }}
-              className="p-8 rounded-2xl bg-white border border-gray-200 hover:border-[#C0392B] flex flex-col justify-between cursor-pointer"
+              className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-[var(--accent-gold)] dark:hover:border-[var(--accent-gold)] flex flex-col justify-between cursor-pointer transition-colors duration-300"
             >
               <div className="text-left">
-                <span className="text-[10px] font-sans font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-gray-100 text-[#1C1C1C]">
+                <span className="text-[10px] font-sans font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200">
                   MONTHLY STARTER
                 </span>
                 <div className="mt-5">
-                  <span className="text-4xl font-display font-black text-[#1C1C1C]">₦19,999</span>
-                  <span className="text-[#6B6B6B] text-xs ml-1">/ 1 Month</span>
+                  <span className="text-4xl font-display font-black text-slate-900 dark:text-white">₦19,999</span>
+                  <span className="text-slate-500 dark:text-slate-400 text-xs ml-1">/ 1 Month</span>
                 </div>
-                <p className="text-xs text-[#6B6B6B] mt-4 leading-relaxed font-sans">
+                <p className="text-xs text-slate-600 dark:text-slate-300 mt-4 leading-relaxed font-sans">
                   Excellent entry-level tier to experience the core ecosystem, log active routines, and calibrate baseline nutritional plans.
                 </p>
-                <div className="mt-6 border-t border-gray-100 pt-5 space-y-2.5 text-xs text-[#2D3142]">
+                <div className="mt-6 border-t border-slate-100 dark:border-slate-800 pt-5 space-y-2.5 text-xs text-slate-700 dark:text-slate-300">
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-[#C0392B] shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-[var(--accent-gold)] shrink-0" />
                     Complete Exercise Library
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-[#C0392B] shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-[var(--accent-gold)] shrink-0" />
                     Baseline Calorie Calibrator
                   </div>
-                  <div className="flex items-center gap-2 opacity-50">
-                    <Lock className="w-3.5 h-3.5 text-gray-450 shrink-0" />
+                  <div className="flex items-center gap-2 opacity-40">
+                    <Lock className="w-3.5 h-3.5 text-slate-400 dark:text-slate-600 shrink-0" />
                     HD slow-mo biomechanics guides
                   </div>
                 </div>
               </div>
 
-              <div className="mt-8 pt-5 border-t border-gray-100">
+              <div className="mt-8 pt-5 border-t border-slate-100 dark:border-slate-800">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handleInitiatePayment("monthly")}
-                  className="w-full py-3 bg-[#1C1C1C] hover:bg-black text-white font-sans font-bold text-xs uppercase rounded-full transition-all duration-200 no-scroll-top cursor-pointer"
+                  className="w-full py-3 bg-slate-900 hover:bg-black text-white dark:bg-[var(--accent-gold)] dark:text-[var(--gold-btn-text)] dark:hover:bg-[var(--accent-gold-hover)] font-sans font-bold text-xs uppercase rounded-full transition-all duration-200 no-scroll-top cursor-pointer border-0"
                 >
                   Select Monthly
                 </motion.button>
@@ -1802,30 +1878,30 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
             {/* TIER 2: FLEXIBLE MONTH SELECTOR */}
             <motion.div 
               whileHover={{ y: -8, scale: 1.02, boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)" }}
-              className="p-8 rounded-2xl bg-white border-2 border-[#C0392B] flex flex-col justify-between relative cursor-pointer"
+              className="p-8 rounded-2xl bg-white dark:bg-slate-900 border-2 border-[var(--accent-gold)] flex flex-col justify-between relative cursor-pointer transition-colors duration-300"
             >
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#C0392B] text-white text-[8px] font-sans font-black uppercase tracking-wider px-3.5 py-1 rounded-full z-10">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[var(--accent-gold)] text-[var(--gold-btn-text)] text-[8px] font-sans font-black uppercase tracking-wider px-3.5 py-1 rounded-full z-10 border-0">
                 FLEXIBLE SPAN
               </div>
               
               <div className="text-left mt-2">
-                <span className="text-[10px] font-sans font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#C0392B]/10 text-[#C0392B]">
+                <span className="text-[10px] font-sans font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-[var(--accent-gold)]/10 text-[var(--accent-gold)]">
                   CUSTOM MONTHS
                 </span>
                 <div className="mt-5">
-                  <span className="text-4xl font-display font-black text-[#1C1C1C]">
+                  <span className="text-4xl font-display font-black text-slate-900 dark:text-white">
                     ₦{multiMonthTotal.toLocaleString()}
                   </span>
-                  <span className="text-[#6B6B6B] text-xs ml-1">/ due today</span>
+                  <span className="text-slate-500 dark:text-slate-400 text-xs ml-1">/ due today</span>
                 </div>
-                <p className="text-xs text-[#6B6B6B] mt-4 leading-relaxed font-sans">
+                <p className="text-xs text-slate-600 dark:text-slate-300 mt-4 leading-relaxed font-sans">
                   Tailor customized months to align precisely with your physique recomposition timeline targets.
                 </p>
 
-                <div className="mt-5 p-4 rounded-xl bg-[#F7F7F7] border border-gray-200 space-y-3">
+                <div className="mt-5 p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-3">
                   <div className="flex justify-between items-center text-[10px] font-sans font-black uppercase">
-                    <span className="text-[#6B6B6B]">CHOOSE DURATION:</span>
-                    <span className="text-[#C0392B] bg-[#C0392B]/5 px-2 py-0.5 rounded border border-[#C0392B]/10">
+                    <span className="text-slate-500 dark:text-slate-400">CHOOSE DURATION:</span>
+                    <span className="text-[var(--accent-gold)] bg-[var(--accent-gold)]/5 dark:bg-[var(--accent-gold)]/10 px-2 py-0.5 rounded border border-[var(--accent-gold)]/15">
                       {selectedMonths} Months
                     </span>
                   </div>
@@ -1840,8 +1916,8 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                         onClick={() => setSelectedMonths(m)}
                         className={`flex-1 py-1.5 rounded text-xs font-sans font-black transition-all border no-scroll-top cursor-pointer ${
                           selectedMonths === m
-                            ? "bg-[#C0392B] text-white border-transparent"
-                            : "bg-white text-gray-700 border-gray-200 hover:border-[#C0392B]"
+                            ? "bg-[var(--accent-gold)] text-[var(--gold-btn-text)] border-transparent"
+                            : "bg-white text-slate-700 border-slate-200 dark:bg-slate-900 dark:text-slate-300 dark:border-slate-850 hover:border-[var(--accent-gold)]"
                         }`}
                       >
                         {m}M
@@ -1850,24 +1926,24 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                   </div>
                 </div>
 
-                <div className="mt-5 space-y-2.5 text-xs text-[#2D3142]">
+                <div className="mt-5 space-y-2.5 text-xs text-slate-700 dark:text-slate-300">
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-[#C0392B] shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-[var(--accent-gold)] shrink-0" />
                     Uncapped access over complete {selectedMonths} months
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-[#C0392B] shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-[var(--accent-gold)] shrink-0" />
                     Continuous AI Coach priority features
                   </div>
                 </div>
               </div>
 
-              <div className="mt-8 pt-5 border-t border-gray-100">
+              <div className="mt-8 pt-5 border-t border-slate-150 dark:border-slate-800">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handleInitiatePayment("multi")}
-                  className="w-full py-3 bg-[#C0392B] hover:bg-[#A82E22] text-white font-sans font-bold text-xs uppercase rounded-full transition-all duration-200 no-scroll-top cursor-pointer"
+                  className="w-full py-3 bg-[var(--accent-gold)] hover:bg-[var(--accent-gold-hover)] text-[var(--gold-btn-text)] font-sans font-bold text-xs uppercase rounded-full transition-all duration-200 no-scroll-top cursor-pointer border-0"
                 >
                   Select duration
                 </motion.button>
@@ -1876,15 +1952,15 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
 
             {/* TIER 3: YEARLY (10% DISCOUNT) */}
             <motion.div 
-              whileHover={{ y: -8, scale: 1.02, boxShadow: "0 20px 25px -5px rgba(192,57,43,0.3)" }}
-              className="p-8 rounded-2xl bg-[#C0392B] text-white border-2 border-[#C0392B] flex flex-col justify-between cursor-pointer"
+              whileHover={{ y: -8, scale: 1.02, boxShadow: "0 20px 25px -5px rgba(212,175,55,0.2)" }}
+              className="p-8 rounded-2xl bg-[#C0392B] dark:bg-slate-900 text-white border-2 border-[#C0392B] dark:border-[var(--accent-gold)] flex flex-col justify-between cursor-pointer transition-all duration-300"
             >
               <div className="text-left">
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-sans font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-white text-[#C0392B]">
+                  <span className="text-[10px] font-sans font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-white dark:bg-slate-800 text-[#C0392B] dark:text-[var(--accent-gold)]">
                     YEARLY ANCHOR
                   </span>
-                  <span className="bg-white/20 text-white text-[8px] font-sans font-black py-0.5 px-2 rounded-full">
+                  <span className="bg-white/20 dark:bg-[var(--accent-gold)]/20 text-white dark:text-[var(--accent-gold)] text-[8px] font-sans font-black py-0.5 px-2 rounded-full">
                     10% OFF
                   </span>
                 </div>
@@ -1893,52 +1969,52 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                   <h3 className="font-display font-black text-xl text-white uppercase">VIP Elite Club</h3>
                   <div className="mt-2 flex items-baseline gap-1">
                     <span className="text-4xl font-display font-black text-white">₦215,989</span>
-                    <span className="text-white/80 text-xs font-sans">/ ANNUALLY</span>
+                    <span className="text-white/80 dark:text-slate-300 text-xs font-sans">/ ANNUALLY</span>
                   </div>
                 </div>
 
-                <p className="text-xs text-white/90 mt-4 leading-relaxed font-sans font-semibold">
+                <p className="text-xs text-white/95 dark:text-slate-300 mt-4 leading-relaxed font-sans font-semibold">
                   Best for dedicated athletes tracking permanent body recomposition.
                 </p>
 
-                <div className="mt-6 border-t border-white/20 pt-5 space-y-2.5 text-xs text-white">
+                <div className="mt-6 border-t border-white/20 dark:border-slate-800 pt-5 space-y-2.5 text-xs text-white dark:text-slate-300">
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-white shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-white dark:text-[var(--accent-gold)] shrink-0" />
                     Workouts (Routines & Sets)
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-white shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-white dark:text-[var(--accent-gold)] shrink-0" />
                     Nutrition (Meal Config)
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-white shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-white dark:text-[var(--accent-gold)] shrink-0" />
                     My Plan (Daily Schedules)
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-white shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-white dark:text-[var(--accent-gold)] shrink-0" />
                     AI Coach (AI Optimization)
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-white shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-white dark:text-[var(--accent-gold)] shrink-0" />
                     Community (Discuss & Post)
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-white shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-white dark:text-[var(--accent-gold)] shrink-0" />
                     Pricing Plans (Upgrade Status)
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-white shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-white dark:text-[var(--accent-gold)] shrink-0" />
                     Weekly Reports (Premium)
                   </div>
                 </div>
               </div>
 
-              <div className="mt-8 pt-5 border-t border-white/20">
+              <div className="mt-8 pt-5 border-t border-white/20 dark:border-slate-800">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handleInitiatePayment("yearly")}
-                  className="w-full py-3 bg-white hover:bg-gray-100 text-[#C0392B] font-sans font-black text-xs uppercase rounded-full transition-all duration-200 cursor-pointer shadow-sm no-scroll-top"
+                  className="w-full py-3 font-sans font-black text-xs uppercase rounded-full transition-all duration-200 cursor-pointer shadow-sm no-scroll-top bg-white hover:bg-gray-100 text-[#C0392B] dark:bg-[var(--accent-gold)] dark:text-[var(--gold-btn-text)] dark:hover:bg-[var(--accent-gold-hover)] border-0"
                 >
                   CHOOSE ANCHOR YEARLY
                 </motion.button>
@@ -1948,10 +2024,10 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
           </div>
 
           {/* Secure Shield Protection Callout */}
-          <div className="mt-12 max-w-md mx-auto p-6 rounded-2xl bg-white border border-gray-200 text-center flex flex-col items-center">
-            <Shield className="w-8 h-8 text-[#C0392B] mb-3" />
-            <h6 className="text-[10px] font-sans font-black uppercase tracking-wider text-[#1C1C1C]">100% Risk-Free 14-Day Refund Promise</h6>
-            <p className="text-[10px] text-[#6B6B6B] mt-1.5 leading-relaxed font-sans">
+          <div className="mt-12 max-w-md mx-auto p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center flex flex-col items-center transition-colors duration-300">
+            <Shield className="w-8 h-8 text-[var(--accent-gold)] mb-3" />
+            <h6 className="text-[10px] font-sans font-black uppercase tracking-wider text-slate-900 dark:text-white">100% Risk-Free 14-Day Refund Promise</h6>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed font-sans">
               Try premium with complete confidence. If our workout tracking or AI coaching does not upgrade your daily routine, request reimbursement within 14 days for rapid secure processing.
             </p>
           </div>
@@ -2301,11 +2377,17 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
 
           <div>
             <h4 className="text-[10px] font-sans font-black uppercase tracking-widest text-[#C0392B] mb-3">Customer Support</h4>
-            <p className="text-xs text-black leading-relaxed font-sans">
-              Have questions or transaction inquiries? Contact support at:
-              <br />
-              <code className="text-[10px] text-white bg-[#C0392B] px-2.5 py-1 rounded inline-block mt-2 font-mono">support@alexfitness.com</code>
-            </p>
+            <div className="text-xs text-black leading-relaxed font-sans space-y-2">
+              <p>Have questions or transaction inquiries? Contact Coach Alex:</p>
+              <div>
+                <span className="font-bold text-[#C0392B] uppercase text-[9px] block">Email Address</span>
+                <a href="mailto:alexfitnesshub@gmail.com" className="text-[10px] text-white bg-[#C0392B] px-2.5 py-1 rounded inline-block font-mono hover:bg-[#A82E22] transition-colors mt-0.5">alexfitnesshub@gmail.com</a>
+              </div>
+              <div className="pt-1">
+                <span className="font-bold text-[#C0392B] uppercase text-[9px] block">WhatsApp / Phone</span>
+                <a href="https://wa.me/2347073307875" target="_blank" rel="noopener noreferrer" className="text-[10px] text-white bg-[#C0392B] px-2.5 py-1 rounded inline-block font-mono hover:bg-[#A82E22] transition-colors mt-0.5">+2347073307875</a>
+              </div>
+            </div>
           </div>
 
         </div>

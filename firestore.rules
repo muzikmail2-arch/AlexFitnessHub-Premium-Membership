@@ -178,5 +178,12 @@ service cloud.firestore {
     match /belly_fat_shred_progress/{userId} {
       allow read, write: if isPremium() && isOwner(userId);
     }
+
+    // --- Mail (Firebase Trigger Email Extension) ---
+    match /mail/{mailId} {
+      allow read: if isSignedIn() && (resource.data.to == request.auth.token.email || isAdmin());
+      allow create: if isSignedIn() && (request.resource.data.to == request.auth.token.email || isAdmin());
+      allow update, delete: if isAdmin();
+    }
   }
 }

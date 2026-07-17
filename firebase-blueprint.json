@@ -204,6 +204,34 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "currentWeek", "currentDay"]
+    },
+    "Mail": {
+      "title": "Trigger Email",
+      "description": "Email queue document for the Firebase Trigger Email Extension.",
+      "type": "object",
+      "properties": {
+        "to": { "type": "string" },
+        "message": {
+          "type": "object",
+          "properties": {
+            "subject": { "type": "string" },
+            "text": { "type": "string" },
+            "html": { "type": "string" }
+          },
+          "required": ["subject", "html"]
+        },
+        "delivery": {
+          "type": "object",
+          "properties": {
+            "startTime": { "type": "string", "format": "date-time" },
+            "endTime": { "type": "string", "format": "date-time" },
+            "state": { "type": "string" },
+            "error": { "type": "string" }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["to", "message"]
     }
   },
   "firestore": {
@@ -254,6 +282,10 @@
     "belly_fat_shred_progress/{userId}": {
       "schema": "BellyFatShredProgress",
       "description": "User specific progress tracking for the 5-Month Belly Fat Shred Program."
+    },
+    "mail/{mailId}": {
+      "schema": "Mail",
+      "description": "Email queue for Trigger Email extension."
     }
   }
 }

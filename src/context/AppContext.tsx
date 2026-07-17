@@ -25,6 +25,7 @@ import {
 } from "../types";
 import { EXERCISES, Exercise } from "../data/exercises";
 import { samplePopupTestimonials } from "../data/sampleTestimonials";
+import { queueWelcomeEmail, queueWorkoutSummaryEmail, queueBellyFatShredReminderEmail } from "../lib/mailTriggers";
 
 interface AppContextType {
   user: UserProfile | null;
@@ -37,6 +38,9 @@ interface AppContextType {
   transactions: PaystackTransaction[];
   chatMessages: ChatMessage[];
   exercises: Exercise[];
+  isBlockedUser: boolean;
+  authDatabaseError: string | null;
+  setAuthDatabaseError: (err: string | null) => void;
   
   // Custom interactive models
   communityPosts: CommunityPost[];
@@ -251,6 +255,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [exercises, setExercisesState] = useState<Exercise[]>(EXERCISES);
   const [customPrograms, setCustomPrograms] = useState<CustomProgram[]>([]);
+  const [isBlockedUser, setIsBlockedUser] = useState(false);
+  const [authDatabaseError, setAuthDatabaseError] = useState<string | null>(null);
 
   // Admin view datasets (fallback analytics)
   const [allSystemUsers, setAllSystemUsers] = useState<UserProfile[]>([]);
@@ -439,34 +445,63 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           } catch (e) {}
         }
 
+        let profile: UserProfile | null = null;
+        let dbErrorOccurred = false;
+        let dbErrorMessage = "";
+
         try {
           // Attempt profile fetch from Firestore
-          let profile: UserProfile | null = null;
-          
           if (!isMockFirebase) {
-            const userDocRef = doc(db, "users", firebaseUser.uid);
-            const userSnap = await getDoc(userDocRef);
-            
-            if (userSnap.exists()) {
-              profile = userSnap.data() as UserProfile;
-              // Cache in local storage for subsequent offline loads
-              safeSetItem(`fit_user_${profile.uid}`, JSON.stringify(profile));
-            } else {
-              // Build clean profile
-              profile = {
-                uid: firebaseUser.uid,
-                email: firebaseUser.email || "",
-                displayName: firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "Athlete",
-                photoURL: firebaseUser.photoURL || undefined,
-                role: isEmailAdmin(firebaseUser.email || undefined) ? "admin" : "user",
-                subscriptionStatus: "free",
-                subscriptionTier: "none",
-                createdAt: new Date().toISOString(),
-                onboarded: true,
-              };
-              await setDoc(userDocRef, profile);
-              // Cache in local storage
-              safeSetItem(`fit_user_${profile.uid}`, JSON.stringify(profile));
+            try {
+              const userDocRef = doc(db, "users", firebaseUser.uid);
+              const userSnap = await getDoc(userDocRef);
+              
+              if (userSnap.exists()) {
+                profile = userSnap.data() as UserProfile;
+                // Cache in local storage for subsequent offline loads
+                safeSetItem(`fit_user_${profile.uid}`, JSON.stringify(profile));
+              } else {
+                // Build clean profile
+                profile = {
+                  uid: firebaseUser.uid,
+                  email: firebaseUser.email || "",
+                  displayName: firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "Athlete",
+                  photoURL: firebaseUser.photoURL || undefined,
+                  role: isEmailAdmin(firebaseUser.email || undefined) ? "admin" : "user",
+                  subscriptionStatus: "free",
+                  subscriptionTier: "none",
+                  createdAt: new Date().toISOString(),
+                  onboarded: true,
+                };
+                await setDoc(userDocRef, profile);
+                // Cache in local storage
+                safeSetItem(`fit_user_${profile.uid}`, JSON.stringify(profile));
+              }
+            } catch (dbErr: any) {
+              console.warn("Database error during user profile fetch (quota exceeded / network offline). Resolving to local storage cache:", dbErr);
+              const cachedStr = localStorage.getItem(`fit_user_${firebaseUser.uid}`);
+              if (cachedStr) {
+                try {
+                  profile = JSON.parse(cachedStr);
+                } catch (parseErr) {
+                  profile = null;
+                }
+              }
+              
+              if (!profile) {
+                profile = {
+                  uid: firebaseUser.uid,
+                  email: firebaseUser.email || "",
+                  displayName: firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "Athlete",
+                  role: isEmailAdmin(firebaseUser.email || undefined) ? "admin" : "user",
+                  subscriptionStatus: "free",
+                  subscriptionTier: "none",
+                  createdAt: new Date().toISOString(),
+                  onboarded: true,
+                };
+                safeSetItem(`fit_user_${firebaseUser.uid}`, JSON.stringify(profile));
+              }
+              dbErrorOccurred = false;
             }
           } else {
             // Local fallback extraction
@@ -486,7 +521,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               safeSetItem(`fit_user_${firebaseUser.uid}`, JSON.stringify(profile));
             }
           }
-          
+
+          if (dbErrorOccurred) {
+            setAuthDatabaseError(`Could not verify your account status due to a database connection error. Please refresh and try again. [Details: ${dbErrorMessage}]`);
+            setUser(null);
+            setLoading(false);
+            return;
+          }
+
+          setAuthDatabaseError(null);
+
+          // Verify if blocked
+          const isBlocked = profile && (profile.status === "blocked" || profile.isBlocked === true);
+          if (isBlocked) {
+            console.warn(`Blocked user detected: ${profile?.email}`);
+            setIsBlockedUser(true);
+            setUser(null);
+            setLoading(false);
+            signOut(auth);
+            return;
+          }
+
+          setIsBlockedUser(false);
+
           if (profile && profile.subscriptionStatus === "premium" && profile.subscriptionExpiry) {
             const expiryDate = new Date(profile.subscriptionExpiry);
             if (expiryDate < new Date()) {
@@ -512,18 +569,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           // Load User metadata records (saved Workouts, logs)
           loadUserData(firebaseUser.uid);
           
-        } catch (err) {
+        } catch (err: any) {
           console.warn("Firestore profile read failed, resolving to local backup cache:", err);
           
           // Fallback to local cache if present
           const localUser = localStorage.getItem(`fit_user_${firebaseUser.uid}`);
-          let profile: UserProfile;
+          let backupProfile: UserProfile;
           
           if (localUser) {
             try {
-              profile = JSON.parse(localUser);
+              backupProfile = JSON.parse(localUser);
             } catch (parseErr) {
-              profile = {
+              backupProfile = {
                 uid: firebaseUser.uid,
                 email: firebaseUser.email || "local@alexfitness.com",
                 displayName: firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "Athlete",
@@ -534,7 +591,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               };
             }
           } else {
-            profile = {
+            backupProfile = {
               uid: firebaseUser.uid,
               email: firebaseUser.email || "local@alexfitness.com",
               displayName: firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "Athlete",
@@ -543,10 +600,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               subscriptionTier: "none",
               createdAt: new Date().toISOString()
             };
-            safeSetItem(`fit_user_${firebaseUser.uid}`, JSON.stringify(profile));
+            safeSetItem(`fit_user_${firebaseUser.uid}`, JSON.stringify(backupProfile));
           }
           
-          setUser(profile);
+          setUser(backupProfile);
           loadUserData(firebaseUser.uid);
         }
       } else {
@@ -881,8 +938,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           onboarded: true,
         };
         if (!isMockFirebase) {
-          await setDoc(doc(db, "users", cred.user.uid), profile);
+          try {
+            await setDoc(doc(db, "users", cred.user.uid), profile);
+          } catch (err) {
+            console.warn("Could not save Apple simulator user profile to Firestore (quota limit/network issue):", err);
+          }
         }
+        safeSetItem(`fit_user_${cred.user.uid}`, JSON.stringify(profile));
         setUser(profile);
         loadUserData(cred.user.uid);
       } catch (signupErr: any) {
@@ -917,8 +979,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
     
     if (!isMockFirebase) {
-      await setDoc(doc(db, "users", cred.user.uid), profile);
+      try {
+        await setDoc(doc(db, "users", cred.user.uid), profile);
+      } catch (err) {
+        console.warn("Could not save new user profile to Firestore (quota limit/network issue). Storing in local cache:", err);
+      }
     }
+    
+    safeSetItem(`fit_user_${cred.user.uid}`, JSON.stringify(profile));
+    
+    // Automatically trigger and queue Welcome email via Firebase Trigger Email Extension
+    queueWelcomeEmail(email, name).catch(err => {
+      console.warn("Could not queue welcome email:", err);
+    });
     
     setUser(profile);
     loadUserData(cred.user.uid);
@@ -974,27 +1047,45 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       loadUserData(uid);
       
       if (!isMockFirebase) {
-        const userDocRef = doc(db, "users", uid);
-        const userSnap = await getDoc(userDocRef);
-        if (userSnap.exists()) {
-          profile = userSnap.data() as UserProfile;
-          safeSetItem(`fit_user_${uid}`, JSON.stringify(profile));
-          setUser(profile);
-        } else if (!profile) {
-          // Fallback user profile creation
-          profile = {
-            uid,
-            email: cred.user.email || email,
-            displayName: cred.user.displayName || email.split("@")[0] || "Athlete",
-            role: isEmailAdmin(email) ? "admin" : "user",
-            subscriptionStatus: "free",
-            subscriptionTier: "none",
-            createdAt: new Date().toISOString(),
-            onboarded: true,
-          };
-          await setDoc(userDocRef, profile);
-          safeSetItem(`fit_user_${uid}`, JSON.stringify(profile));
-          setUser(profile);
+        try {
+          const userDocRef = doc(db, "users", uid);
+          const userSnap = await getDoc(userDocRef);
+          if (userSnap.exists()) {
+            profile = userSnap.data() as UserProfile;
+            safeSetItem(`fit_user_${uid}`, JSON.stringify(profile));
+            setUser(profile);
+          } else if (!profile) {
+            // Fallback user profile creation
+            profile = {
+              uid,
+              email: cred.user.email || email,
+              displayName: cred.user.displayName || email.split("@")[0] || "Athlete",
+              role: isEmailAdmin(email) ? "admin" : "user",
+              subscriptionStatus: "free",
+              subscriptionTier: "none",
+              createdAt: new Date().toISOString(),
+              onboarded: true,
+            };
+            await setDoc(userDocRef, profile);
+            safeSetItem(`fit_user_${uid}`, JSON.stringify(profile));
+            setUser(profile);
+          }
+        } catch (dbErr: any) {
+          console.warn("Database connection issue or quota exceeded during loginEmail profile fetch:", dbErr);
+          if (!profile) {
+            profile = {
+              uid,
+              email: cred.user.email || email,
+              displayName: cred.user.displayName || email.split("@")[0] || "Athlete",
+              role: isEmailAdmin(email) ? "admin" : "user",
+              subscriptionStatus: "free",
+              subscriptionTier: "none",
+              createdAt: new Date().toISOString(),
+              onboarded: true,
+            };
+            safeSetItem(`fit_user_${uid}`, JSON.stringify(profile));
+            setUser(profile);
+          }
         }
       } else if (!profile) {
         profile = {
@@ -1233,6 +1324,18 @@ Congratulations on wrapping up another elite training week! Consistency is the b
           const nextReports = [resData.report, ...weeklyReports.filter(r => r.id !== resData.report.id)];
           setWeeklyReports(nextReports);
           safeSetItem(`fit_weekly_reports_${user.uid}`, JSON.stringify(nextReports));
+
+          // Automatically trigger and queue Workout Summary email via Firebase Trigger Email Extension
+          queueWorkoutSummaryEmail(
+            user.email,
+            user.displayName || "Athlete",
+            resData.report.totalWorkouts || 0,
+            resData.report.totalWorkoutTimeMinutes || 0,
+            resData.report.milestones || [],
+            ""
+          ).catch(err => {
+            console.warn("Could not queue weekly report summary email:", err);
+          });
         } else {
           throw new Error(resData.error || "Failed to generate weekly progress report.");
         }
@@ -1306,6 +1409,18 @@ ${milestones.map(m => `*   **${m}**`).join("\n")}
         const nextReports = [mockReport, ...weeklyReports];
         setWeeklyReports(nextReports);
         safeSetItem(`fit_weekly_reports_${user.uid}`, JSON.stringify(nextReports));
+
+        // Automatically trigger and queue Workout Summary email via Firebase Trigger Email Extension in mock mode
+        queueWorkoutSummaryEmail(
+          user.email,
+          user.displayName || "Athlete",
+          totalWorkouts,
+          totalWorkoutTimeMinutes,
+          milestones,
+          ""
+        ).catch(err => {
+          console.warn("Could not queue weekly report summary email in mock mode:", err);
+        });
       }
     } finally {
       setLoading(false);
@@ -1774,7 +1889,7 @@ ${milestones.map(m => `*   **${m}**`).join("\n")}
           await seedFirestorePopupTestimonials();
         }
       } catch (error) {
-        console.error("Error reading popup_testimonials from Firestore, falling back to seed:", error);
+        console.warn("Error reading popup_testimonials from Firestore, falling back to seed:", error);
         seedLocalPopupTestimonials();
       }
     } else {
@@ -1797,7 +1912,7 @@ ${milestones.map(m => `*   **${m}**`).join("\n")}
       setPopupTestimonials(samplePopupTestimonials);
       safeSetItem("fit_popup_testimonials", JSON.stringify(samplePopupTestimonials));
     } catch (err) {
-      console.error("Failed to seed firestore popup testimonials:", err);
+      console.warn("Failed to seed firestore popup testimonials (quota limits may apply):", err);
       seedLocalPopupTestimonials();
     }
   };
@@ -2035,7 +2150,7 @@ ${milestones.map(m => `*   **${m}**`).join("\n")}
       try {
         await setDoc(doc(db, "popup_testimonials", id), newTestimonial);
       } catch (err) {
-        console.error("Error saving testimonial to firestore: ", err);
+        console.warn("Error saving testimonial to firestore: ", err);
       }
     }
   };
@@ -2056,7 +2171,7 @@ ${milestones.map(m => `*   **${m}**`).join("\n")}
         const docRef = doc(db, "popup_testimonials", id);
         await updateDoc(docRef, updatedFields as any);
       } catch (err) {
-        console.error("Error updating testimonial in firestore: ", err);
+        console.warn("Error updating testimonial in firestore: ", err);
       }
     }
   };
@@ -2070,7 +2185,7 @@ ${milestones.map(m => `*   **${m}**`).join("\n")}
       try {
         await deleteDoc(doc(db, "popup_testimonials", id));
       } catch (err) {
-        console.error("Error deleting testimonial from firestore: ", err);
+        console.warn("Error deleting testimonial from firestore: ", err);
       }
     }
   };
@@ -2162,6 +2277,9 @@ ${milestones.map(m => `*   **${m}**`).join("\n")}
       transactions,
       chatMessages,
       exercises,
+      isBlockedUser,
+      authDatabaseError,
+      setAuthDatabaseError,
       
       communityPosts,
       testimonials,

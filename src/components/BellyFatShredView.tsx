@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { LineChart as ReLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db, handleFirestoreError, OperationType, isMockFirebase, auth } from "../lib/firebase";
+import { queueBellyFatShredReminderEmail } from "../lib/mailTriggers";
 
 // High-fidelity local types
 interface WeightEntry {
@@ -205,6 +206,31 @@ export default function BellyFatShredView() {
   // Default weight / waist if history empty
   const defaultWeight = user?.weight || 80;
   const defaultWaist = 90;
+
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailSuccess, setEmailSuccess] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
+
+  const handleSendBellyFatShredReminder = async () => {
+    if (!user) return;
+    setEmailSending(true);
+    setEmailSuccess(null);
+    setEmailError(null);
+    try {
+      await queueBellyFatShredReminderEmail(
+        user.email,
+        user.displayName || "Athlete",
+        progress?.currentWeek || 1,
+        progress?.currentDay || 1
+      );
+      setEmailSuccess("Success! An automated Belly Fat Shred reminder email has been queued in Firestore. The Mail Extension will dispatch it shortly.");
+    } catch (err: any) {
+      console.error("Error sending belly fat shred reminder email:", err);
+      setEmailError(err.message || "Could not queue reminder email. Please check internet connection.");
+    } finally {
+      setEmailSending(false);
+    }
+  };
 
   const fetchProgramContent = async () => {
     if (!user) return;
@@ -2270,6 +2296,54 @@ export default function BellyFatShredView() {
                 <div className="text-[10px] text-slate-500 leading-relaxed bg-[#D32F2F]/5 p-3 rounded-xl border border-[#D32F2F]/10">
                   👑 <strong>Premium Notice:</strong> Browser notification permissions must be granted to trigger persistent push popups. Otherwise, timings remain listed dynamically in your Coach Briefing logs on this page.
                 </div>
+              </div>
+
+              {/* Automated Firebase Extension for Mail Integration */}
+              <div className="md:col-span-2 bg-slate-950 rounded-2xl border border-slate-800 p-6 space-y-4">
+                <div className="flex items-center gap-3">
+                  <Bell className="w-5 h-5 text-[#D32F2F] animate-pulse" />
+                  <div>
+                    <h3 className="text-sm font-black uppercase text-white font-display">
+                      Automated Email Coaching Dispatcher
+                    </h3>
+                    <p className="text-[10px] font-mono text-slate-500 uppercase">
+                      INTEGRATED VIA FIREBASE EXTENSION FOR MAIL
+                    </p>
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  AlexFitnessHub integrates directly with <strong>Firebase Mail Extension Queue</strong>. In addition to fully automated emails sent on registration and weekly reports, you can manually trigger a high-fidelity sports-science <strong>Belly Fat Shred program reminder email</strong> tailored to your current progress stage (<strong>Week {progress.currentWeek} Day {progress.currentDay}</strong>) directly to your inbox.
+                </p>
+
+                {emailSuccess && (
+                  <div className="text-[11px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl">
+                    {emailSuccess}
+                  </div>
+                )}
+
+                {emailError && (
+                  <div className="text-[11px] text-rose-400 bg-rose-500/10 border border-rose-500/20 p-3 rounded-xl">
+                    {emailError}
+                  </div>
+                )}
+
+                <button
+                  onClick={handleSendBellyFatShredReminder}
+                  disabled={emailSending}
+                  className="px-6 py-3 bg-[#D32F2F] hover:bg-[#B71C1C] disabled:bg-slate-800 disabled:text-slate-500 text-xs font-black uppercase tracking-wider text-white rounded-xl transition flex items-center justify-center gap-2 cursor-pointer w-full sm:w-auto"
+                >
+                  {emailSending ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>Dispatching Email Reminder...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Send W{progress.currentWeek} Day {progress.currentDay} Program Email Reminder Now</span>
+                    </>
+                  )}
+                </button>
               </div>
 
             </div>
