@@ -6,9 +6,12 @@ import {
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult
 } from "firebase/auth";
 import { doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs, query, where, deleteDoc } from "firebase/firestore";
+import firebaseConfig from "../../firebase-applet-config.json";
 import { auth, db, isMockFirebase, handleFirestoreError, OperationType } from "../lib/firebase";
 import { 
   UserProfile, 
@@ -273,8 +276,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const root = window.document.documentElement;
     if (theme === "dark") {
       root.classList.add("dark");
+      root.setAttribute("data-theme", "dark");
     } else {
       root.classList.remove("dark");
+      root.setAttribute("data-theme", "light");
     }
     try {
       localStorage.setItem("fit_theme", theme);
@@ -384,6 +389,195 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     fetchCustomDatabaseOverrides();
   }, [isMockFirebase]);
 
+  // --- UNIFIED AUTHENTICATION SERVICES AND UTILITIES ---
+
+  const handleAuthError = (err: any): Error => {
+    console.error("[Auth Error Handled]:", err);
+    let message = "An authentication error occurred. Please try again.";
+    if (err && err.code) {
+      switch (err.code) {
+        case "auth/invalid-email":
+          message = "The email address format is invalid. Please check your spelling.";
+          break;
+        case "auth/user-disabled":
+          message = "This user account has been disabled. Please contact support.";
+          break;
+        case "auth/user-not-found":
+        case "auth/wrong-password":
+        case "auth/invalid-credential":
+          message = "Invalid email or password combination. Please try again.";
+          break;
+        case "auth/email-already-in-use":
+          message = "An account with this email address already exists. Try signing in.";
+          break;
+        case "auth/weak-password":
+          message = "The password provided is too weak. It must be at least 6 characters.";
+          break;
+        case "auth/popup-blocked":
+        case "auth/cancelled-popup-request":
+          message = "The Google sign-in window was closed or blocked. Please click the Google button again, enable popups, or use the fast-login option.";
+          break;
+        case "auth/operation-not-allowed":
+          message = "This sign-in method is not enabled. Please contact support.";
+          break;
+        case "auth/network-request-failed":
+          message = "Network error. Please check your internet connection and try again.";
+          break;
+        case "auth/iframe-directory-not-supported":
+          message = "Google Sign-In is blocked inside this preview iframe. Please click 'Open in New Tab' at the top right of the application preview or use Email/Password login.";
+          break;
+        default:
+          message = err.message || message;
+      }
+    } else if (err && err.message) {
+      message = err.message;
+    }
+    return new Error(message);
+  };
+
+  const validateEmailAndPassword = (email: string, password?: string, name?: string, isSignUp: boolean = false) => {
+    const cleanEmail = (email || "").trim().toLowerCase();
+    if (!cleanEmail) {
+      throw new Error("Email address is required.");
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      throw new Error("Invalid email address format. Example: user@domain.com");
+    }
+    if (password !== undefined) {
+      if (!password) {
+        throw new Error("Password is required.");
+      }
+      if (password.length < 6) {
+        throw new Error("Password must be at least 6 characters in length.");
+      }
+    }
+    if (isSignUp) {
+      const cleanName = (name || "").trim();
+      if (!cleanName) {
+        throw new Error("Please specify your athlete name.");
+      }
+      if (cleanName.length < 2) {
+        throw new Error("Athlete name must be at least 2 characters long.");
+      }
+    }
+  };
+
+  /**
+   * Central Unified Auth Success Handler
+   * Standardizes session persistence, Firestore synchronization, cached profiles,
+   * admin analytics registration, and safety guards across ALL authentication methods.
+   */
+  const processAuthSuccess = async (
+    firebaseUser: any,
+    additionalData?: { displayName?: string },
+    remember: boolean = true
+  ): Promise<UserProfile> => {
+    const uid = firebaseUser.uid;
+    const email = firebaseUser.email || "";
+    localStorage.setItem("fit_active_uid", uid);
+
+    // Save remember me credentials if required
+    if (remember && firebaseUser.email) {
+      localStorage.setItem("fit_saved_email", email);
+      localStorage.removeItem("fit_explicitly_logged_out");
+    } else {
+      localStorage.removeItem("fit_saved_email");
+      localStorage.removeItem("fit_saved_password");
+      localStorage.setItem("fit_explicitly_logged_out", "true");
+    }
+
+    // Attempt to load existing local profile first for near-instant UI reactivity
+    let profile: UserProfile | null = null;
+    const cached = localStorage.getItem(`fit_user_${uid}`);
+    if (cached) {
+      try {
+        profile = JSON.parse(cached);
+      } catch (e) {
+        profile = null;
+      }
+    }
+
+    // Standardize default profile fields if none cached or if we need a base
+    const baseProfile: UserProfile = {
+      uid,
+      email,
+      displayName: additionalData?.displayName || firebaseUser.displayName || email.split("@")[0] || "Athlete",
+      photoURL: firebaseUser.photoURL || undefined,
+      role: isEmailAdmin(email) ? "admin" : "user",
+      subscriptionStatus: "free",
+      subscriptionTier: "none",
+      createdAt: new Date().toISOString(),
+      onboarded: true,
+      ...profile, // overlay cached attributes if any
+    };
+
+    // Keep state updated immediately to trigger App.tsx redirect flow
+    setUser(baseProfile);
+
+    if (!isMockFirebase) {
+      try {
+        const userDocRef = doc(db, "users", uid);
+        const userSnap = await getDoc(userDocRef);
+        if (userSnap.exists()) {
+          profile = { ...baseProfile, ...(userSnap.data() as UserProfile) };
+        } else {
+          profile = baseProfile;
+          await setDoc(userDocRef, profile);
+        }
+        
+        // Handle Welcome email trigger for new sign-ups
+        if (additionalData?.displayName) {
+          queueWelcomeEmail(email, additionalData.displayName).catch(err => {
+            console.warn("Could not queue welcome email:", err);
+          });
+        }
+      } catch (dbErr: any) {
+        console.warn("Firestore error during unified profile load/sync:", dbErr);
+        profile = baseProfile;
+      }
+    } else {
+      profile = baseProfile;
+    }
+
+    // Filter and update admin lists
+    if (profile) {
+      safeSetItem(`fit_user_${uid}`, JSON.stringify(profile));
+      setUser(profile);
+      
+      // Update admin analytics active users
+      setAllSystemUsers(prev => {
+        const filtered = prev.filter(u => u.uid !== uid);
+        const nextList = [...filtered, profile!];
+        safeSetItem("all_system_users", JSON.stringify(nextList));
+        return nextList;
+      });
+
+      // Special action: Admin activity logs
+      if (profile.role === "admin") {
+        try {
+          const token = await firebaseUser.getIdToken();
+          await fetch("/api/admin/log-activity", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              actionType: "ADMIN_LOGIN",
+              description: `Admin ${profile.displayName} authenticated successfully.`
+            })
+          }).catch(() => {});
+        } catch (e) {}
+      }
+    }
+
+    // Load any user data (saved workouts, activity logs, etc.)
+    loadUserData(uid);
+
+    return profile || baseProfile;
+  };
+
   // Sync state data on Auth State Transitions
   useEffect(() => {
     // Check if we have a cached user profile to prevent any visual blocking / flashing
@@ -415,6 +609,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
     };
     attemptAutoSignIn();
+
+    // Check if user has returned from a Google OAuth Redirect
+    getRedirectResult(auth)
+      .then(async (result) => {
+        if (result?.user) {
+          console.log("[Redirect Auth Sync] Successfully retrieved redirect login results:", result.user);
+          await processAuthSuccess(result.user, undefined, true);
+        }
+      })
+      .catch((err) => {
+        console.error("[Redirect Auth Sync] Redirect sign-in error occurred:", err);
+      });
     
     // Primary Firebase Session Management
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -902,16 +1108,34 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // --- AUTH SERVICES ---
   
   const loginWithGoogle = async () => {
+    setLoading(true);
     const provider = new GoogleAuthProvider();
+    if (firebaseConfig.oAuthClientId) {
+      provider.setCustomParameters({
+        client_id: firebaseConfig.oAuthClientId,
+        prompt: 'select_account'
+      });
+    }
     try {
-      await signInWithPopup(auth, provider);
+      // Direct user gesture triggered synchronous popout
+      const cred = await signInWithPopup(auth, provider);
+      await processAuthSuccess(cred.user, undefined, true);
     } catch (err: any) {
       console.error("Google popup error:", err);
-      // Detailed error if blocked by iframe constraints in development/preview environments
-      if (window.self !== window.top || err?.code === "auth/iframe-directory-not-supported" || err?.message?.includes("iframe")) {
-        throw new Error("Google Sign-In is blocked in this preview iframe. Please click the 'Open in New Tab' icon at the top right of the application preview to log in with Google, or use Email/Password login below.");
+      // Fallback redirect if blocked or not supported
+      if (window.self !== window.top || err?.code === "auth/iframe-directory-not-supported" || err?.message?.includes("iframe") || err?.code === "auth/popup-blocked") {
+        console.log("[OAuth Fallback] Attempting redirect sign-in inside iframe...");
+        try {
+          await signInWithRedirect(auth, provider);
+          return;
+        } catch (redirectErr: any) {
+          console.error("Redirect flow failed:", redirectErr);
+        }
+        throw new Error("Google Sign-In popup is blocked or locked in this iframe environment. Please click 'Open in New Tab' at the top-right of your screen to log in via Google, or use the Email/Password fields.");
       }
-      throw err;
+      throw handleAuthError(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -922,192 +1146,71 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const defaultName = "Apple Athlete";
 
     try {
-      await signInWithEmailAndPassword(auth, targetEmail, targetPassword);
+      const cred = await signInWithEmailAndPassword(auth, targetEmail, targetPassword);
+      await processAuthSuccess(cred.user, { displayName: defaultName }, true);
     } catch (err) {
       // Create user if not exists yet
       try {
         const cred = await createUserWithEmailAndPassword(auth, targetEmail, targetPassword);
-        const profile: UserProfile = {
-          uid: cred.user.uid,
-          email: targetEmail,
-          displayName: defaultName,
-          role: "user",
-          subscriptionStatus: "free",
-          subscriptionTier: "none",
-          createdAt: new Date().toISOString(),
-          onboarded: true,
-        };
-        if (!isMockFirebase) {
-          try {
-            await setDoc(doc(db, "users", cred.user.uid), profile);
-          } catch (err) {
-            console.warn("Could not save Apple simulator user profile to Firestore (quota limit/network issue):", err);
-          }
-        }
-        safeSetItem(`fit_user_${cred.user.uid}`, JSON.stringify(profile));
-        setUser(profile);
-        loadUserData(cred.user.uid);
+        await processAuthSuccess(cred.user, { displayName: defaultName }, true);
       } catch (signupErr: any) {
-        throw new Error(`Apple Sign-In Simulator failed: ${signupErr.message}`);
+        throw handleAuthError(signupErr);
       }
     }
   };
 
   const signUpEmail = async (email: string, pass: string, name: string, remember: boolean = true) => {
-    const cred = await createUserWithEmailAndPassword(auth, email, pass);
-    
-    // Remember Me caching decision
-    if (remember) {
-      localStorage.setItem("fit_saved_email", email);
-      localStorage.setItem("fit_saved_password", pass);
-      localStorage.removeItem("fit_explicitly_logged_out");
-    } else {
-      localStorage.removeItem("fit_saved_email");
-      localStorage.removeItem("fit_saved_password");
-      localStorage.setItem("fit_explicitly_logged_out", "true");
-    }
-
-    const profile: UserProfile = {
-      uid: cred.user.uid,
-      email: email,
-      displayName: name,
-      role: isEmailAdmin(email) ? "admin" : "user",
-      subscriptionStatus: "free",
-      subscriptionTier: "none",
-      createdAt: new Date().toISOString(),
-      onboarded: true,
-    };
-    
-    if (!isMockFirebase) {
-      try {
-        await setDoc(doc(db, "users", cred.user.uid), profile);
-      } catch (err) {
-        console.warn("Could not save new user profile to Firestore (quota limit/network issue). Storing in local cache:", err);
+    setLoading(true);
+    try {
+      validateEmailAndPassword(email, pass, name, true);
+      const cred = await createUserWithEmailAndPassword(auth, email.trim(), pass);
+      
+      // Cache password if remember me is set
+      if (remember) {
+        localStorage.setItem("fit_saved_password", pass);
+      } else {
+        localStorage.removeItem("fit_saved_password");
       }
+      
+      await processAuthSuccess(cred.user, { displayName: name.trim() }, remember);
+    } catch (err: any) {
+      throw handleAuthError(err);
+    } finally {
+      setLoading(false);
     }
-    
-    safeSetItem(`fit_user_${cred.user.uid}`, JSON.stringify(profile));
-    
-    // Automatically trigger and queue Welcome email via Firebase Trigger Email Extension
-    queueWelcomeEmail(email, name).catch(err => {
-      console.warn("Could not queue welcome email:", err);
-    });
-    
-    setUser(profile);
-    loadUserData(cred.user.uid);
   };
 
   const loginEmail = async (email: string, pass: string, remember: boolean = true) => {
     setLoading(true);
     try {
-      const cred = await signInWithEmailAndPassword(auth, email, pass);
-      const uid = cred.user.uid;
+      validateEmailAndPassword(email, pass);
+      const cred = await signInWithEmailAndPassword(auth, email.trim(), pass);
       
-      // Log admin login activity on Firebase
-      if (email.toLowerCase().trim() === "alexfitnesshub@gmail.com") {
-        try {
-          const token = await cred.user.getIdToken();
-          await fetch("/api/admin/log-activity", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({
-              actionType: "ADMIN_LOGIN",
-              description: "Admin logged into the portal successfully."
-            })
-          });
-        } catch (e) {
-          console.warn("Failed to log admin login activity:", e);
-        }
-      }
-
-      // Remember Me caching decision
+      // Cache password if remember me is set
       if (remember) {
-        localStorage.setItem("fit_saved_email", email);
         localStorage.setItem("fit_saved_password", pass);
-        localStorage.removeItem("fit_explicitly_logged_out");
       } else {
-        localStorage.removeItem("fit_saved_email");
         localStorage.removeItem("fit_saved_password");
-        localStorage.setItem("fit_explicitly_logged_out", "true");
-      }
-
-      // Speed up: load local user profile and data immediately
-      let profile: UserProfile | null = null;
-      const cached = localStorage.getItem(`fit_user_${uid}`);
-      if (cached) {
-        try {
-          profile = JSON.parse(cached);
-          setUser(profile);
-        } catch (e) {}
       }
       
-      loadUserData(uid);
-      
-      if (!isMockFirebase) {
-        try {
-          const userDocRef = doc(db, "users", uid);
-          const userSnap = await getDoc(userDocRef);
-          if (userSnap.exists()) {
-            profile = userSnap.data() as UserProfile;
-            safeSetItem(`fit_user_${uid}`, JSON.stringify(profile));
-            setUser(profile);
-          } else if (!profile) {
-            // Fallback user profile creation
-            profile = {
-              uid,
-              email: cred.user.email || email,
-              displayName: cred.user.displayName || email.split("@")[0] || "Athlete",
-              role: isEmailAdmin(email) ? "admin" : "user",
-              subscriptionStatus: "free",
-              subscriptionTier: "none",
-              createdAt: new Date().toISOString(),
-              onboarded: true,
-            };
-            await setDoc(userDocRef, profile);
-            safeSetItem(`fit_user_${uid}`, JSON.stringify(profile));
-            setUser(profile);
-          }
-        } catch (dbErr: any) {
-          console.warn("Database connection issue or quota exceeded during loginEmail profile fetch:", dbErr);
-          if (!profile) {
-            profile = {
-              uid,
-              email: cred.user.email || email,
-              displayName: cred.user.displayName || email.split("@")[0] || "Athlete",
-              role: isEmailAdmin(email) ? "admin" : "user",
-              subscriptionStatus: "free",
-              subscriptionTier: "none",
-              createdAt: new Date().toISOString(),
-              onboarded: true,
-            };
-            safeSetItem(`fit_user_${uid}`, JSON.stringify(profile));
-            setUser(profile);
-          }
-        }
-      } else if (!profile) {
-        profile = {
-          uid,
-          email: cred.user.email || email,
-          displayName: cred.user.displayName || email.split("@")[0] || "Athlete",
-          role: isEmailAdmin(email) ? "admin" : "user",
-          subscriptionStatus: "free",
-          subscriptionTier: "none",
-          createdAt: new Date().toISOString(),
-          onboarded: true,
-        };
-        safeSetItem(`fit_user_${uid}`, JSON.stringify(profile));
-        setUser(profile);
-      }
+      await processAuthSuccess(cred.user, undefined, remember);
+    } catch (err: any) {
+      throw handleAuthError(err);
     } finally {
       setLoading(false);
     }
   };
 
   const sendPasswordReset = async (email: string) => {
-    await sendPasswordResetEmail(auth, email);
+    try {
+      const cleanEmail = (email || "").trim().toLowerCase();
+      if (!cleanEmail) {
+        throw new Error("Email address is required.");
+      }
+      await sendPasswordResetEmail(auth, cleanEmail);
+    } catch (err: any) {
+      throw handleAuthError(err);
+    }
   };
 
   const logout = async () => {

@@ -205,6 +205,27 @@
       },
       "required": ["userId", "currentWeek", "currentDay"]
     },
+    "Premium90DayChallengeProgress": {
+      "title": "Premium 90 Day Challenge Progress",
+      "description": "Personalized 90-day training progress, measurement logs, history, and streaks for premium athletes.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "challengeId": { "type": "string" },
+        "currentDay": { "type": "number" },
+        "onboarding": { "type": "object" },
+        "completedDays": { "type": "array" },
+        "workoutHistory": { "type": "array" },
+        "bodyMeasurements": { "type": "array" },
+        "progressPhotos": { "type": "array" },
+        "personalRecords": { "type": "array" },
+        "streaks": { "type": "object" },
+        "achievements": { "type": "array" },
+        "notificationsSettings": { "type": "object" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "challengeId", "currentDay"]
+    },
     "Mail": {
       "title": "Trigger Email",
       "description": "Email queue document for the Firebase Trigger Email Extension.",
@@ -282,6 +303,10 @@
     "belly_fat_shred_progress/{userId}": {
       "schema": "BellyFatShredProgress",
       "description": "User specific progress tracking for the 5-Month Belly Fat Shred Program."
+    },
+    "user_premium_challenges/{userId}": {
+      "schema": "Premium90DayChallengeProgress",
+      "description": "Athlete personalized 90-day training logs and progress metrics for premium users."
     },
     "mail/{mailId}": {
       "schema": "Mail",

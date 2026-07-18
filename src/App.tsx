@@ -4,25 +4,28 @@ import { AppProvider, useApp } from "./context/AppContext";
 import { motion, AnimatePresence } from "motion/react";
 import Navbar from "./components/Navbar";
 import HomeView from "./components/HomeView";
-import WorkoutLibrary from "./components/WorkoutLibrary";
-import WorkoutGeneratorView from "./components/WorkoutGeneratorView";
-import CoachView from "./components/CoachView";
-import AdminDashboard from "./components/AdminDashboard";
-import OnboardingWizard from "./components/OnboardingWizard";
-import AuthModal from "./components/AuthModal";
-import NutritionView from "./components/NutritionView";
-import CommunityView from "./components/CommunityView";
-import SuccessView from "./components/SuccessView";
-import SavedExercisesView from "./components/SavedExercisesView";
-import WorkoutVideos from "./components/WorkoutVideos";
-import DailyPlanView from "./components/DailyPlanView";
-import DashboardView from "./components/DashboardView";
+
+// Dynamically split routes into individual lazy-loaded chunks
+const WorkoutLibrary = React.lazy(() => import("./components/WorkoutLibrary"));
+const WorkoutGeneratorView = React.lazy(() => import("./components/WorkoutGeneratorView"));
+const CoachView = React.lazy(() => import("./components/CoachView"));
+const AdminDashboard = React.lazy(() => import("./components/AdminDashboard"));
+const OnboardingWizard = React.lazy(() => import("./components/OnboardingWizard"));
+const AuthModal = React.lazy(() => import("./components/AuthModal"));
+const NutritionView = React.lazy(() => import("./components/NutritionView"));
+const CommunityView = React.lazy(() => import("./components/CommunityView"));
+const SuccessView = React.lazy(() => import("./components/SuccessView"));
+const SavedExercisesView = React.lazy(() => import("./components/SavedExercisesView"));
+const WorkoutVideos = React.lazy(() => import("./components/WorkoutVideos"));
+const DailyPlanView = React.lazy(() => import("./components/DailyPlanView"));
+const DashboardView = React.lazy(() => import("./components/DashboardView"));
 import { TestimonialPopup } from "./components/TestimonialPopup";
 import DailyNotificationController from "./components/DailyNotificationController";
-import PaymentSuccessView from "./components/PaymentSuccessView";
-import FitnessChallenges from "./components/FitnessChallenges";
-import BellyFatShredView from "./components/BellyFatShredView";
-import LifestyleFitnessAcademy from "./components/LifestyleFitnessAcademy";
+const PaymentSuccessView = React.lazy(() => import("./components/PaymentSuccessView"));
+const FitnessChallenges = React.lazy(() => import("./components/FitnessChallenges"));
+const BellyFatShredView = React.lazy(() => import("./components/BellyFatShredView"));
+const LifestyleFitnessAcademy = React.lazy(() => import("./components/LifestyleFitnessAcademy"));
+import GlobalSkeletonLoader, { DashboardSkeleton, CardGridSkeleton, ListSkeleton } from "./components/SkeletonLoader";
 
 
 
@@ -55,6 +58,43 @@ const VIEW_TO_PATH_MAP: Record<string, string> = Object.fromEntries(
 
 function FitnessAppContent() {
   const { user, loading, isBlockedUser, authDatabaseError, setAuthDatabaseError } = useApp();
+
+  const renderSkeletonForView = (view: string) => {
+    if (["dashboard", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory"].includes(view)) {
+      return (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full mt-4">
+          <DashboardSkeleton />
+        </div>
+      );
+    }
+    if (["library", "saved-exercises", "workout-videos"].includes(view)) {
+      return (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full space-y-6 mt-4">
+          <div className="space-y-2 pb-4">
+            <div className="h-6 w-48 rounded bg-slate-200 dark:bg-slate-800/65 animate-pulse" />
+            <div className="h-4 w-96 rounded bg-slate-200 dark:bg-slate-800/65 animate-pulse" />
+          </div>
+          <CardGridSkeleton count={3} />
+        </div>
+      );
+    }
+    if (["community", "challenges"].includes(view)) {
+      return (
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 w-full space-y-6 mt-4">
+          <div className="space-y-2 pb-4">
+            <div className="h-6 w-48 rounded bg-slate-200 dark:bg-slate-800/65 animate-pulse" />
+            <div className="h-4 w-96 rounded bg-slate-200 dark:bg-slate-800/65 animate-pulse" />
+          </div>
+          <ListSkeleton count={4} />
+        </div>
+      );
+    }
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full mt-4">
+        <DashboardSkeleton />
+      </div>
+    );
+  };
 
   // Instantly apply theme from localStorage on initial render of App to guarantee no flashes
   React.useLayoutEffect(() => {
@@ -177,9 +217,45 @@ function FitnessAppContent() {
     };
   }, []);
 
+  // Intercept and prevent Tawk.to third-party script errors from crashing/triggering overlays
+  React.useEffect(() => {
+    const handleWindowError = (event: ErrorEvent) => {
+      const msg = event.message || "";
+      const url = event.filename || "";
+      if (
+        url.includes("tawk.to") ||
+        msg.includes("Tawk") ||
+        msg.includes("tawk") ||
+        msg.includes("$_Tawk")
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+        return true;
+      }
+    };
+
+    window.addEventListener("error", handleWindowError, true);
+    return () => {
+      window.removeEventListener("error", handleWindowError, true);
+    };
+  }, []);
+
   // Activate Tawk.to Live Chat dynamically on load
   React.useEffect(() => {
     if (document.getElementById("tawkto-script")) return;
+
+    // Check if we are running inside an iframe (like the AI Studio development preview)
+    const isInIframe = (() => {
+      try {
+        return window.self !== window.top;
+      } catch (e) {
+        return true;
+      }
+    })();
+
+    if (isInIframe) {
+      return;
+    }
 
     const tawkId = (import.meta as any).env?.VITE_TAWKTO_PROPERTY_ID || "6a48cf13539b7e1d4b7d3d34/1jsm6hqa8"; // Live Tawk.to Property
 
@@ -198,37 +274,28 @@ function FitnessAppContent() {
     }
   }, []);
 
-  // Reset scroll to top smoothly on every view/route change
-  React.useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  // Scroll Restoration & Position Preservation for every view/route
+  const scrollPositions = React.useRef<Record<string, number>>({});
+  const prevViewRef = React.useRef<string>(currentView);
+
+  React.useLayoutEffect(() => {
+    // 1. Save scroll position of the previous view before it gets replaced
+    const prevView = prevViewRef.current;
+    if (prevView && prevView !== currentView) {
+      scrollPositions.current[prevView] = window.scrollY || document.documentElement.scrollTop;
+    }
+    prevViewRef.current = currentView;
+
+    // 2. Restore scroll position of the new view
+    const savedPos = scrollPositions.current[currentView] || 0;
+    
+    // Smooth/instant scroll restoration with a micro-timeout to allow layout stability
+    const timer = setTimeout(() => {
+      window.scrollTo({ top: savedPos, behavior: "instant" as ScrollBehavior });
+    }, 30);
+
+    return () => clearTimeout(timer);
   }, [currentView]);
-
-  // Global automatic scroll-to-top on clickable element interactions (buttons, links, tabs, menu items, cards, forms, modals)
-  React.useEffect(() => {
-    const handleGlobalClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      
-      // Check if target is inside or is a button, anchor, input, custom button/tab/card/menu
-      const clickable = target.closest(
-        "button, a, [role='button'], input[type='submit'], [type='button'], .cursor-pointer, [data-scroll-to-top]"
-      );
-      
-      if (clickable) {
-        // Prevent interfering with specific non-scrolling widgets or components
-        if (clickable.classList.contains("no-scroll-top") || clickable.id?.includes("tawk") || clickable.closest("#tawk")) {
-          return;
-        }
-        
-        // Scroll smoothly to top of viewport
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
-    };
-
-    document.addEventListener("click", handleGlobalClick, { capture: true, passive: true });
-    return () => {
-      document.removeEventListener("click", handleGlobalClick, { capture: true });
-    };
-  }, []);
 
   // Protected navigation handler
   const handleSetView = (targetView: string) => {
@@ -243,15 +310,16 @@ function FitnessAppContent() {
       return;
     }
 
-    if ((["coach", "nutrition", "community", "challenges", "success-stories", "workout-generator", "daily-plan", "dashboard", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory", "library", "workout-videos", "saved-exercises", "belly-fat-shred"].includes(targetView)) && !user) {
-      setIsAuthOpen(true);
-      return;
-    }
+    const premiumViews = ["coach", "nutrition", "community", "challenges", "success-stories", "workout-generator", "daily-plan", "dashboard", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory", "library", "workout-videos", "saved-exercises", "belly-fat-shred"];
 
-    // If the user is on the free plan, block completely off-limits premium views
-    if (user && user.subscriptionStatus !== "premium" && user.role !== "admin") {
-      const standalonePremiumViews = ["library", "workout-generator", "workout-videos", "saved-exercises", "coach", "nutrition", "daily-plan", "challenges", "community", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory", "dashboard", "belly-fat-shred"];
-      if (standalonePremiumViews.includes(targetView)) {
+    // Whenever any Free user (logged in or guest) attempts to access any premium feature:
+    if (premiumViews.includes(targetView)) {
+      const isPremium = user && (user.subscriptionStatus === "premium" || user.role === "admin");
+      if (!isPremium) {
+        // Save the attempted view so we can restore it after Paystack payment succeeds
+        localStorage.setItem("fit_attempted_view", targetView);
+        
+        // Redirect to pricing page immediately
         setView("home");
         setTimeout(() => {
           const el = document.getElementById("pricing");
@@ -267,11 +335,7 @@ function FitnessAppContent() {
   };
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-white dark:bg-[#090d16] text-slate-900 dark:text-[#F8FAFC] font-sans">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#D32F2F] border-t-transparent" />
-      </div>
-    );
+    return <GlobalSkeletonLoader />;
   }
 
   if (isBlockedUser) {
@@ -418,23 +482,31 @@ function FitnessAppContent() {
   // Force onboarding configuration on first sign up
   if (user && user.onboarded === false) {
     return (
-      <div className="min-h-screen bg-white dark:bg-[#090d16] text-slate-900 dark:text-[#F8FAFC] transition-colors duration-200">
+      <div className="min-h-screen bg-background text-foreground transition-colors duration-200">
         <Navbar 
           currentView={currentView} 
           setView={handleSetView} 
           onOpenAuth={() => setIsAuthOpen(true)} 
         />
-        <OnboardingWizard />
-        <AuthModal 
-          isOpen={isAuthOpen} 
-          onClose={() => setIsAuthOpen(false)} 
-        />
+        <React.Suspense fallback={
+          <div className="max-w-4xl mx-auto p-8 w-full">
+            <DashboardSkeleton />
+          </div>
+        }>
+          <OnboardingWizard />
+        </React.Suspense>
+        <React.Suspense fallback={null}>
+          <AuthModal 
+            isOpen={isAuthOpen} 
+            onClose={() => setIsAuthOpen(false)} 
+          />
+        </React.Suspense>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#090d16] text-slate-900 dark:text-[#F8FAFC] transition-colors duration-200">
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-200">
       
       {/* Dynamic Header Navbar navigation */}
       <Navbar 
@@ -454,64 +526,68 @@ function FitnessAppContent() {
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             className="w-full flex-grow flex flex-col"
           >
-            {currentView === "home" && (
-              <HomeView setView={handleSetView} onOpenAuth={() => setIsAuthOpen(true)} />
-            )}
-            {currentView === "payment-success" && (
-              <PaymentSuccessView />
-            )}
-            {currentView === "library" && (
-              <WorkoutLibrary setView={handleSetView} />
-            )}
-            {currentView === "workout-generator" && user && (
-              <WorkoutGeneratorView />
-            )}
-            {currentView === "nutrition" && user && (
-              <NutritionView />
-            )}
-            {currentView === "daily-plan" && user && (
-              <DailyPlanView />
-            )}
-            {["dashboard", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory"].includes(currentView) && user && (
-              <DashboardView activeView={currentView} setView={handleSetView} />
-            )}
-            {currentView === "coach" && user && (
-              <CoachView />
-            )}
-            {currentView === "community" && user && (
-              <CommunityView />
-            )}
-            {currentView === "challenges" && user && (
-              <FitnessChallenges />
-            )}
-            {currentView === "success-stories" && user && (
-              <SuccessView />
-            )}
-            {currentView === "saved-exercises" && (
-              <SavedExercisesView setView={handleSetView} />
-            )}
-            {currentView === "workout-videos" && (
-              <WorkoutVideos />
-            )}
-            {currentView === "belly-fat-shred" && user && (
-              <BellyFatShredView />
-            )}
-            {currentView === "lifestyle-academy" && (
-              <LifestyleFitnessAcademy />
-            )}
+            <React.Suspense fallback={renderSkeletonForView(currentView)}>
+              {currentView === "home" && (
+                <HomeView setView={handleSetView} onOpenAuth={() => setIsAuthOpen(true)} />
+              )}
+              {currentView === "payment-success" && (
+                <PaymentSuccessView />
+              )}
+              {currentView === "library" && (
+                <WorkoutLibrary setView={handleSetView} />
+              )}
+              {currentView === "workout-generator" && user && (
+                <WorkoutGeneratorView />
+              )}
+              {currentView === "nutrition" && user && (
+                <NutritionView />
+              )}
+              {currentView === "daily-plan" && user && (
+                <DailyPlanView />
+              )}
+              {["dashboard", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory"].includes(currentView) && user && (
+                <DashboardView activeView={currentView} setView={handleSetView} />
+              )}
+              {currentView === "coach" && user && (
+                <CoachView />
+              )}
+              {currentView === "community" && user && (
+                <CommunityView />
+              )}
+              {currentView === "challenges" && user && (
+                <FitnessChallenges />
+              )}
+              {currentView === "success-stories" && user && (
+                <SuccessView />
+              )}
+              {currentView === "saved-exercises" && (
+                <SavedExercisesView setView={handleSetView} />
+              )}
+              {currentView === "workout-videos" && (
+                <WorkoutVideos />
+              )}
+              {currentView === "belly-fat-shred" && user && (
+                <BellyFatShredView />
+              )}
+              {currentView === "lifestyle-academy" && (
+                <LifestyleFitnessAcademy />
+              )}
 
-            {currentView === "admin" && user && user.role === "admin" && (
-              <AdminDashboard />
-            )}
+              {currentView === "admin" && user && user.role === "admin" && (
+                <AdminDashboard />
+              )}
+            </React.Suspense>
           </motion.div>
         </AnimatePresence>
       </main>
 
       {/* Auth State Modal */}
-      <AuthModal 
-        isOpen={isAuthOpen} 
-        onClose={() => setIsAuthOpen(false)} 
-      />
+      <React.Suspense fallback={null}>
+        <AuthModal 
+          isOpen={isAuthOpen} 
+          onClose={() => setIsAuthOpen(false)} 
+        />
+      </React.Suspense>
 
       {/* Customer Reviews & Testimonial Popup */}
       <TestimonialPopup />

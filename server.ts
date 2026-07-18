@@ -11,6 +11,7 @@ import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } f
 import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
+import { MailerSend, EmailParams, Sender, Recipient } from "mailersend";
 
 // Load environment variables
 dotenv.config();
@@ -187,6 +188,133 @@ function logDetailedError(category: string, error: any, context?: any) {
     console.error(`Context Data:\n${JSON.stringify(context, null, 2)}`);
   }
   console.error(`==========================================\n`);
+}
+
+// MailerSend Integration Logic
+let mailerSendClient: MailerSend | null = null;
+
+function getMailerSend() {
+  if (!mailerSendClient) {
+    const key = process.env.MAILERSEND_API_KEY || process.env.API_KEY || "";
+    if (!key) {
+      console.warn("[MailerSend] WARNING: MAILERSEND_API_KEY or API_KEY is not defined. Email dispatch will operate in simulation mode.");
+      return null;
+    }
+    mailerSendClient = new MailerSend({
+      apiKey: key,
+    });
+  }
+  return mailerSendClient;
+}
+
+// Brand themed header & footer for server-side templates
+const brandHeader = `
+  <div style="background-color: #090d16; padding: 32px 24px; text-align: center; border-radius: 16px 16px 0 0; border-bottom: 3px solid #C0392B;">
+    <h1 style="color: #ffffff; font-family: 'Space Grotesk', 'Inter', Helvetica, Arial, sans-serif; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; margin: 0; text-transform: uppercase;">
+      ALEX<span style="color: #C0392B;">FITNESSHUB</span>
+    </h1>
+    <p style="color: #94A3B8; font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 10px; font-weight: bold; margin: 6px 0 0 0; letter-spacing: 2px; text-transform: uppercase;">
+      ATHLETE CALIBRATION ENGINE
+    </p>
+  </div>
+`;
+
+const brandFooter = `
+  <div style="background-color: #090d16; padding: 24px; text-align: center; border-radius: 0 0 16px 16px; margin-top: 32px; border-top: 1px solid #1E293B;">
+    <p style="color: #64748B; font-family: 'Inter', Helvetica, Arial, sans-serif; font-size: 11px; line-height: 1.6; margin: 0;">
+      You are receiving this automated email because you are a registered athlete on the AlexFitnessHub platform.
+    </p>
+    <p style="color: #94A3B8; font-family: 'Inter', Helvetica, Arial, sans-serif; font-size: 11px; margin: 12px 0 0 0; font-weight: bold;">
+      Need live coaching assistance? Contact Coach Alex:
+    </p>
+    <div style="margin-top: 10px;">
+      <a href="mailto:alexfitnesshub@gmail.com" style="color: #C0392B; text-decoration: none; font-weight: bold; font-family: 'JetBrains Mono', monospace; font-size: 11px; margin: 0 10px;">alexfitnesshub@gmail.com</a>
+      <span style="color: #334155;">|</span>
+      <a href="https://wa.me/2347073307875" style="color: #C0392B; text-decoration: none; font-weight: bold; font-family: 'JetBrains Mono', monospace; font-size: 11px; margin: 0 10px;">WhatsApp Support Desk</a>
+    </div>
+    <p style="color: #475569; font-family: 'JetBrains Mono', monospace; font-size: 9px; margin: 16px 0 0 0; letter-spacing: 1px;">
+      &copy; 2026 ALEXFITNESSHUB. ALL RIGHTS RESERVED.
+    </p>
+  </div>
+`;
+
+function wrapInBrandTemplate(content: string) {
+  return `
+    <div style="background-color: #F8FAFC; padding: 40px 16px; min-height: 100%; width: 100%; box-sizing: border-box;">
+      <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #E2E8F0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.025); overflow: hidden;">
+        ${brandHeader}
+        <div style="padding: 40px 32px; background-color: #ffffff; color: #1E293B;">
+          ${content}
+        </div>
+        ${brandFooter}
+      </div>
+    </div>
+  `;
+}
+
+async function sendEmailViaMailerSend(to: string, subject: string, htmlContent: string, plainTextContent: string) {
+  const mailer = getMailerSend();
+  if (!mailer) {
+    console.log(`[MailerSend Simulated Dispatch]
+To: ${to}
+Subject: ${subject}
+Text Content Preview: ${plainTextContent.substring(0, 150)}...
+Status: MAILERSEND_API_KEY or API_KEY is missing - simulated successfully.`);
+    return { success: true, simulated: true };
+  }
+
+  try {
+    const senderEmail = process.env.MAILERSEND_SENDER_EMAIL || "info@alexfitnesshub.com";
+    const senderName = process.env.MAILERSEND_SENDER_NAME || "AlexFitnessHub";
+
+    const sentFrom = new Sender(senderEmail, senderName);
+    const recipients = [new Recipient(to, to.split("@")[0] || "Athlete")];
+
+    const emailParams = new EmailParams()
+      .setFrom(sentFrom)
+      .setTo(recipients)
+      .setReplyTo(sentFrom)
+      .setSubject(subject)
+      .setHtml(htmlContent)
+      .setText(plainTextContent);
+
+    const result = await mailer.email.send(emailParams);
+    console.log(`[MailerSend Success] Email sent successfully to ${to}. Result:`, result);
+    return { success: true, result };
+  } catch (error: any) {
+    console.error(`[MailerSend Error] Failed to send email to ${to}:`, error);
+    if (error.response?.body) {
+      console.error(`[MailerSend API Response Body]:`, JSON.stringify(error.response.body));
+    }
+    throw error;
+  }
+}
+
+function markdownToHtml(md: string): string {
+  let html = md;
+  // Convert headers (###, ##, #)
+  html = html.replace(/^### (.*?)$/gm, '<h3 style="font-family:\'Inter\',sans-serif;font-size:16px;font-weight:bold;color:#0F172A;margin:16px 0 8px 0;">$1</h3>');
+  html = html.replace(/^## (.*?)$/gm, '<h2 style="font-family:\'Inter\',sans-serif;font-size:20px;font-weight:bold;color:#0F172A;margin:24px 0 12px 0;border-bottom:1px solid #E2E8F0;padding-bottom:6px;">$1</h2>');
+  html = html.replace(/^# (.*?)$/gm, '<h1 style="font-family:\'Inter\',sans-serif;font-size:24px;font-weight:bold;color:#0F172A;margin:0 0 16px 0;">$1</h1>');
+  
+  // Bold
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong style="color:#0F172A;">$1</strong>');
+  
+  // Bullet items
+  html = html.replace(/^\* (.*?)$/gm, '<li style="margin-bottom:6px;font-family:\'Inter\',sans-serif;font-size:13px;color:#475569;">$1</li>');
+  html = html.replace(/^- (.*?)$/gm, '<li style="margin-bottom:6px;font-family:\'Inter\',sans-serif;font-size:13px;color:#475569;">$1</li>');
+  
+  // Paragraph split by double newlines
+  html = html.split('\n\n').map(p => {
+    const trimmed = p.trim();
+    if (!trimmed) return "";
+    if (trimmed.startsWith('<h') || trimmed.startsWith('<li')) return trimmed;
+    return `<p style="font-family:\'Inter\',sans-serif;font-size:14px;line-height:1.6;color:#475569;margin:0 0 16px 0;">${trimmed}</p>`;
+  }).join('\n');
+  
+  // Replace single newlines with br in list items or paragraphs if needed
+  html = html.replace(/\n/g, '<br/>');
+  return html;
 }
 
 // Initialize Firebase on Backend
@@ -789,6 +917,93 @@ app.post("/api/admin/log-activity", requireAdmin, async (req: any, res: any) => 
     res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST endpoint to dispatch emails securely via MailerSend
+app.post("/api/mail/send", async (req: any, res: any) => {
+  const { to, subject, html, text } = req.body;
+
+  if (!to || !subject || (!html && !text)) {
+    console.warn("[Mail Proxy API Bad Request] Missing recipient, subject, or content.");
+    return res.status(400).json({ success: false, error: "to, subject, and either html or text content are required parameters." });
+  }
+
+  try {
+    console.log(`[Mail Proxy API] Received secure dispatch request to: ${to} (Subject: "${subject}")`);
+    const result = await sendEmailViaMailerSend(to, subject, html || "", text || "");
+    return res.json({ success: true, ...result });
+  } catch (err: any) {
+    console.error(`[Mail Proxy API Error] Failed to send email to ${to}:`, err);
+    return res.status(500).json({ success: false, error: err.message || "Email dispatch failed." });
+  }
+});
+
+// POST endpoint to register newsletter subscribers and dispatch MailerSend confirmation email
+app.post("/api/mail/subscribe", async (req: any, res: any) => {
+  const { email, name } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ success: false, error: "Email is required." });
+  }
+
+  const cleanEmail = email.toLowerCase().trim();
+  const cleanName = (name || email.split("@")[0] || "Athlete").trim();
+
+  try {
+    console.log(`[Subscription API] Registering newsletter subscriber: ${cleanEmail} (${cleanName})`);
+    
+    // Save to Firestore under newsletter_subscribers
+    const docId = cleanEmail.replace(/[^a-zA-Z0-9]/g, "_");
+    const subscriberData = {
+      email: cleanEmail,
+      name: cleanName,
+      createdAt: new Date().toISOString(),
+      source: "footer_form",
+      status: "active"
+    };
+    
+    await setServerFirestoreDoc("newsletter_subscribers", docId, subscriberData, true);
+    console.log(`[Subscription API] Subscriber ${cleanEmail} written to Firestore database.`);
+
+    // Send a beautifully styled confirmation email
+    const subject = "⚡ Subscription Confirmed: AlexFitnessHub Elite Tips!";
+    const htmlBody = `
+      <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 800; color: #1E293B; margin-top: 0; text-transform: uppercase;">
+        You're officially locked in!
+      </h2>
+      <p style="font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.6; color: #475569;">
+        Hey <strong>${cleanName}</strong>,
+      </p>
+      <p style="font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.6; color: #475569;">
+        Thank you for subscribing to the <strong>AlexFitnessHub newsletter</strong>! You are now set to receive weekly elite fitness tips, biomechanical calibration, and direct platform updates designed to unlock your physical prime.
+      </p>
+      <div style="background-color: #F8FAFC; border-left: 4px solid #C0392B; padding: 16px; margin: 24px 0; border-radius: 4px;">
+        <h4 style="margin: 0 0 8px 0; color: #0F172A; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: bold;">What to expect next:</h4>
+        <ul style="margin: 0; padding-left: 20px; font-family: 'Inter', sans-serif; font-size: 13px; color: #475569; line-height: 1.6;">
+          <li style="margin-bottom: 6px;"><strong>Weekly Biomechanics:</strong> Demystifying compound lift forms to optimize physical response.</li>
+          <li style="margin-bottom: 6px;"><strong>Nutritional Calibration:</strong> Science-backed macronutrient scaling tricks.</li>
+          <li style="margin-bottom: 6px;"><strong>Platform Feature Drops:</strong> Exclusive look into our newest AI Coach capabilities before anyone else.</li>
+        </ul>
+      </div>
+      <p style="font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.6; color: #475569;">
+        In the meantime, head back to the platform, set up your daily routine, and let's get to work.
+      </p>
+      <div style="margin-top: 32px; text-align: center;">
+        <a href="https://ais-dev-m5ork5fvdel3jcbuozgkht-487650294387.europe-west2.run.app" style="background-color: #C0392B; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-family: 'Inter', sans-serif; font-weight: bold; font-size: 13px; display: inline-block; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 10px rgba(192, 57, 43, 0.25);">
+          Access Your Athlete Dashboard
+        </a>
+      </div>
+    `;
+    const plainBody = `Hey ${cleanName},\n\nThank you for subscribing to the AlexFitnessHub newsletter! You are now set to receive weekly elite fitness tips, biomechanical calibration, and direct platform updates.\n\nWhat to expect next:\n- Weekly Biomechanics\n- Nutritional Calibration\n- Platform Feature Drops\n\nAccess your dashboard here: https://ais-dev-m5ork5fvdel3jcbuozgkht-487650294387.europe-west2.run.app\n\nTo your absolute health,\nCoach Alex & Team`;
+
+    const htmlReport = wrapInBrandTemplate(htmlBody);
+    await sendEmailViaMailerSend(cleanEmail, subject, htmlReport, plainBody);
+
+    return res.json({ success: true, message: "Subscription successfully registered and welcome email dispatched." });
+  } catch (err: any) {
+    console.error(`[Subscription API Error] Failed to complete newsletter sign up for ${cleanEmail}:`, err);
+    return res.status(500).json({ success: false, error: err.message || "Subscription processing failed." });
   }
 });
 
@@ -3537,7 +3752,20 @@ ${milestones.map(m => `*   **${m}**`).join("\n")}
 
   await setServerFirestoreDoc("weekly_reports", reportId, reportData, false);
   console.log(`[Weekly Report Saved] Durable report document ${reportId} created successfully in Firestore for user: ${userId}`);
-  console.log(`[Weekly Report Email Sent] Simulated weekly progress email transmitted to: ${userEmail}`);
+  
+  // Dispatch a real-time styled email using MailerSend
+  try {
+    const htmlReport = wrapInBrandTemplate(markdownToHtml(reportContent));
+    await sendEmailViaMailerSend(
+      userEmail || "athlete@alexfitness.com",
+      reportSubject,
+      htmlReport,
+      reportContent
+    );
+    console.log(`[Weekly Report Email Sent] Fully transmitted real-time performance calibration email to: ${userEmail}`);
+  } catch (emailErr) {
+    console.error(`[Weekly Report Email Sent Error] Failed real-time transmission to ${userEmail} via MailerSend:`, emailErr);
+  }
 
   return reportData;
 }

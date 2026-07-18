@@ -3,6 +3,28 @@ import { useApp } from "../context/AppContext";
 import { motion } from "motion/react";
 import { CheckCircle2, XCircle, Loader2, Sparkles, ArrowRight } from "lucide-react";
 
+const VIEW_TO_PATH_MAP: Record<string, string> = {
+  "home": "/",
+  "payment-success": "/payment/success",
+  "library": "/premium/library",
+  "workout-generator": "/premium/workout-generator",
+  "workout-videos": "/premium/workout-videos",
+  "saved-exercises": "/premium/saved-exercises",
+  "coach": "/premium/coach",
+  "nutrition": "/premium/nutrition",
+  "daily-plan": "/premium/daily-plan",
+  "challenges": "/premium/challenges",
+  "community": "/premium/community",
+  "weekly-reports": "/premium/weekly-reports",
+  "daily-habit-tracker": "/premium/daily-habit-tracker",
+  "daily-calibration-desk": "/premium/daily-calibration-desk",
+  "handbook": "/premium/handbook",
+  "weight-trajectory": "/premium/weight-trajectory",
+  "dashboard": "/premium/dashboard",
+  "belly-fat-shred": "/premium/belly-fat-shred",
+  "lifestyle-academy": "/lifestyle-academy",
+};
+
 export default function PaymentSuccessView() {
   const { user, upgradeWithPaystack } = useApp();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
@@ -37,6 +59,19 @@ export default function PaymentSuccessView() {
       verifyPayment();
     }
   }, [user]);
+
+  // Automated premium redirect to original requested page
+  useEffect(() => {
+    if (status === "success") {
+      const timer = setTimeout(() => {
+        const attemptedView = localStorage.getItem("fit_attempted_view");
+        localStorage.removeItem("fit_attempted_view");
+        const path = attemptedView ? (VIEW_TO_PATH_MAP[attemptedView] || "/") : "/";
+        window.location.assign(path);
+      }, 3000); // Redirect after 3 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [status]);
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center bg-white px-4 py-12 font-sans">
@@ -97,7 +132,10 @@ export default function PaymentSuccessView() {
 
             <button
               onClick={() => {
-                window.location.assign("/");
+                const attemptedView = localStorage.getItem("fit_attempted_view");
+                localStorage.removeItem("fit_attempted_view");
+                const path = attemptedView ? (VIEW_TO_PATH_MAP[attemptedView] || "/") : "/";
+                window.location.assign(path);
               }}
               className="w-full flex items-center justify-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white font-semibold py-4 px-6 rounded-2xl shadow-lg shadow-red-100 transition-all cursor-pointer group"
             >

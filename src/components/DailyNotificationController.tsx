@@ -165,18 +165,7 @@ export default function DailyNotificationController() {
 
   return (
     <>
-      {/* Floating Bell Trigger bottom-right */}
-      <button
-        id="floating_reminders_bell"
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-40 p-4 rounded-full bg-[#C0392B] text-white hover:bg-[#A82E22] shadow-2xl transition duration-300 hover:scale-105 group flex items-center justify-center cursor-pointer"
-        aria-label="Daily Checklist & Reminders"
-      >
-        <span className="absolute -top-1.5 -right-1.5 bg-white text-[#C0392B] text-[9px] font-mono font-black h-5 w-5 rounded-full flex items-center justify-center border border-[#C0392B] animate-pulse">
-          {tasks.filter(t => !t.done).length}
-        </span>
-        <Bell className="w-6 h-6 animate-swing group-hover:animate-none" />
-      </button>
+      {/* Floating Bell Trigger bottom-right removed as requested */}
 
       {/* Slide-over Reminders Panel */}
       {isOpen && (

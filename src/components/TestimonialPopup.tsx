@@ -46,11 +46,32 @@ const getGenderForName = (name: string, content?: string): "female" | "male" | "
   return "neutral";
 };
 
+type PositionType = "top-left" | "top-right" | "bottom-left" | "bottom-right" | "top-center" | "bottom-center";
+
+const getPositionClasses = (pos: PositionType): string => {
+  switch (pos) {
+    case "top-left":
+      return "top-5 left-5";
+    case "top-right":
+      return "top-5 right-5";
+    case "bottom-left":
+      return "bottom-5 left-5";
+    case "top-center":
+      return "top-5 left-1/2 -translate-x-1/2";
+    case "bottom-center":
+      return "bottom-5 left-1/2 -translate-x-1/2";
+    case "bottom-right":
+    default:
+      return "bottom-5 right-5";
+  }
+};
+
 export const TestimonialPopup: React.FC = () => {
   const { popupTestimonials } = useApp();
   const [currentReview, setCurrentReview] = useState<PopupTestimonial | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [status, setStatus] = useState<"idle" | "showing" | "waiting">("idle");
+  const [currentPosition, setCurrentPosition] = useState<PositionType>("bottom-right");
   
   const queueRef = useRef<PopupTestimonial[]>([]);
   const indexRef = useRef<number>(0);
@@ -82,6 +103,18 @@ export const TestimonialPopup: React.FC = () => {
     const nextReview = queueRef.current[indexRef.current];
     indexRef.current += 1;
     lastShownIdRef.current = nextReview.id;
+
+    // Pick random position
+    const positions: PositionType[] = [
+      "top-left",
+      "top-right",
+      "bottom-left",
+      "bottom-right",
+      "top-center",
+      "bottom-center"
+    ];
+    const randPos = positions[Math.floor(Math.random() * positions.length)];
+    setCurrentPosition(randPos);
 
     setCurrentReview(nextReview);
     setIsVisible(true);
@@ -132,12 +165,12 @@ export const TestimonialPopup: React.FC = () => {
       {isVisible && (
         <motion.div
           id="social-proof-toast"
-          initial={{ opacity: 0, y: 50, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 30, scale: 0.95 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          // high z-index fixed to bottom-right corner, made more compact (max-w-[280px], p-3)
-          className="fixed bottom-5 right-5 z-[9999] max-w-[280px] w-[calc(100vw-2rem)] bg-white dark:bg-slate-900 rounded-xl shadow-[0_6px_20px_rgba(0,0,0,0.1)] border border-slate-200 dark:border-slate-800 p-3 select-none pointer-events-auto overflow-hidden"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          transition={{ duration: 0.35, ease: "easeOut" }}
+          // high z-index fixed to random positions on screen, with a compact glass-like small background
+          className={`fixed z-[9999] w-[210px] bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-xl shadow-[0_4px_16px_rgba(0,0,0,0.1)] border border-slate-200/85 dark:border-slate-800/85 p-2 select-none pointer-events-auto overflow-hidden ${getPositionClasses(currentPosition)}`}
         >
           {/* Close button */}
           <button
@@ -146,46 +179,46 @@ export const TestimonialPopup: React.FC = () => {
             id="close-social-proof"
             aria-label="Close"
           >
-            <X className="w-3.5 h-3.5" />
+            <X className="w-3 h-3" />
           </button>
-
-          <div className="flex items-start gap-2.5 pb-1">
-            {/* Always use initials for social proof popout as requested - made smaller (w-9 h-9) */}
+ 
+          <div className="flex items-start gap-2 pb-0.5">
+            {/* Always use initials for social proof popout as requested - made smaller (w-8 h-8) */}
             <div className="relative shrink-0">
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center font-black text-[10px] shadow-sm uppercase ${getRandomBgColor(currentReview.name)}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-[9px] shadow-sm uppercase ${getRandomBgColor(currentReview.name)}`}>
                 {getInitials(currentReview.name)}
               </div>
-              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900" />
+              <span className="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 rounded-full border border-white dark:border-slate-900" />
             </div>
-
-            <div className="flex-1 min-w-0 pr-4">
+ 
+            <div className="flex-1 min-w-0 pr-3">
               {/* Star Rating & Verified Badge */}
               <div className="flex items-center justify-between mb-0.5">
-                <div className="flex items-center gap-0.5 text-amber-500">
+                <div className="flex items-center gap-[1px] text-amber-500">
                   {[...Array(currentReview.rating)].map((_, i) => (
-                    <Star key={i} className="w-3 h-3 fill-current text-amber-500" />
+                    <Star key={i} className="w-2.5 h-2.5 fill-current text-amber-500" />
                   ))}
                 </div>
-                <span className="inline-flex items-center gap-0.5 text-[8px] font-black font-mono tracking-wider text-emerald-700 uppercase bg-emerald-50 dark:bg-slate-950 px-1.5 py-0.5 rounded">
+                <span className="inline-flex items-center gap-[1px] text-[7.5px] font-black font-mono tracking-wider text-emerald-700 uppercase bg-emerald-50 dark:bg-slate-950 px-1 py-0.5 rounded">
                   <Check className="w-2 h-2 stroke-[3]" /> Verified
                 </span>
               </div>
-
+ 
               {/* Action content & time */}
-              <p className="text-[11px] text-slate-900 dark:text-slate-100 leading-snug">
+              <p className="text-[10px] text-slate-900 dark:text-slate-100 leading-snug">
                 <span className="font-extrabold text-slate-950 dark:text-white mr-1">
                   {currentReview.name}
                 </span>
                 {currentReview.action || "signed up"}
               </p>
               
-              <span className="text-slate-500 dark:text-slate-400 text-[9px] font-bold font-mono block mt-0.5">
+              <span className="text-slate-500 dark:text-slate-400 text-[8px] font-bold font-mono block mt-0.5">
                 {currentReview.timeText || "today"}
               </span>
-
+ 
               {/* Optional Trust message */}
               {currentReview.review && (
-                <p className="text-[10px] text-slate-850 dark:text-slate-200 font-medium italic mt-1.5 border-l-2 border-slate-200 dark:border-slate-700 pl-1.5 leading-relaxed">
+                <p className="text-[9px] text-slate-850 dark:text-slate-200 font-medium italic mt-1 border-l-2 border-slate-200 dark:border-slate-700 pl-1.5 leading-relaxed">
                   “{currentReview.review}”
                 </p>
               )}

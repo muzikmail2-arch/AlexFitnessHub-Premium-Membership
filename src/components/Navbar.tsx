@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useApp } from "../context/AppContext";
 import { Menu, X, Shield, Lock, Award, Sun, Moon } from "lucide-react";
 import { motion } from "motion/react";
+import Logo from "./Logo";
 
 interface NavbarProps {
   currentView: string;
@@ -58,14 +59,8 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
       { id: "daily-plan", label: "My Plan", action: () => handleNav("daily-plan") },
       { id: "lifestyle-academy", label: "Academy", action: () => handleNav("lifestyle-academy") },
       { id: "library", label: "Workouts", action: () => handleNav("library") },
-      { id: "workout-generator", label: "AI Generator", action: () => handleNav("workout-generator") },
-      { id: "workout-videos", label: "Videos", action: () => handleNav("workout-videos") },
-      { id: "saved-exercises", label: "Saved", action: () => handleNav("saved-exercises") },
       { id: "nutrition", label: "Nutrition", action: () => handleNav("nutrition") },
-      { id: "challenges", label: "Challenges", action: () => handleNav("challenges") },
       { id: "community", label: "Community", action: () => handleNav("community") },
-      { id: "belly-fat-shred", label: "Belly Shred", action: () => handleNav("belly-fat-shred") },
-      { id: "coach", label: "AI Coach", action: () => handleNav("coach") },
     ] : [
       { id: "home", label: "Home", action: () => handleNav("home") },
       { id: "lifestyle-academy", label: "Academy", action: () => handleNav("lifestyle-academy") },
@@ -155,36 +150,52 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
     { id: "pricing", label: "Pricing Plans", sublabel: "Upgrade Status", action: () => handleCustomNav("pricing") },
   ];
 
-  // Unified logo element containing bold sans font and shield
-  const LogoElement = () => (
-    <div className="flex items-center gap-2 select-none cursor-pointer" onClick={() => handleNav("home")}>
-      <Shield className="w-6 h-6 shrink-0 text-[var(--accent-gold)] fill-[var(--accent-gold)]" />
-      <span className={`font-sans font-black text-xl md:text-2xl tracking-tighter leading-none uppercase ${
-        theme === "dark" ? "text-white" : "text-slate-900"
-      }`}>
-        ALEXFITNESSHUB
-      </span>
-    </div>
+  // Logo elements for header and mobile drawer respectively
+  const HeaderLogoElement = () => (
+    <a
+      href="#home"
+      onClick={(e) => {
+        e.preventDefault();
+        handleNav("home");
+      }}
+      className="flex items-center select-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-500 rounded-lg"
+      aria-label="AlexFitnessHub Home View"
+    >
+      <Logo size="sm" showText={true} showSubtext={false} hideTextOnMobile={true} />
+    </a>
+  );
+
+  const DrawerLogoElement = () => (
+    <a
+      href="#home"
+      onClick={(e) => {
+        e.preventDefault();
+        handleNav("home");
+      }}
+      className="flex items-center select-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-500 rounded-lg"
+      aria-label="AlexFitnessHub Home View"
+    >
+      <Logo size="sm" showText={true} showSubtext={false} hideTextOnMobile={false} />
+    </a>
   );
 
   return (
     <>
       {/* Sticky Header */}
       <header
-        className={`fixed top-0 left-0 right-0 z-40 h-[76px] flex items-center transition-all duration-350 ${
-          theme === "dark"
-            ? "bg-[#0A0E17]/95 border-b border-slate-900 text-white"
-            : "bg-white/95 border-b border-slate-200 text-slate-900"
-        } ${isScrolledPastHero ? "shadow-md" : "border-b-transparent"}`}
+        className={`fixed top-0 left-0 right-0 z-40 h-[76px] flex items-center transition-all duration-300 border-b bg-background border-border shadow-sm`}
       >
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between gap-4">
-            
-            {/* Show only logo - no separate text title */}
-            <LogoElement />
+          
+          {/* DESKTOP HEADER (Screens lg and above) */}
+          <div className="hidden lg:flex h-16 items-center justify-between gap-4 w-full">
+            {/* Left Column: Logo */}
+            <div className="flex items-center flex-shrink-0">
+              <HeaderLogoElement />
+            </div>
 
-            {/* Desktop Horizontal Navigation Links */}
-            <nav className="hidden lg:flex items-center gap-1.5 xl:gap-3 overflow-x-auto py-1 scrollbar-none">
+            {/* Center Column: Navigation links */}
+            <nav className="flex items-center justify-center flex-1 gap-1.5 xl:gap-3 overflow-x-auto py-1 scrollbar-none">
               {menuItems.map((item) => {
                 const isActive = currentView === item.id;
                 return (
@@ -195,7 +206,7 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
                     onClick={item.action}
                     className={`text-[10px] xl:text-[11px] font-sans font-black uppercase tracking-wider px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer whitespace-nowrap ${
                       isActive
-                        ? "bg-[var(--accent-gold)] text-[var(--gold-btn-text)] shadow-sm font-black"
+                        ? "bg-primary text-white shadow-sm font-black"
                         : theme === "dark"
                           ? "text-slate-300 hover:bg-white/10"
                           : "text-slate-700 hover:bg-slate-100"
@@ -207,28 +218,29 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
               })}
             </nav>
 
-
-            {/* Sticky Header actions: Auth & Hamburger */}
-            <div className="flex items-center gap-3 shrink-0">
+            {/* Right Column: Premium button, Sign In / Sign Out, Profile Avatar & Theme Toggle */}
+            <div className="flex items-center gap-3 flex-shrink-0">
               
+              {/* Access Premium Button (if user is not premium) */}
               {(!user || user.subscriptionStatus !== "premium") && (
                 <motion.button
                   whileHover={{ scale: 1.05, y: -1 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setView("pricing")}
-                  className="hidden md:inline-flex items-center gap-1.5 text-[11px] font-sans font-black uppercase tracking-wider h-9 px-5 rounded-full bg-[var(--accent-gold)] text-[var(--gold-btn-text)] hover:bg-[var(--accent-gold-hover)] transition-all duration-200 cursor-pointer shadow-md"
+                  className="inline-flex items-center gap-1.5 text-[11px] font-sans font-black uppercase tracking-wider h-9 px-5 rounded-full bg-primary text-white hover:opacity-90 transition-all duration-200 cursor-pointer shadow-md"
                 >
                   <Award className="w-4 h-4" />
                   <span>Access Premium</span>
                 </motion.button>
               )}
 
+              {/* Login/Logout Button */}
               {!user ? (
                 <motion.button
                   whileHover={{ scale: 1.05, y: -1 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={onOpenAuth}
-                  className={`hidden sm:inline-flex text-[11px] font-sans font-bold uppercase tracking-wider h-9 px-5 rounded-full border transition-all duration-200 cursor-pointer ${
+                  className={`inline-flex text-[11px] font-sans font-bold uppercase tracking-wider h-9 px-5 rounded-full border transition-all duration-200 cursor-pointer ${
                     theme === "dark"
                       ? "border-slate-700 text-white hover:bg-white/10"
                       : "border-slate-300 text-slate-700 hover:bg-slate-50"
@@ -241,7 +253,7 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
                   whileHover={{ scale: 1.05, y: -1 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={logout}
-                  className={`hidden sm:inline-flex text-[11px] font-sans font-bold uppercase tracking-wider h-9 px-5 rounded-full border transition-all duration-200 cursor-pointer ${
+                  className={`inline-flex text-[11px] font-sans font-bold uppercase tracking-wider h-9 px-5 rounded-full border transition-all duration-200 cursor-pointer ${
                     theme === "dark"
                       ? "border-slate-800 text-slate-300 hover:bg-white/10"
                       : "border-slate-200 text-slate-600 hover:bg-slate-50"
@@ -251,27 +263,89 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
                 </motion.button>
               )}
 
-              {/* Premium Smooth Animated Theme Toggle */}
-              <motion.button
-                whileHover={{ scale: 1.1, rotate: 15 }}
-                whileTap={{ scale: 0.9, rotate: -15 }}
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className={`p-2 rounded-full transition-all duration-200 cursor-pointer flex items-center justify-center border ${
-                  theme === "dark"
-                    ? "text-white hover:bg-white/10 border-slate-800"
-                    : "text-slate-700 hover:bg-slate-100 border-slate-200"
-                }`}
-                aria-label="Toggle Theme"
-                id="navbar-theme-toggle"
-              >
-                {theme === "dark" ? (
-                  <Sun className="w-4 h-4 text-amber-300 fill-amber-300" />
-                ) : (
-                  <Moon className="w-4 h-4 text-slate-700 fill-slate-700" />
-                )}
-              </motion.button>
+              {/* Profile Avatar (if logged in) */}
+              {user && (
+                <div 
+                  onClick={() => setView("dashboard")} 
+                  className="w-8 h-8 rounded-full overflow-hidden border border-border cursor-pointer select-none flex items-center justify-center shrink-0"
+                  title="View Dashboard / Profile"
+                >
+                  {user.photoURL ? (
+                    <img src={user.photoURL} alt={user.displayName || "User"} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  ) : (
+                    <div className="w-full h-full bg-primary flex items-center justify-center text-white font-black text-xs uppercase">
+                      {user.displayName ? user.displayName[0] : (user.email ? user.email[0] : "A")}
+                    </div>
+                  )}
+                </div>
+              )}
 
-              {/* Hamburger icon: 3 theme-aware lines */}
+              {/* Theme Toggle Switch with Website Name */}
+              <div className="flex items-center gap-2 border-l border-slate-200 dark:border-slate-800 pl-3 ml-1 shrink-0">
+                <span className="font-sans font-black text-[11px] uppercase tracking-tight text-slate-900 dark:text-white">
+                  ALEXFITNESS<span className="text-[#0EA5E9] font-black">HUB</span>
+                </span>
+                <motion.button
+                  whileHover={{ scale: 1.1, rotate: 15 }}
+                  whileTap={{ scale: 0.9, rotate: -15 }}
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  className={`p-2 rounded-full transition-all duration-200 cursor-pointer flex items-center justify-center border ${
+                    theme === "dark"
+                      ? "text-white hover:bg-white/10 border-slate-800"
+                      : "text-slate-700 hover:bg-slate-100 border-slate-200"
+                  }`}
+                  aria-label="Toggle Theme"
+                  id="navbar-theme-toggle"
+                >
+                  {theme === "dark" ? (
+                    <Sun className="w-4 h-4 text-amber-300 fill-amber-300" />
+                  ) : (
+                    <Moon className="w-4 h-4 text-slate-700 fill-slate-700" />
+                  )}
+                </motion.button>
+              </div>
+
+            </div>
+          </div>
+
+          {/* MOBILE HEADER (Screens below lg) */}
+          <div className="flex lg:hidden h-16 items-center justify-between w-full relative">
+            {/* Left Column: Logo & Theme switch side-by-side */}
+            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0 z-10">
+              <HeaderLogoElement />
+              
+              {/* Mobile Header Theme Toggle beside logo */}
+              <div className="flex items-center gap-1.5 shrink-0">
+                <motion.button
+                  whileHover={{ scale: 1.1, rotate: 15 }}
+                  whileTap={{ scale: 0.9, rotate: -15 }}
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  className={`p-2 rounded-full transition-all duration-200 cursor-pointer flex items-center justify-center border shrink-0 ${
+                    theme === "dark"
+                      ? "text-white hover:bg-white/10 border-slate-800"
+                      : "text-slate-700 hover:bg-slate-100 border-slate-200"
+                  }`}
+                  aria-label="Toggle Theme"
+                  id="navbar-mobile-theme-toggle"
+                >
+                  {theme === "dark" ? (
+                    <Sun className="w-4 h-4 text-amber-300 fill-amber-300" />
+                  ) : (
+                    <Moon className="w-4 h-4 text-slate-700 fill-slate-700" />
+                  )}
+                </motion.button>
+              </div>
+            </div>
+
+            {/* Center Column: Prominent Centered Title ALEXFITNESSHUB in the red-marked area */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <span className="font-sans font-black text-xs min-[360px]:text-[13px] uppercase tracking-wider text-slate-900 dark:text-white pointer-events-auto select-none">
+                ALEXFITNESS<span className="text-[#0EA5E9] font-black">HUB</span>
+              </span>
+            </div>
+
+            {/* Right Column: Hamburger Menu only */}
+            <div className="flex items-center flex-shrink-0 z-10">
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -289,10 +363,9 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
                   <span className={`block h-0.5 w-6 rounded transition ${theme === "dark" ? "bg-white" : "bg-slate-800"}`}></span>
                 </div>
               </motion.button>
-
             </div>
-
           </div>
+
         </div>
       </header>
 
@@ -301,11 +374,16 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
         className={`fixed inset-0 z-50 transition-all duration-300 ${
           isMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Mobile Navigation Menu"
+        aria-hidden={!isMenuOpen}
       >
         {/* Dimmed backdrop overlay that handles clicks to close */}
         <div 
           className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
           onClick={() => setIsMenuOpen(false)}
+          aria-hidden="true"
         />
 
         {/* Snappy Left Slide-in Panel */}
@@ -323,7 +401,7 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
             <div className={`flex justify-between items-center pb-3 border-b shrink-0 ${
               theme === "dark" ? "border-slate-900" : "border-slate-100"
             }`}>
-              <LogoElement />
+              <DrawerLogoElement />
               {/* Sidebar Theme toggle */}
               <motion.button
                 whileHover={{ scale: 1.1, rotate: 15 }}
@@ -389,7 +467,7 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
             )}
 
             {/* Vertical list of nav links with dividers */}
-            <nav className="flex flex-col space-y-1 overflow-y-auto pr-1 flex-grow">
+            <nav className="flex flex-col space-y-1 overflow-y-auto pr-1 flex-grow" aria-label="Mobile Drawer Navigation Menu">
               {hamburgerMenuItems.map((item) => {
                 const isActive = currentView === item.id;
                 return (
@@ -518,8 +596,6 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
         )}
       </div>
 
-      {/* Header spacer to offset content */}
-      <div className="h-[76px] bg-transparent" />
     </>
   );
 }

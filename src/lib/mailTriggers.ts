@@ -45,14 +45,42 @@ const emailWrapper = (content: string) => `
 `;
 
 /**
- * Queue an email in Firestore's 'mail' collection for processing by the trigger-email extension.
+ * Dispatch an email securely via our backend MailerSend proxy API, falling back to Firestore if needed.
  */
 async function queueEmail(to: string, subject: string, htmlContent: string, plainText: string) {
   if (isMockFirebase) {
     console.log(`[Mock Mail Queue] Simulating email delivery for: ${to} (Subject: "${subject}")`);
-    return;
+    return "mock-id";
   }
 
+  try {
+    console.log(`[Mail Dispatch Client] Sending email to ${to} via secure MailerSend proxy...`);
+    const response = await fetch("/api/mail/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        to: to,
+        subject: subject,
+        html: htmlContent,
+        text: plainText
+      })
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      console.log(`[Mail Dispatch Success] Successfully sent email to ${to} via MailerSend.`, data);
+      return data.result || "mailer-success-id";
+    } else {
+      const errText = await response.text();
+      console.warn(`[Mail Dispatch Proxy Warning] Backend returned ${response.status}: ${errText}. Falling back to Firestore mail queue...`);
+    }
+  } catch (err) {
+    console.warn(`[Mail Dispatch Proxy Error] Network error contacting MailerSend proxy. Falling back to Firestore mail queue...`, err);
+  }
+
+  // Durable fallback: Queue an email in Firestore's 'mail' collection if the proxy is unavailable
   try {
     const mailDoc = {
       to: to,
@@ -65,10 +93,10 @@ async function queueEmail(to: string, subject: string, htmlContent: string, plai
     };
     
     const docRef = await addDoc(collection(db, "mail"), mailDoc);
-    console.log(`[Mail Extension Queue] Successfully queued email trigger doc ${docRef.id} in 'mail' collection for recipient ${to}`);
+    console.log(`[Mail Fallback Queue] Successfully queued email trigger doc ${docRef.id} in 'mail' collection for recipient ${to}`);
     return docRef.id;
-  } catch (err) {
-    console.error(`[Mail Extension Queue Error] Failed to queue email to ${to}:`, err);
+  } catch (fallbackErr) {
+    console.error(`[Mail Fallback Queue Error] Failed to queue email to ${to} in Firestore:`, fallbackErr);
   }
 }
 

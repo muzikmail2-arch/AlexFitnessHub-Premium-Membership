@@ -31,9 +31,74 @@ export default function OnboardingWizard() {
   const [trainingLocation, setTrainingLocation] = useState<"Home" | "Gym">("Gym");
 
   const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateStep = (currentStep: number): boolean => {
+    const newErrors: Record<string, string> = { ...errors };
+
+    if (currentStep === 1) {
+      const parsedAge = parseInt(age);
+      if (!age || isNaN(parsedAge) || parsedAge < 12 || parsedAge > 100) {
+        newErrors.age = "Age must be between 12 and 100.";
+      } else {
+        delete newErrors.age;
+      }
+      if (!countryRegion.trim()) {
+        newErrors.countryRegion = "Country/Region is required.";
+      } else {
+        delete newErrors.countryRegion;
+      }
+    }
+
+    if (currentStep === 3) {
+      const parsedWeight = parseFloat(weight);
+      const parsedTargetWeight = parseFloat(targetWeight);
+      const parsedHeight = parseFloat(height);
+
+      if (!weight || isNaN(parsedWeight) || parsedWeight < 30 || parsedWeight > 250) {
+        newErrors.weight = "Weight must be 30-250 kg.";
+      } else {
+        delete newErrors.weight;
+      }
+      if (!targetWeight || isNaN(parsedTargetWeight) || parsedTargetWeight < 30 || parsedTargetWeight > 250) {
+        newErrors.targetWeight = "Target weight must be 30-250 kg.";
+      } else {
+        delete newErrors.targetWeight;
+      }
+      if (!height || isNaN(parsedHeight) || parsedHeight < 100 || parsedHeight > 250) {
+        newErrors.height = "Height must be 100-250 cm.";
+      } else {
+        delete newErrors.height;
+      }
+    }
+
+    if (currentStep === 5) {
+      if (!wakeUpTime.trim()) {
+        newErrors.wakeUpTime = "Wake up time is required.";
+      } else {
+        delete newErrors.wakeUpTime;
+      }
+      if (!bedTime.trim()) {
+        newErrors.bedTime = "Bed time is required.";
+      } else {
+        delete newErrors.bedTime;
+      }
+    }
+
+    setErrors(newErrors);
+    
+    // Check if there are any errors for the fields in this step
+    if (currentStep === 1 && (newErrors.age || newErrors.countryRegion)) return false;
+    if (currentStep === 3 && (newErrors.weight || newErrors.targetWeight || newErrors.height)) return false;
+    if (currentStep === 5 && (newErrors.wakeUpTime || newErrors.bedTime)) return false;
+
+    return true;
+  };
 
   const handleNext = () => {
-    if (step < totalSteps) setStep(prev => prev + 1);
+    if (validateStep(step)) {
+      if (step < totalSteps) setStep(prev => prev + 1);
+    }
   };
 
   const handleBack = () => {
@@ -41,6 +106,10 @@ export default function OnboardingWizard() {
   };
 
   const handleSubmit = async () => {
+    if (!validateStep(1) || !validateStep(3) || !validateStep(5)) {
+      alert("Please fix all form validation errors before proceeding.");
+      return;
+    }
     setSaving(true);
     try {
       await completeOnboarding({
@@ -135,29 +204,86 @@ export default function OnboardingWizard() {
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2">Age (years)</label>
-                    <input
-                      type="number"
-                      min="12"
-                      max="100"
-                      value={age}
-                      onChange={(e) => setAge(e.target.value)}
-                      className="w-full p-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono focus:ring-1 focus:ring-emerald-500 focus:outline-none"
-                      placeholder="25"
-                    />
+                    <label htmlFor="onboarding-age-input" className="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2">Age (years)</label>
+                    <div className="relative">
+                      <input
+                        id="onboarding-age-input"
+                        type="number"
+                        min="12"
+                        max="100"
+                        value={age}
+                        onChange={(e) => {
+                          setAge(e.target.value);
+                          const parsed = parseInt(e.target.value);
+                          if (!e.target.value || isNaN(parsed) || parsed < 12 || parsed > 100) {
+                            setErrors(prev => ({ ...prev, age: "Age must be between 12 and 100." }));
+                          } else {
+                            setErrors(prev => {
+                              const copy = { ...prev };
+                              delete copy.age;
+                              return copy;
+                            });
+                          }
+                        }}
+                        aria-invalid={!!errors.age}
+                        aria-describedby={errors.age ? "onboarding-age-error" : undefined}
+                        className={`w-full p-2.5 pr-8 rounded-xl text-xs bg-slate-50 dark:bg-slate-950 border text-slate-900 dark:text-white font-mono focus:outline-none transition ${
+                          errors.age
+                            ? "border-rose-500 focus:ring-1 focus:ring-rose-500"
+                            : age && parseInt(age) >= 12 && parseInt(age) <= 100
+                            ? "border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                            : "border-slate-200 dark:border-slate-800 focus:ring-1 focus:ring-emerald-500"
+                        }`}
+                        placeholder="25"
+                      />
+                      {age && parseInt(age) >= 12 && parseInt(age) <= 100 && !errors.age && (
+                        <span className="absolute inset-y-0 right-3 flex items-center text-emerald-500 font-bold">✓</span>
+                      )}
+                    </div>
+                    {errors.age && (
+                      <p id="onboarding-age-error" className="mt-1 text-[10px] text-rose-500 font-bold" aria-live="polite">{errors.age}</p>
+                    )}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2">Country / Region</label>
-                    <input
-                      type="text"
-                      value={countryRegion}
-                      onChange={(e) => setCountryRegion(e.target.value)}
-                      className="w-full p-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:ring-1 focus:ring-emerald-500 focus:outline-none font-bold"
-                      placeholder="Nigeria"
-                    />
+                    <label htmlFor="onboarding-country-input" className="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2">Country / Region</label>
+                    <div className="relative">
+                      <input
+                        id="onboarding-country-input"
+                        type="text"
+                        value={countryRegion}
+                        onChange={(e) => {
+                          setCountryRegion(e.target.value);
+                          if (!e.target.value.trim()) {
+                            setErrors(prev => ({ ...prev, countryRegion: "Country/Region is required." }));
+                          } else {
+                            setErrors(prev => {
+                              const copy = { ...prev };
+                              delete copy.countryRegion;
+                              return copy;
+                            });
+                          }
+                        }}
+                        aria-invalid={!!errors.countryRegion}
+                        aria-describedby={errors.countryRegion ? "onboarding-country-error" : undefined}
+                        className={`w-full p-2.5 pr-8 rounded-xl text-xs bg-slate-50 dark:bg-slate-950 border text-slate-900 dark:text-white font-bold focus:outline-none transition ${
+                          errors.countryRegion
+                            ? "border-rose-500 focus:ring-1 focus:ring-rose-500"
+                            : countryRegion.trim()
+                            ? "border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                            : "border-slate-200 dark:border-slate-800 focus:ring-1 focus:ring-emerald-500"
+                        }`}
+                        placeholder="Nigeria"
+                      />
+                      {countryRegion.trim() && !errors.countryRegion && (
+                        <span className="absolute inset-y-0 right-3 flex items-center text-emerald-500 font-bold">✓</span>
+                      )}
+                    </div>
+                    {errors.countryRegion && (
+                      <p id="onboarding-country-error" className="mt-1 text-[10px] text-rose-500 font-bold" aria-live="polite">{errors.countryRegion}</p>
+                    )}
                   </div>
 
                   <div>
@@ -235,42 +361,129 @@ export default function OnboardingWizard() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+                    <label htmlFor="onboarding-weight-input" className="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1">
                       <Scale className="w-3.5 h-3.5 text-slate-400" /> Weight (KG)
                     </label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={weight}
-                      onChange={(e) => setWeight(e.target.value)}
-                      className="w-full p-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono focus:ring-1 focus:ring-emerald-500 focus:outline-none"
-                    />
+                    <div className="relative">
+                      <input
+                        id="onboarding-weight-input"
+                        type="number"
+                        step="0.1"
+                        value={weight}
+                        onChange={(e) => {
+                          setWeight(e.target.value);
+                          const parsed = parseFloat(e.target.value);
+                          if (!e.target.value || isNaN(parsed) || parsed < 30 || parsed > 250) {
+                            setErrors(prev => ({ ...prev, weight: "Weight must be 30-250 kg." }));
+                          } else {
+                            setErrors(prev => {
+                              const copy = { ...prev };
+                              delete copy.weight;
+                              return copy;
+                            });
+                          }
+                        }}
+                        aria-invalid={!!errors.weight}
+                        aria-describedby={errors.weight ? "onboarding-weight-error" : undefined}
+                        className={`w-full p-2.5 pr-8 rounded-xl text-xs bg-slate-50 dark:bg-slate-950 border text-slate-900 dark:text-white font-mono focus:outline-none transition ${
+                          errors.weight
+                            ? "border-rose-500 focus:ring-1 focus:ring-rose-500"
+                            : weight && parseFloat(weight) >= 30 && parseFloat(weight) <= 250
+                            ? "border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                            : "border-slate-200 dark:border-slate-800 focus:ring-1 focus:ring-emerald-500"
+                        }`}
+                      />
+                      {weight && parseFloat(weight) >= 30 && parseFloat(weight) <= 250 && !errors.weight && (
+                        <span className="absolute inset-y-0 right-3 flex items-center text-emerald-500 font-bold">✓</span>
+                      )}
+                    </div>
+                    {errors.weight && (
+                      <p id="onboarding-weight-error" className="mt-1 text-[10px] text-rose-500 font-bold" aria-live="polite">{errors.weight}</p>
+                    )}
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+                    <label htmlFor="onboarding-target-weight-input" className="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1">
                       <Target className="w-3.5 h-3.5 text-slate-400" /> Target Weight (KG)
                     </label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={targetWeight}
-                      onChange={(e) => setTargetWeight(e.target.value)}
-                      className="w-full p-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono focus:ring-1 focus:ring-emerald-500 focus:outline-none"
-                    />
+                    <div className="relative">
+                      <input
+                        id="onboarding-target-weight-input"
+                        type="number"
+                        step="0.1"
+                        value={targetWeight}
+                        onChange={(e) => {
+                          setTargetWeight(e.target.value);
+                          const parsed = parseFloat(e.target.value);
+                          if (!e.target.value || isNaN(parsed) || parsed < 30 || parsed > 250) {
+                            setErrors(prev => ({ ...prev, targetWeight: "Target weight must be 30-250 kg." }));
+                          } else {
+                            setErrors(prev => {
+                              const copy = { ...prev };
+                              delete copy.targetWeight;
+                              return copy;
+                            });
+                          }
+                        }}
+                        aria-invalid={!!errors.targetWeight}
+                        aria-describedby={errors.targetWeight ? "onboarding-target-weight-error" : undefined}
+                        className={`w-full p-2.5 pr-8 rounded-xl text-xs bg-slate-50 dark:bg-slate-950 border text-slate-900 dark:text-white font-mono focus:outline-none transition ${
+                          errors.targetWeight
+                            ? "border-rose-500 focus:ring-1 focus:ring-rose-500"
+                            : targetWeight && parseFloat(targetWeight) >= 30 && parseFloat(targetWeight) <= 250
+                            ? "border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                            : "border-slate-200 dark:border-slate-800 focus:ring-1 focus:ring-emerald-500"
+                        }`}
+                      />
+                      {targetWeight && parseFloat(targetWeight) >= 30 && parseFloat(targetWeight) <= 250 && !errors.targetWeight && (
+                        <span className="absolute inset-y-0 right-3 flex items-center text-emerald-500 font-bold">✓</span>
+                      )}
+                    </div>
+                    {errors.targetWeight && (
+                      <p id="onboarding-target-weight-error" className="mt-1 text-[10px] text-rose-500 font-bold" aria-live="polite">{errors.targetWeight}</p>
+                    )}
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+                  <label htmlFor="onboarding-height-input" className="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1">
                     <Ruler className="w-3.5 h-3.5 text-slate-400" /> Standing Height (CM)
                   </label>
-                  <input
-                    type="number"
-                    value={height}
-                    onChange={(e) => setHeight(e.target.value)}
-                    className="w-full p-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono focus:ring-1 focus:ring-emerald-500 focus:outline-none"
-                  />
+                  <div className="relative">
+                    <input
+                      id="onboarding-height-input"
+                      type="number"
+                      value={height}
+                      onChange={(e) => {
+                        setHeight(e.target.value);
+                        const parsed = parseFloat(e.target.value);
+                        if (!e.target.value || isNaN(parsed) || parsed < 100 || parsed > 250) {
+                          setErrors(prev => ({ ...prev, height: "Height must be 100-250 cm." }));
+                        } else {
+                          setErrors(prev => {
+                            const copy = { ...prev };
+                            delete copy.height;
+                            return copy;
+                          });
+                        }
+                      }}
+                      aria-invalid={!!errors.height}
+                      aria-describedby={errors.height ? "onboarding-height-error" : undefined}
+                      className={`w-full p-2.5 pr-8 rounded-xl text-xs bg-slate-50 dark:bg-slate-950 border text-slate-900 dark:text-white font-mono focus:outline-none transition ${
+                        errors.height
+                          ? "border-rose-500 focus:ring-1 focus:ring-rose-500"
+                          : height && parseFloat(height) >= 100 && parseFloat(height) <= 250
+                          ? "border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                          : "border-slate-200 dark:border-slate-800 focus:ring-1 focus:ring-emerald-500"
+                      }`}
+                    />
+                    {height && parseFloat(height) >= 100 && parseFloat(height) <= 250 && !errors.height && (
+                      <span className="absolute inset-y-0 right-3 flex items-center text-emerald-500 font-bold">✓</span>
+                    )}
+                  </div>
+                  {errors.height && (
+                    <p id="onboarding-height-error" className="mt-1 text-[10px] text-rose-500 font-bold" aria-live="polite">{errors.height}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -408,29 +621,85 @@ export default function OnboardingWizard() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                    <label htmlFor="onboarding-wakeup-input" className="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5 text-slate-400" /> Average Wake Up Time
                     </label>
-                    <input
-                      type="text"
-                      value={wakeUpTime}
-                      onChange={(e) => setWakeUpTime(e.target.value)}
-                      className="w-full p-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono focus:ring-1 focus:ring-emerald-500 focus:outline-none"
-                      placeholder="06:00 AM"
-                    />
+                    <div className="relative">
+                      <input
+                        id="onboarding-wakeup-input"
+                        type="text"
+                        value={wakeUpTime}
+                        onChange={(e) => {
+                          setWakeUpTime(e.target.value);
+                          if (!e.target.value.trim()) {
+                            setErrors(prev => ({ ...prev, wakeUpTime: "Wake up time is required." }));
+                          } else {
+                            setErrors(prev => {
+                              const copy = { ...prev };
+                              delete copy.wakeUpTime;
+                              return copy;
+                            });
+                          }
+                        }}
+                        aria-invalid={!!errors.wakeUpTime}
+                        aria-describedby={errors.wakeUpTime ? "onboarding-wakeup-error" : undefined}
+                        className={`w-full p-2.5 pr-8 rounded-xl text-xs bg-slate-50 dark:bg-slate-950 border text-slate-900 dark:text-white font-mono focus:outline-none transition ${
+                          errors.wakeUpTime
+                            ? "border-rose-500 focus:ring-1 focus:ring-rose-500"
+                            : wakeUpTime.trim()
+                            ? "border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                            : "border-slate-200 dark:border-slate-800 focus:ring-1 focus:ring-emerald-500"
+                        }`}
+                        placeholder="06:00 AM"
+                      />
+                      {wakeUpTime.trim() && !errors.wakeUpTime && (
+                        <span className="absolute inset-y-0 right-3 flex items-center text-emerald-500 font-bold">✓</span>
+                      )}
+                    </div>
+                    {errors.wakeUpTime && (
+                      <p id="onboarding-wakeup-error" className="mt-1 text-[10px] text-rose-500 font-bold" aria-live="polite">{errors.wakeUpTime}</p>
+                    )}
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                    <label htmlFor="onboarding-bedtime-input" className="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5 text-slate-400" /> Average Bed Time
                     </label>
-                    <input
-                      type="text"
-                      value={bedTime}
-                      onChange={(e) => setBedTime(e.target.value)}
-                      className="w-full p-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono focus:ring-1 focus:ring-emerald-500 focus:outline-none"
-                      placeholder="10:00 PM"
-                    />
+                    <div className="relative">
+                      <input
+                        id="onboarding-bedtime-input"
+                        type="text"
+                        value={bedTime}
+                        onChange={(e) => {
+                          setBedTime(e.target.value);
+                          if (!e.target.value.trim()) {
+                            setErrors(prev => ({ ...prev, bedTime: "Bed time is required." }));
+                          } else {
+                            setErrors(prev => {
+                              const copy = { ...prev };
+                              delete copy.bedTime;
+                              return copy;
+                            });
+                          }
+                        }}
+                        aria-invalid={!!errors.bedTime}
+                        aria-describedby={errors.bedTime ? "onboarding-bedtime-error" : undefined}
+                        className={`w-full p-2.5 pr-8 rounded-xl text-xs bg-slate-50 dark:bg-slate-950 border text-slate-900 dark:text-white font-mono focus:outline-none transition ${
+                          errors.bedTime
+                            ? "border-rose-500 focus:ring-1 focus:ring-rose-500"
+                            : bedTime.trim()
+                            ? "border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                            : "border-slate-200 dark:border-slate-800 focus:ring-1 focus:ring-emerald-500"
+                        }`}
+                        placeholder="10:00 PM"
+                      />
+                      {bedTime.trim() && !errors.bedTime && (
+                        <span className="absolute inset-y-0 right-3 flex items-center text-emerald-500 font-bold">✓</span>
+                      )}
+                    </div>
+                    {errors.bedTime && (
+                      <p id="onboarding-bedtime-error" className="mt-1 text-[10px] text-rose-500 font-bold" aria-live="polite">{errors.bedTime}</p>
+                    )}
                   </div>
                 </div>
 

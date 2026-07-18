@@ -15,7 +15,7 @@ import {
 import { 
   Search, Play, Star, Clock, Eye, Calendar, X, 
   Sparkles, RotateCcw, TrendingUp, Compass, CheckCircle2,
-  Trash2, ChevronRight, HelpCircle
+  Trash2, ChevronRight, HelpCircle, ExternalLink
 } from "lucide-react";
 
 // Video entity interface
@@ -857,7 +857,7 @@ export default function WorkoutVideos() {
             {/* Embedded Iframe Player */}
             <div className="relative w-full aspect-video bg-black flex items-center justify-center min-h-[220px] sm:min-h-[440px]">
               <iframe
-                src={`https://www.youtube.com/embed/${currentVideo.id}?autoplay=1&rel=0&modestbranding=1&enablejsapi=1`}
+                src={`https://www.youtube.com/embed/${currentVideo.id}?autoplay=1&rel=0&modestbranding=1&origin=${encodeURIComponent(window.location.origin)}`}
                 title={currentVideo.title}
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -877,7 +877,17 @@ export default function WorkoutVideos() {
                 </span>
               </div>
               
-              <div className="flex items-center gap-2 sm:self-center">
+              <div className="flex flex-wrap items-center gap-2 sm:self-center">
+                <a
+                  href={`https://www.youtube.com/watch?v=${currentVideo.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 text-xs font-bold rounded-xl border bg-red-600 hover:bg-red-700 text-white border-red-500 flex items-center gap-2 transition-all active:scale-95 cursor-pointer shadow"
+                >
+                  <ExternalLink className="w-4 h-4 text-white" />
+                  <span>Watch on YouTube</span>
+                </a>
+
                 <button
                   onClick={() => toggleFavoriteVideo(currentVideo)}
                   className={`px-4 py-2 text-xs font-bold rounded-xl border flex items-center gap-2 transition-all active:scale-95 cursor-pointer ${

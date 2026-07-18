@@ -40,10 +40,16 @@ service cloud.firestore {
       allow create: if (isOwner(userId) && 
         request.resource.data.uid == userId && 
         request.resource.data.email is string &&
-        request.resource.data.role in ['user', 'admin']) || isAdmin();
+        request.resource.data.role == 'user' &&
+        request.resource.data.subscriptionStatus == 'free' &&
+        request.resource.data.subscriptionTier == 'none') || isAdmin();
       allow update: if (isOwner(userId) || isAdmin()) && 
         request.resource.data.uid == userId &&
-        (isAdmin() || request.resource.data.role == resource.data.role); // prevent privilege escalation
+        (isAdmin() || (
+          request.resource.data.role == resource.data.role &&
+          request.resource.data.subscriptionStatus == resource.data.subscriptionStatus &&
+          request.resource.data.subscriptionTier == resource.data.subscriptionTier
+        )); // prevent privilege escalation and unauthorized subscription updates
       allow delete: if isAdmin();
     }
 
@@ -176,6 +182,11 @@ service cloud.firestore {
 
     // --- Belly Fat Shred Program ---
     match /belly_fat_shred_progress/{userId} {
+      allow read, write: if isPremium() && isOwner(userId);
+    }
+
+    // --- Premium 90 Day Challenges ---
+    match /user_premium_challenges/{userId} {
       allow read, write: if isPremium() && isOwner(userId);
     }
 

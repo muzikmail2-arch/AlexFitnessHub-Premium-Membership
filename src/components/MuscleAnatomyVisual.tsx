@@ -5,7 +5,7 @@ interface MuscleAnatomyVisualProps {
   musclesWorked: string[];
 }
 
-export default function MuscleAnatomyVisual({ muscleGroups = [], musclesWorked = [] }: MuscleAnatomyVisualProps) {
+const MuscleAnatomyVisual = React.memo(function MuscleAnatomyVisual({ muscleGroups = [], musclesWorked = [] }: MuscleAnatomyVisualProps) {
   // Normalize strings for easy checking
   const normalizedTargets = [
     ...muscleGroups.map(m => m.toLowerCase()),
@@ -229,4 +229,6 @@ export default function MuscleAnatomyVisual({ muscleGroups = [], musclesWorked =
       </div>
     </div>
   );
-}
+});
+
+export default MuscleAnatomyVisual;

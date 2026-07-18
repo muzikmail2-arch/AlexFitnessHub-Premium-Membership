@@ -23,7 +23,7 @@ interface WorkoutVisualProps {
   isCard?: boolean;
 }
 
-export default function WorkoutVisual({ 
+const WorkoutVisual = React.memo(function WorkoutVisual({ 
   exerciseId,
   category = "", 
   muscleGroups = [], 
@@ -72,6 +72,7 @@ export default function WorkoutVisual({
                 alt={exerciseName || "Exercise Preview"} 
                 className="w-full h-full object-cover opacity-100 filter brightness-110" 
                 referrerPolicy="no-referrer"
+                loading="lazy"
               />
             )}
             <div className="absolute inset-0 bg-white/10" />
@@ -179,6 +180,7 @@ export default function WorkoutVisual({
               alt={exerciseName || "Exercise Demo GIF"} 
               className="w-full h-full object-contain" 
               referrerPolicy="no-referrer"
+              loading="lazy"
             />
           )}
         </div>
@@ -291,4 +293,6 @@ export default function WorkoutVisual({
 
     </div>
   );
-}
+});
+
+export default WorkoutVisual;

@@ -1,50 +1,58 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;750&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;750&family=Space+Grotesk:wght@500;700;800&display=swap');
 @import "tailwindcss";
 
 @variant dark (&:where(.dark, .dark *));
 
 :root {
-  --bg-primary: #FFFFFF;
+  /* 1. Light Mode (Default) */
+  --bg-color: #ffffff; 
+  --text-color: #000000;
+
+  --bg-primary: var(--bg-color);
   --bg-secondary: #F8FAFC;
   --bg-tertiary: #F1F5F9;
   --bg-card: #FFFFFF;
-  --bg-surface-elevated: #F8FAFC;
+  --bg-surface-elevated: #FFFFFF;
   
-  --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --text-tertiary: #64748B;
-  --text-highlight: #B38F2D;
+  --text-primary: var(--text-color);
+  --text-secondary: #334155; /* Slate-700 */
+  --text-tertiary: #64748B; /* Slate-500 */
+  --text-highlight: #D32F2F;
   
-  --border-color: #E2E8F0;
-  --accent-red: #C0392B;
-  --accent-gold: #B38F2D;
-  --accent-gold-hover: #917120;
+  --border-color: #E2E8F0; /* Slate-200 border */
+  --accent-red: #D32F2F; /* Primary crimson brand color */
+  --accent-gold: #D32F2F;
+  --accent-gold-hover: #B71C1C;
   --gold-btn-text: #FFFFFF;
   --accent-green: #10B981;
   
-  --overlay-bg: rgba(255, 255, 255, 0.9);
+  --overlay-bg: rgba(255, 255, 255, 0.95);
 }
 
-.dark {
-  --bg-primary: #0A0E17;
-  --bg-secondary: #111827;
-  --bg-tertiary: #1F2937;
-  --bg-card: #111827;
-  --bg-surface-elevated: #1F2937;
+/* 2. Dark Mode */
+[data-theme="dark"], .dark {
+  --bg-color: #1a1a1a;
+  --text-color: #ffffff;
+
+  --bg-primary: var(--bg-color);
+  --bg-secondary: #0A0F1D;
+  --bg-tertiary: #111827;
+  --bg-card: #0A0E17; /* Dark card background */
+  --bg-surface-elevated: #111827;
   
-  --text-primary: #FFFFFF;
-  --text-secondary: #CBD5E1;
-  --text-tertiary: #94A3B8;
-  --text-highlight: #E5C158;
+  --text-primary: var(--text-color);
+  --text-secondary: #eef2f7; /* Slate-200 body copy */
+  --text-tertiary: #e8ebef; /* Slate-400 labels */
+  --text-highlight: #EF4444;
   
-  --border-color: #1F2937;
-  --accent-red: #EF4444;
-  --accent-gold: #E5C158;
-  --accent-gold-hover: #C5A039;
-  --gold-btn-text: #0A0E17;
-  --accent-green: #10B981;
+  --border-color: #1F2937; /* Subtle dark border */
+  --accent-red: #EF4444; /* Bright red for highlights in dark mode */
+  --accent-gold: #EF4444; /* Keeps Crimson brand color alive on primary buttons */
+  --accent-gold-hover: #F87171;
+  --gold-btn-text: #FFFFFF;
+  --accent-green: #34D399;
   
-  --overlay-bg: rgba(10, 14, 23, 0.95);
+  --overlay-bg: rgba(4, 6, 10, 0.95);
 }
 
 @theme {
@@ -52,13 +60,24 @@
   --font-serif: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-display: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-mono: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  --color-background: var(--bg-primary);
+  --color-secondary: var(--bg-secondary);
+  --color-tertiary: var(--bg-tertiary);
+  --color-card: var(--bg-card);
+  --color-foreground: var(--text-primary);
+  --color-border: var(--border-color);
+  --color-muted-foreground: var(--text-tertiary);
+  --color-primary: var(--accent-gold);
+  --color-accent: var(--accent-green);
 }
 
 @layer base {
   body {
     font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
-    background-color: var(--bg-primary) !important;
-    color: var(--text-primary) !important;
+    background-color: var(--bg-color) !important;
+    color: var(--text-color) !important;
+    transition: background-color 0.3s ease, color 0.3s ease;
     overflow-x: hidden;
   }
 }
@@ -68,8 +87,31 @@ body, input, select, textarea, button, p, span, div, h1, h2, h3, h4, h5, h6, li,
   font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
 }
 
+/* Apply Space Grotesk premium typography to headings and buttons in Dark Mode */
+.dark body, 
+.dark p, 
+.dark span, 
+.dark div, 
+.dark button, 
+.dark input, 
+.dark a {
+  font-family: "Inter", sans-serif !important;
+}
+
+.dark h1, 
+.dark h2, 
+.dark h3, 
+.dark h4, 
+.dark h5, 
+.dark h6, 
+.dark .brand-heading, 
+.dark .font-black {
+  font-family: "Space Grotesk", sans-serif !important;
+  letter-spacing: -0.025em !important;
+}
+
 /* High-Performance Theme Transition on specific containers only (no wildcard lag) */
-body, main, section, footer, article, aside, header, nav, .bg-white, .bg-slate-50, .bg-slate-100, .bg-slate-900, .bg-slate-950, .card {
+main, section, footer, article, aside, header, nav, .bg-white, .bg-slate-50, .bg-slate-100, .bg-slate-900, .bg-slate-950, .card {
   transition: background-color 200ms ease-out, border-color 200ms ease-out, color 150ms ease-out;
 }
 
@@ -78,8 +120,8 @@ body, main, section, footer, article, aside, header, nav, .bg-white, .bg-slate-5
 .dark #root, 
 .dark main, 
 .dark #home-view-root {
-  background-color: var(--bg-primary) !important;
-  color: var(--text-primary) !important;
+  background-color: var(--bg-color) !important;
+  color: var(--text-color) !important;
 }
 
 /* Automatic conversion of common utility backgrounds in Dark Mode */
@@ -126,6 +168,7 @@ body, main, section, footer, article, aside, header, nav, .bg-white, .bg-slate-5
 /* Ensure text is completely readable with optimal contrast */
 .dark .text-slate-900,
 .dark .text-slate-800,
+.dark .text-slate-850,
 .dark .text-slate-950,
 .dark .text-gray-900,
 .dark .text-zinc-900,
@@ -137,8 +180,10 @@ body, main, section, footer, article, aside, header, nav, .bg-white, .bg-slate-5
   color: var(--text-primary) !important;
 }
 
+.dark .text-slate-750,
 .dark .text-slate-700,
 .dark .text-slate-600,
+.dark .text-gray-750,
 .dark .text-gray-700,
 .dark .text-gray-600,
 .dark .text-[#6B6B6B],
@@ -155,12 +200,12 @@ body, main, section, footer, article, aside, header, nav, .bg-white, .bg-slate-5
   color: var(--text-tertiary) !important;
 }
 
-/* Red remains for headings if matching the brand */
+/* Ensure bright headings that adapt automatically to the theme using design tokens */
 h1, h2, h3, h4, h5, h6, .brand-heading {
-  color: var(--accent-red) !important;
+  color: var(--text-primary) !important;
 }
 
-/* Ensure headings with color classes can still remain brand-red */
+/* Ensure text in headings with specific utility color classes also adhere to dynamic theme colors */
 h1.text-\[\#C0392B\], h2.text-\[\#C0392B\], h3.text-\[\#C0392B\], h4.text-\[\#C0392B\],
 h1.text-\[\#D32F2F\], h2.text-\[\#D32F2F\], h3.text-\[\#D32F2F\], h4.text-\[\#D32F2F\],
 h1.text-red-600, h2.text-red-600, h3.text-red-600, h4.text-red-600,
@@ -168,10 +213,9 @@ h1.text-rose-600, h2.text-rose-600, h3.text-rose-600 {
   color: var(--accent-red) !important;
 }
 
-/* Standard brand-red accents and text colors become premium Gold elsewhere */
-.text-\[\#D32F2F\], .text-\[\#C0392B\], .text-red-500, .text-red-600, .text-rose-600,
-.text-amber-500, .text-amber-600, .text-amber-700 {
-  color: var(--accent-gold) !important;
+/* Standard brand-red accents and text colors map to the brand accent color */
+.text-\[\#D32F2F\], .text-\[\#C0392B\], .text-red-500, .text-red-600, .text-rose-600 {
+  color: var(--accent-red) !important;
 }
 
 /* Success status green accents */
@@ -212,6 +256,11 @@ h1.text-rose-600, h2.text-rose-600, h3.text-rose-600 {
 .dark .bg-slate-200,
 .dark .bg-gray-50,
 .dark .bg-gray-100,
+.dark .bg-gray-150,
+.dark .bg-gray-200,
+.dark .bg-white\/95,
+.dark .bg-slate-50\/80,
+.dark .bg-slate-50\/90,
 .dark .bg-[#F7F7F7] {
   background-color: var(--bg-secondary) !important;
   border-color: var(--border-color) !important;
@@ -247,8 +296,10 @@ h1.text-rose-600, h2.text-rose-600, h3.text-rose-600 {
 }
 
 .dark .border-gray-100,
+.dark .border-gray-150,
 .dark .border-gray-200,
 .dark .border-slate-100,
+.dark .border-slate-150,
 .dark .border-slate-200,
 .dark .border-slate-300 {
   border-color: var(--border-color) !important;
@@ -297,3 +348,109 @@ h1.text-rose-600, h2.text-rose-600, h3.text-rose-600 {
 .text-sky-500, .text-sky-500 * {
   color: #0EA5E9 !important;
 }
+
+/* 
+  =========================================
+  HIGH CONTRAST & CARD DARK MODE CONTROLS
+  =========================================
+*/
+
+/* 1. Card & Container conversions strictly under Dark Mode */
+.dark .card,
+.dark div[class*="bg-white"]:not(button):not(input):not(select):not(textarea):not(span):not(a),
+.dark div[class*="bg-slate-50"]:not(button):not(input):not(select):not(textarea):not(span):not(a),
+.dark div[class*="bg-slate-100"]:not(button):not(input):not(select):not(textarea):not(span):not(a),
+.dark div[class*="bg-slate-200"]:not(button):not(input):not(select):not(textarea):not(span):not(a),
+.dark div[class*="bg-gray-50"]:not(button):not(input):not(select):not(textarea):not(span):not(a),
+.dark div[class*="bg-zinc-50"]:not(button):not(input):not(select):not(textarea):not(span):not(a),
+.dark div[class*="bg-neutral-50"]:not(button):not(input):not(select):not(textarea):not(span):not(a) {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+/* 2. Card Headers & Navigation Bar strictly under Dark Mode */
+.dark header,
+.dark .card-header,
+.dark [class*="card-header"],
+.dark div[class*="border-b"]:not(button):not(a) {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+/* 3. Inputs, Selects & Textareas Adaptivity */
+input, select, textarea {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+  border: 1px solid #D1D5DB !important;
+}
+
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+/* 
+  ======================================================
+  ALEXFITNESSHUB COMPREHENSIVE RESPONSIVE UI AUDIT FIXES
+  ======================================================
+*/
+
+/* 1. Global Overflow-X Safeguard (Zero Horizontal Scroll Guarantee) */
+html, body {
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  -webkit-text-size-adjust: 100%;
+}
+
+*, ::before, ::after {
+  box-sizing: border-box !important;
+}
+
+/* 2. Responsive Text Wrapping & Word Breaks (Without disrupting nowrap classes) */
+p, h1, h2, h3, h4, h5, h6, label, li {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+/* 3. Fluid Responsive Typography */
+h1 {
+  font-size: clamp(1.75rem, 4vw + 1rem, 3.5rem);
+  line-height: 1.1;
+}
+h2 {
+  font-size: clamp(1.4rem, 3vw + 0.8rem, 2.5rem);
+  line-height: 1.2;
+}
+h3 {
+  font-size: clamp(1.15rem, 2vw + 0.6rem, 1.85rem);
+  line-height: 1.3;
+}
+
+/* 4. Dashboard Widgets & Charts Container Safeguard */
+.recharts-responsive-container, .recharts-wrapper {
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+/* 5. Scrollbar optimizations for overflow containers */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 4px;
+}
+
