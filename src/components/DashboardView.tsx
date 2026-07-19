@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useApp } from "../context/AppContext";
+import { motion, AnimatePresence } from "motion/react";
 import { 
   TrendingUp, Calendar, CheckCircle, Award, 
   BookOpen, ChevronRight, Play, Star, Plus, 
@@ -349,150 +350,164 @@ export default function DashboardView({ activeView = "dashboard", setView }: Das
 
           {/* Main workspace section renderer */}
           <div className="transition-all duration-300 bg-white dark:bg-slate-950 p-6 sm:p-8 rounded-3xl border border-slate-200/60 dark:border-slate-900 shadow-sm min-h-[75vh]">
-            
-            {!isPremium && ["plan", "coach", "nutrition", "videos", "handbook", "reports", "calibration", "trajectory", "habits", "community"].includes(activeTab) ? (
-              <PremiumLockCard 
-                setView={setView}
-                tabLabel={
-                  activeTab === "plan" ? "Athletic Daily Plan" :
-                  activeTab === "coach" ? "AI Personal Coach" :
-                  activeTab === "nutrition" ? "Nutrition Macro Planner" :
-                  activeTab === "videos" ? "Technique Video Guides" :
-                  activeTab === "handbook" ? "Science Handbook" :
-                  activeTab === "reports" ? "Weekly Biometric Audits" :
-                  activeTab === "calibration" ? "Physiological Calibration Desk" :
-                  activeTab === "trajectory" ? "Weight Recomposition Trajectory" :
-                  activeTab === "habits" ? "Habit Compliance Tracker" :
-                  "Athlete Community Hub"
-                } 
-              />
-            ) : (
-              <>
-                {/* 1. Workouts Section */}
-                {activeTab === "workouts" && (
-                  <div className="space-y-6 animate-fade-in">
-                    <div>
-                      <h2 className="text-xl font-sans font-black uppercase tracking-tight text-slate-900 dark:text-white">
-                        Specialized <span className="text-[#D32F2F]">Workout Library</span>
-                      </h2>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        Select elite sports science programs, custom splits, and home resistance sessions.
-                      </p>
+            <AnimatePresence mode="wait">
+              {!isPremium && ["plan", "coach", "nutrition", "videos", "handbook", "reports", "calibration", "trajectory", "habits", "community"].includes(activeTab) ? (
+                <motion.div
+                  key="lock-card"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
+                >
+                  <PremiumLockCard 
+                    setView={setView}
+                    tabLabel={
+                      activeTab === "plan" ? "Athletic Daily Plan" :
+                      activeTab === "coach" ? "AI Personal Coach" :
+                      activeTab === "nutrition" ? "Nutrition Macro Planner" :
+                      activeTab === "videos" ? "Technique Video Guides" :
+                      activeTab === "handbook" ? "Science Handbook" :
+                      activeTab === "reports" ? "Weekly Biometric Audits" :
+                      activeTab === "calibration" ? "Physiological Calibration Desk" :
+                      activeTab === "trajectory" ? "Weight Recomposition Trajectory" :
+                      activeTab === "habits" ? "Habit Compliance Tracker" :
+                      "Athlete Community Hub"
+                    } 
+                  />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
+                >
+                  {/* 1. Workouts Section */}
+                  {activeTab === "workouts" && (
+                    <div className="space-y-6">
+                      <div>
+                        <h2 className="text-xl font-sans font-black uppercase tracking-tight text-slate-900 dark:text-white">
+                          Specialized <span className="text-[#D32F2F]">Workout Library</span>
+                        </h2>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                          Select elite sports science programs, custom splits, and home resistance sessions.
+                        </p>
+                      </div>
+                      <WorkoutLibrary setView={setView} />
                     </div>
-                    <WorkoutLibrary setView={setView} />
-                  </div>
-                )}
+                  )}
 
-                {/* 2. Routines & Sets (Custom Dynamic Suite) */}
-                {activeTab === "routines" && <RoutinesAndSetsView />}
+                  {/* 2. Routines & Sets (Custom Dynamic Suite) */}
+                  {activeTab === "routines" && <RoutinesAndSetsView />}
 
-                {/* 3. Daily Plan */}
-                {activeTab === "plan" && (
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="text-xl font-sans font-black uppercase tracking-tight text-slate-900 dark:text-white">
-                        My Daily <span className="text-[#D32F2F]">Athletic Plan</span>
-                      </h2>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        Your dynamic, fully integrated split generator and custom daily exercise checklist.
-                      </p>
+                  {/* 3. Daily Plan */}
+                  {activeTab === "plan" && (
+                    <div className="space-y-6">
+                      <div>
+                        <h2 className="text-xl font-sans font-black uppercase tracking-tight text-slate-900 dark:text-white">
+                          My Daily <span className="text-[#D32F2F]">Athletic Plan</span>
+                        </h2>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                          Your dynamic, fully integrated split generator and custom daily exercise checklist.
+                        </p>
+                      </div>
+                      <DailyPlanView />
                     </div>
-                    <DailyPlanView />
-                  </div>
-                )}
+                  )}
 
-                {/* 4. Saved Exercises */}
-                {activeTab === "saved" && (
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="text-xl font-sans font-black uppercase tracking-tight text-slate-900 dark:text-white">
-                        Personalized <span className="text-[#D32F2F]">Catalog</span>
-                      </h2>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        Browse, log, and access workouts saved specifically for your current fitness trajectory.
-                      </p>
+                  {/* 4. Saved Exercises */}
+                  {activeTab === "saved" && (
+                    <div className="space-y-6">
+                      <div>
+                        <h2 className="text-xl font-sans font-black uppercase tracking-tight text-slate-900 dark:text-white">
+                          Personalized <span className="text-[#D32F2F]">Catalog</span>
+                        </h2>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                          Browse, log, and access workouts saved specifically for your current fitness trajectory.
+                        </p>
+                      </div>
+                      <SavedExercisesView setView={setView} />
                     </div>
-                    <SavedExercisesView setView={setView} />
-                  </div>
-                )}
+                  )}
 
-                {/* 5. AI Sports Coach */}
-                {activeTab === "coach" && (
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="text-xl font-sans font-black uppercase tracking-tight text-slate-900 dark:text-white">
-                        Elite <span className="text-[#D32F2F]">AI Personal Coach</span>
-                      </h2>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        Get instant bio-mechanical form feedback, metabolic calculators, and tailored routine optimization tips.
-                      </p>
+                  {/* 5. AI Sports Coach */}
+                  {activeTab === "coach" && (
+                    <div className="space-y-6">
+                      <div>
+                        <h2 className="text-xl font-sans font-black uppercase tracking-tight text-slate-900 dark:text-white">
+                          Elite <span className="text-[#D32F2F]">AI Personal Coach</span>
+                        </h2>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                          Get instant bio-mechanical form feedback, metabolic calculators, and tailored routine optimization tips.
+                        </p>
+                      </div>
+                      <CoachView />
                     </div>
-                    <CoachView />
-                  </div>
-                )}
+                  )}
 
-                {/* 6. Nutrition Planner */}
-                {activeTab === "nutrition" && (
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="text-xl font-sans font-black uppercase tracking-tight text-slate-900 dark:text-white">
-                        Macro <span className="text-[#D32F2F]">Caloric Targets</span>
-                      </h2>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        Configure meals, macro targets, dynamic metabolic calculations, and macro guidelines.
-                      </p>
+                  {/* 6. Nutrition Planner */}
+                  {activeTab === "nutrition" && (
+                    <div className="space-y-6">
+                      <div>
+                        <h2 className="text-xl font-sans font-black uppercase tracking-tight text-slate-900 dark:text-white">
+                          Macro <span className="text-[#D32F2F]">Caloric Targets</span>
+                        </h2>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                          Configure meals, macro targets, dynamic metabolic calculations, and macro guidelines.
+                        </p>
+                      </div>
+                      <NutritionView />
                     </div>
-                    <NutritionView />
-                  </div>
-                )}
+                  )}
 
-                {/* 7. Workout Videos */}
-                {activeTab === "videos" && (
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="text-xl font-sans font-black uppercase tracking-tight text-slate-900 dark:text-white">
-                        Form <span className="text-[#D32F2F]">Video Guides</span>
-                      </h2>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        Stream crystal-clear, high-definition instructional video workouts featuring perfect technique demonstrations.
-                      </p>
+                  {/* 7. Workout Videos */}
+                  {activeTab === "videos" && (
+                    <div className="space-y-6">
+                      <div>
+                        <h2 className="text-xl font-sans font-black uppercase tracking-tight text-slate-900 dark:text-white">
+                          Form <span className="text-[#D32F2F]">Video Guides</span>
+                        </h2>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                          Stream crystal-clear, high-definition instructional video workouts featuring perfect technique demonstrations.
+                        </p>
+                      </div>
+                      <WorkoutVideos />
                     </div>
-                    <WorkoutVideos />
-                  </div>
-                )}
+                  )}
 
-                {/* 8. Handbook */}
-                {activeTab === "handbook" && <HandbookView />}
+                  {/* 8. Handbook */}
+                  {activeTab === "handbook" && <HandbookView />}
 
-                {/* 9. Weekly Audits */}
-                {activeTab === "reports" && <WeeklyReportsView reports={weeklyReports} onGenerate={triggerWeeklyReportGeneration} />}
+                  {/* 9. Weekly Audits */}
+                  {activeTab === "reports" && <WeeklyReportsView reports={weeklyReports} onGenerate={triggerWeeklyReportGeneration} />}
 
-                {/* 10. Calibration Desk */}
-                {activeTab === "calibration" && <CalibrationDeskView />}
+                  {/* 10. Calibration Desk */}
+                  {activeTab === "calibration" && <CalibrationDeskView />}
 
-                {/* 11. Weight Trajectory */}
-                {activeTab === "trajectory" && <TrajectoryView logs={weightLogs} onLog={addWeightLogAction} userWeight={user?.weight || 80} />}
+                  {/* 11. Weight Trajectory */}
+                  {activeTab === "trajectory" && <TrajectoryView logs={weightLogs} onLog={addWeightLogAction} userWeight={user?.weight || 80} />}
 
-                {/* 12. Habit Tracker */}
-                {activeTab === "habits" && <HabitTrackerView />}
+                  {/* 12. Habit Tracker */}
+                  {activeTab === "habits" && <HabitTrackerView />}
 
-                {/* 13. Athlete Community */}
-                {activeTab === "community" && (
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="text-xl font-sans font-black uppercase tracking-tight text-slate-900 dark:text-white">
-                        Athlete <span className="text-[#D32F2F]">Community Hub</span>
-                      </h2>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        Connect, share splits, and discuss sports science breakthroughs with other elite members.
-                      </p>
+                  {/* 13. Athlete Community */}
+                  {activeTab === "community" && (
+                    <div className="space-y-6">
+                      <div>
+                        <h2 className="text-xl font-sans font-black uppercase tracking-tight text-slate-900 dark:text-white">
+                          Athlete <span className="text-[#D32F2F]">Community Hub</span>
+                        </h2>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                          Connect, share splits, and discuss sports science breakthroughs with other elite members.
+                        </p>
+                      </div>
+                      <CommunityView />
                     </div>
-                    <CommunityView />
-                  </div>
-                )}
-              </>
-            )}
-
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 

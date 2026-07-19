@@ -797,7 +797,7 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
               <div className="relative w-full aspect-[16/10] rounded-3xl p-2 bg-gradient-to-tr from-[#D4AF37] to-amber-500 shadow-xl group overflow-hidden border border-slate-200">
                 <div className="w-full h-full rounded-[1.4rem] overflow-hidden bg-black relative">
                   <img
-                    src="https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3h0YnpwM2wzdW9vdG9ndjY5NHdvdnBwdXB4Mm5qNXRpcG5xMDlxMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o84U6421O1IIXbowg/giphy.gif"
+                    src="https://builtwithscience.com/wp-content/uploads/2026/01/F3-8.webp"
                     alt="Alex Fitness Hub Live Session"
                     className="w-full h-full object-cover opacity-100 scale-100 transition-transform duration-700 group-hover:scale-105"
                     referrerPolicy="no-referrer"
@@ -925,7 +925,7 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
               <div>
                 <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-inner border border-slate-100">
                   <img
-                    src="https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3NiaXQxMGxkcTVwZGxhbjVvNnlvZDJ4bnB4ZGpwNnZxdThscDZ6eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT8qB7Sbwskk27Rdy8/giphy.gif"
+                    src="https://manofmany.com/_next/image?url=https%3A%2F%2Fapi.manofmany.com%2Fwp-content%2Fuploads%2F2023%2F08%2F14-Best-Dumbbell-Workouts-and-Exercises-For-a-Full-Body-Workout.jpg&w=1200&q=75"
                     alt="AlexFitnessHub HD Training Stream"
                     className="w-full h-full object-cover opacity-100"
                     referrerPolicy="no-referrer"
@@ -1163,7 +1163,7 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
             >
               <div className="h-44 w-full overflow-hidden relative bg-slate-100 border-b border-gray-100">
                 <img 
-                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRL8H7c4ADkyfqUDLGiRXOUzWfMzGs3ZY6SvmnppbzycUJoatp61JTWVgVX&s=10" 
+                  src="https://www.blenderbottle.com/cdn/shop/articles/Strategies_for_Success.jpg?v=1772976464&width=2048" 
                   alt="AI Coach Consultation"
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />

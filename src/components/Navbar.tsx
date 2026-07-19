@@ -11,7 +11,7 @@ interface NavbarProps {
 }
 
 export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps) {
-  const { user, logout, theme, setTheme } = useApp();
+  const { user, logout, theme, setTheme, loginWithGoogle } = useApp();
   const [isScrolledPastHero, setIsScrolledPastHero] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -522,9 +522,13 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
                   <span>Login / Sign In</span>
                 </button>
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     setIsMenuOpen(false);
-                    onOpenAuth();
+                    try {
+                      await loginWithGoogle();
+                    } catch (e) {
+                      onOpenAuth();
+                    }
                   }}
                   className={`w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border active:scale-95 transition-all duration-200 font-sans font-bold text-xs tracking-wide shadow-xs cursor-pointer ${
                     theme === "dark"

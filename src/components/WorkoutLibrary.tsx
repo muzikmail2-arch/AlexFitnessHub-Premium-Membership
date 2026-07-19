@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useApp } from "../context/AppContext";
 import { Exercise, PROGRAMS, Program, EXERCISES } from "../data/exercises";
 import YouTubePlayer from "./video/YouTubePlayer";
+import { motion, AnimatePresence } from "motion/react";
 import { 
   Search, SlidersHorizontal, Lock, CheckCircle, PlusCircle, Sparkles, X, 
   ChevronRight, HelpCircle, AlertTriangle, Play, Shield, Calendar, Apple, Dumbbell, ArrowRight, Clipboard,
@@ -1742,15 +1743,21 @@ export default function WorkoutLibrary({ setView }: { setView?: (view: string) =
 
                     {/* Category Exercise Grid */}
                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {topExercises.map((ex) => {
-                        const isSaved = savedWorkouts.includes(ex.id);
-                        const needsUpgrade = ex.isPremium && !isUserPremium;
-                        
-                        return (
-                          <div 
-                            key={ex.id}
-                            className="group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-lg transition-all"
-                          >
+                      <AnimatePresence mode="popLayout">
+                        {topExercises.map((ex) => {
+                          const isSaved = savedWorkouts.includes(ex.id);
+                          const needsUpgrade = ex.isPremium && !isUserPremium;
+                          
+                          return (
+                            <motion.div 
+                              layout
+                              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                              animate={{ opacity: 1, scale: 1, y: 0 }}
+                              exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                              transition={{ duration: 0.25, ease: "easeOut" }}
+                              key={ex.id}
+                              className="group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-lg transition-all"
+                            >
                             {/* Visual Media Block */}
                             <div className="relative">
                               <WorkoutVisual 
@@ -1879,9 +1886,10 @@ export default function WorkoutLibrary({ setView }: { setView?: (view: string) =
                                 </button>
                               </div>
                             )}
-                          </div>
+                          </motion.div>
                         );
                       })}
+                      </AnimatePresence>
                     </div>
                   </div>
                 );
@@ -1891,15 +1899,21 @@ export default function WorkoutLibrary({ setView }: { setView?: (view: string) =
             /* SINGLE CATEGORY FULL LIST VIEW WITH PAGINATION */
             <div className="space-y-8">
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {displayedExercises.map((ex) => {
-                  const isSaved = savedWorkouts.includes(ex.id);
-                  const needsUpgrade = ex.isPremium && !isUserPremium;
-                  
-                  return (
-                    <div 
-                      key={ex.id}
-                      className="group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-lg transition-all"
-                    >
+                <AnimatePresence mode="popLayout">
+                  {displayedExercises.map((ex) => {
+                    const isSaved = savedWorkouts.includes(ex.id);
+                    const needsUpgrade = ex.isPremium && !isUserPremium;
+                    
+                    return (
+                      <motion.div 
+                        layout
+                        initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                        transition={{ duration: 0.25, ease: "easeOut" }}
+                        key={ex.id}
+                        className="group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-lg transition-all"
+                      >
                       {/* Visual Media Block */}
                       <div className="relative">
                         <WorkoutVisual 
@@ -2028,9 +2042,10 @@ export default function WorkoutLibrary({ setView }: { setView?: (view: string) =
                           </button>
                         </div>
                       )}
-                    </div>
+                    </motion.div>
                   );
                 })}
+                </AnimatePresence>
               </div>
 
               {/* Show more button if filtered exercises exceeds visibleCount (Disabled as all are displayed) */}
