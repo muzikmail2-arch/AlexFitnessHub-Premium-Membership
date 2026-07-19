@@ -449,7 +449,7 @@ export default function NutritionView() {
         title="African & International Macro Hub"
         subtitle="Nutrition Calibration Engine"
         description="Real BMR algorithms calibrated to dietary preferences, African foods (Egusi, Jollof, Akara, Fufu, Plantains), and healthy macro subdivisions. Fully customized daily nutrition targets."
-        imageUrl="https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=600&auto=format&fit=crop"
+        imageUrl="https://ntfb.org/wp-content/uploads/2024/11/meal-prepping.jpg"
         category="MACRONUTRIENT BALANCE"
       />
 

@@ -4,6 +4,7 @@ import { Sparkles, Send, Trash2, ShieldAlert, Cpu, Heart, CheckCircle2, Flame, C
 import { collection, addDoc, getDocs, query, where, deleteDoc, doc } from "firebase/firestore";
 import { db, isMockFirebase, auth } from "../lib/firebase";
 import PageHero from "./PageHero";
+import WorkoutVisual from "./WorkoutVisual";
 
 interface InspirationItem {
   id: string;
@@ -14,10 +15,16 @@ interface InspirationItem {
 }
 
 export default function CoachView() {
-  const { user, chatMessages, sendCoachMessage, clearCoachChat } = useApp();
+  const { user, chatMessages, sendCoachMessage, clearCoachChat, exercises } = useApp();
   const [inputText, setInputText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<"chat" | "lifestyle" | "art">("lifestyle"); // Default to the premium lifestyle hub to showcase this beautiful new feature!
+  
+  // Lookup central exercises to retrieve their unique IDs and media
+  const ex1 = exercises.find(ex => ex.name.toLowerCase() === "hanging knee-to-chest / leg raises");
+  const ex2 = exercises.find(ex => ex.name.toLowerCase() === "high-intensity dumbbell thrusters");
+  const ex3 = exercises.find(ex => ex.name.toLowerCase() === "dumbbell renegade rows with push-up");
+  const ex4 = exercises.find(ex => ex.name.toLowerCase() === "explosive hip-hinge kettlebell swings");
   
   // Image Generator States
   const [artPrompt, setArtPrompt] = useState("");
@@ -452,6 +459,16 @@ export default function CoachView() {
                   </div>
                   <h4 className="text-sm font-black text-black uppercase tracking-tight">Hanging Knee-to-Chest / Leg Raises</h4>
                   
+                  {/* CENTRALIZED EXERCISE MEDIA */}
+                  <div className="w-full aspect-video rounded-2xl overflow-hidden border border-slate-150 dark:border-slate-800 relative bg-slate-900 shadow-xs">
+                    <WorkoutVisual 
+                      exerciseId={ex1?.id} 
+                      exerciseName="Hanging Knee-to-Chest / Leg Raises" 
+                      isCard={true} 
+                      className="w-full h-full"
+                    />
+                  </div>
+                  
                   <div className="space-y-1.5 text-xs text-slate-700 pt-1">
                     <p className="text-[11px]"><strong>Starting Position:</strong> Hang fully extended from a stable pull-up bar using an overhand grip, shoulders active (scapula depressed), feet together.</p>
                     <p className="text-[11px]"><strong>Movement Execution:</strong> Exhale forcefully, contract your deep transverse abdominis, and raise your knees to chest height (or legs parallel). Squeeze for 1 second at the peak, then slowly lower your legs over 2 seconds. Do not swing or use momentum.</p>
@@ -471,6 +488,16 @@ export default function CoachView() {
                     <span className="text-[10px] font-mono text-[#C0392B] font-bold">4 Sets x 12 Reps</span>
                   </div>
                   <h4 className="text-sm font-black text-black uppercase tracking-tight">High-Intensity Dumbbell Thrusters</h4>
+                  
+                  {/* CENTRALIZED EXERCISE MEDIA */}
+                  <div className="w-full aspect-video rounded-2xl overflow-hidden border border-slate-150 dark:border-slate-800 relative bg-slate-900 shadow-xs">
+                    <WorkoutVisual 
+                      exerciseId={ex2?.id} 
+                      exerciseName="High-Intensity Dumbbell Thrusters" 
+                      isCard={true} 
+                      className="w-full h-full"
+                    />
+                  </div>
                   
                   <div className="space-y-1.5 text-xs text-slate-700 pt-1">
                     <p className="text-[11px]"><strong>Starting Position:</strong> Stand with feet shoulder-width, toes flared slightly out. Hold two dumbbells at shoulder level with a neutral grip.</p>
@@ -492,6 +519,16 @@ export default function CoachView() {
                   </div>
                   <h4 className="text-sm font-black text-black uppercase tracking-tight">Dumbbell Renegade Rows with Push-Up</h4>
                   
+                  {/* CENTRALIZED EXERCISE MEDIA */}
+                  <div className="w-full aspect-video rounded-2xl overflow-hidden border border-slate-150 dark:border-slate-800 relative bg-slate-900 shadow-xs">
+                    <WorkoutVisual 
+                      exerciseId={ex3?.id} 
+                      exerciseName="Dumbbell Renegade Rows with Push-Up" 
+                      isCard={true} 
+                      className="w-full h-full"
+                    />
+                  </div>
+                  
                   <div className="space-y-1.5 text-xs text-slate-700 pt-1">
                     <p className="text-[11px]"><strong>Starting Position:</strong> High plank position with hands clutching two hexagonal dumbbells directly beneath your shoulders. Feet wider than hips for stability.</p>
                     <p className="text-[11px]"><strong>Movement Execution:</strong> Perform a strict push-up. At the top, pull your right elbow back to row the dumbbell to your hip, maintaining dead-flat hips. Lower it, and perform a row on the left side. That is one complete rep.</p>
@@ -511,6 +548,16 @@ export default function CoachView() {
                     <span className="text-[10px] font-mono text-[#C0392B] font-bold">4 Sets x 20 Reps</span>
                   </div>
                   <h4 className="text-sm font-black text-black uppercase tracking-tight">Explosive Hip-Hinge Kettlebell Swings</h4>
+                  
+                  {/* CENTRALIZED EXERCISE MEDIA */}
+                  <div className="w-full aspect-video rounded-2xl overflow-hidden border border-slate-150 dark:border-slate-800 relative bg-slate-900 shadow-xs">
+                    <WorkoutVisual 
+                      exerciseId={ex4?.id} 
+                      exerciseName="Explosive Hip-Hinge Kettlebell Swings" 
+                      isCard={true} 
+                      className="w-full h-full"
+                    />
+                  </div>
                   
                   <div className="space-y-1.5 text-xs text-slate-700 pt-1">
                     <p className="text-[11px]"><strong>Starting Position:</strong> Stand with feet slightly wider than shoulder-width. Place a kettlebell or heavy dumbbell about 12 inches in front of you. Hinge hips backwards.</p>

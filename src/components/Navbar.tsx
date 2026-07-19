@@ -183,7 +183,9 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
     <>
       {/* Sticky Header */}
       <header
-        className={`fixed top-0 left-0 right-0 z-40 h-[76px] flex items-center transition-all duration-300 border-b bg-background border-border shadow-sm`}
+        className={`fixed top-0 left-0 right-0 z-40 h-[76px] flex items-center transition-all duration-300 border-b ${
+          theme === "dark" ? "bg-[#0A0F1D] border-slate-800 text-white" : "bg-white border-slate-200 text-slate-900"
+        } shadow-sm`}
       >
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
           

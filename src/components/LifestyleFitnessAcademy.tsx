@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { queueLifestyleAcademyReminderEmail } from "../lib/mailTriggers";
+import WorkoutVisual from "./WorkoutVisual";
 
 // Define TypeScript structures for Lifestyle Academy
 interface ChallengeData {
@@ -423,9 +424,14 @@ const getDynamicWorkoutProgram = (
 };
 
 export default function LifestyleFitnessAcademy() {
-  const { user, setView } = useApp();
+  const { user, setView, exercises } = useApp();
   const [activeChallengeId, setActiveChallengeId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<"education" | "stretching" | "workout" | "habits">("education");
+
+  // Smoothly scroll to the top of the viewport whenever the active tab changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [activeTab]);
   const [showSubscriptionAlert, setShowSubscriptionAlert] = useState<string | null>(null);
 
   // Email trigger state variables
@@ -552,6 +558,56 @@ export default function LifestyleFitnessAcademy() {
   };
 
   const activeChallenge = LIFESTYLE_CHALLENGES.find(c => c.id === activeChallengeId);
+
+  // Progression States for current challenge
+  const isScienceCompleted = activeChallenge ? (progress[`c${activeChallenge.id}_science_complete`] || false) : false;
+  const isStretchingCompleted = activeChallenge ? (progress[`c${activeChallenge.id}_stretching_complete`] || false) : false;
+  const isWorkoutCompleted = activeChallenge ? (progress[`c${activeChallenge.id}_workout_complete`] || false) : false;
+
+  const stretchingUnlocked = isScienceCompleted;
+  const workoutUnlocked = isStretchingCompleted;
+  const habitsUnlocked = isStretchingCompleted;
+
+  const getMatchedExerciseName = (targetName: string): string => {
+    const targetLower = targetName.toLowerCase().trim();
+    if (!exercises) return targetName;
+
+    // First try exact or direct matches in central exercises
+    const exactMatch = exercises.find(ex => ex.name.toLowerCase().trim() === targetLower);
+    if (exactMatch) return exactMatch.name;
+
+    // Map specific Academy Stretches to their actual central exercise names
+    if (targetLower.includes("cat-cow") || targetLower.includes("spinal wave")) {
+      const ex = exercises.find(e => e.name.toLowerCase().includes("cat-cow"));
+      if (ex) return ex.name;
+    }
+    if (targetLower.includes("thoracic") || targetLower.includes("twist")) {
+      const ex = exercises.find(e => e.name.toLowerCase().includes("thoracic"));
+      if (ex) return ex.name;
+    }
+    if (targetLower.includes("hip opener") || targetLower.includes("90/90 active")) {
+      const ex = exercises.find(e => e.name.toLowerCase().includes("90/90 active hip"));
+      if (ex) return ex.name;
+    }
+    if (targetLower.includes("dorsiflexion") || targetLower.includes("ankle")) {
+      const ex = exercises.find(e => e.name.toLowerCase().includes("dorsiflexion"));
+      if (ex) return ex.name;
+    }
+    if (targetLower.includes("breathing") || targetLower.includes("diaphragmatic")) {
+      const ex = exercises.find(e => e.name.toLowerCase().includes("diaphragmatic"));
+      if (ex) return ex.name;
+    }
+
+    // Try a broad substring or reciprocal inclusion search
+    const found = exercises.find(ex => 
+      ex.name.toLowerCase().includes(targetLower) || 
+      targetLower.includes(ex.name.toLowerCase()) ||
+      (ex.displayName && ex.displayName.toLowerCase().includes(targetLower))
+    );
+    if (found) return found.name;
+
+    return targetName;
+  };
 
   // Total Academy Progress Metrics
   const totalCoursesUnlocked = user && (user.subscriptionStatus === "premium" || user.role === "admin") ? 10 : 2;
@@ -784,44 +840,56 @@ export default function LifestyleFitnessAcademy() {
           <div className="flex border-b border-slate-200 dark:border-slate-800 gap-1 overflow-x-auto pb-px">
             <button
               onClick={() => setActiveTab("education")}
-              className={`px-5 py-3 text-xs font-black uppercase tracking-wider border-b-2 transition whitespace-nowrap ${
+              className={`px-5 py-3 text-xs font-black uppercase tracking-wider border-b-2 transition whitespace-nowrap cursor-pointer ${
                 activeTab === "education" 
                   ? "border-[#D32F2F] text-[#D32F2F]" 
                   : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
               }`}
             >
-              1. Scientific Core
+              1. Scientific Core {isScienceCompleted ? "✓" : ""}
             </button>
-            <button
-              onClick={() => setActiveTab("stretching")}
-              className={`px-5 py-3 text-xs font-black uppercase tracking-wider border-b-2 transition whitespace-nowrap ${
-                activeTab === "stretching" 
-                  ? "border-[#D32F2F] text-[#D32F2F]" 
-                  : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
-              }`}
-            >
-              2. Stretching Routine
-            </button>
-            <button
-              onClick={() => setActiveTab("workout")}
-              className={`px-5 py-3 text-xs font-black uppercase tracking-wider border-b-2 transition whitespace-nowrap ${
-                activeTab === "workout" 
-                  ? "border-[#D32F2F] text-[#D32F2F]" 
-                  : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
-              }`}
-            >
-              3. Weekly Workout
-            </button>
-            <button
-              onClick={() => setActiveTab("habits")}
-              className={`px-5 py-3 text-xs font-black uppercase tracking-wider border-b-2 transition whitespace-nowrap ${
-                activeTab === "habits" 
-                  ? "border-[#D32F2F] text-[#D32F2F]" 
-                  : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
-              }`}
-            >
-              4. Daily Action Plan
-            </button>
+            {stretchingUnlocked && (
+              <button
+                onClick={() => {
+                  setActiveTab("stretching");
+                }}
+                className={`px-5 py-3 text-xs font-black uppercase tracking-wider border-b-2 transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+                  activeTab === "stretching" 
+                    ? "border-[#D32F2F] text-[#D32F2F]" 
+                    : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
+                }`}
+              >
+                2. Stretching Routine {isStretchingCompleted ? "✓" : ""}
+              </button>
+            )}
+            {workoutUnlocked && (
+              <button
+                onClick={() => {
+                  setActiveTab("workout");
+                }}
+                className={`px-5 py-3 text-xs font-black uppercase tracking-wider border-b-2 transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+                  activeTab === "workout" 
+                    ? "border-[#D32F2F] text-[#D32F2F]" 
+                    : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
+                }`}
+              >
+                3. Weekly Workout {isWorkoutCompleted ? "✓" : ""}
+              </button>
+            )}
+            {habitsUnlocked && (
+              <button
+                onClick={() => {
+                  setActiveTab("habits");
+                }}
+                className={`px-5 py-3 text-xs font-black uppercase tracking-wider border-b-2 transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+                  activeTab === "habits" 
+                    ? "border-[#D32F2F] text-[#D32F2F]" 
+                    : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
+                }`}
+              >
+                4. Daily Action Plan
+              </button>
+            )}
           </div>
 
           {/* Subview Contents */}
@@ -898,6 +966,22 @@ export default function LifestyleFitnessAcademy() {
                     </p>
                   </div>
 
+                  <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <button
+                      onClick={() => {
+                        if (!isScienceCompleted) {
+                          toggleCheck(`c${activeChallenge.id}_science_complete`);
+                        }
+                        setActiveTab("stretching");
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                      className="w-full py-4 bg-gradient-to-r from-red-600 to-amber-500 hover:from-red-700 hover:to-amber-600 text-white font-black text-xs sm:text-sm uppercase tracking-wider rounded-2xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer animate-pulse"
+                    >
+                      <span>Mark Core Completed & Proceed to Stretching Routine</span>
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </div>
+
                 </div>
               )}
 
@@ -926,35 +1010,62 @@ export default function LifestyleFitnessAcademy() {
                     {getStretchingRoutine(activeChallenge.title).map((stretch, i) => (
                       <div 
                         key={i}
-                        className="p-5 rounded-2xl bg-slate-50 dark:bg-[#1e293b] border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-start gap-4 text-left"
+                        className="p-5 rounded-2xl bg-slate-50 dark:bg-[#1e293b] border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row gap-5 items-stretch text-left"
                       >
-                        <div className="p-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl shrink-0 text-center font-bold font-mono h-fit">
-                          <span className="block text-[8px] text-slate-400 uppercase">PHASE</span>
-                          <span className="text-xs uppercase text-[#D32F2F] tracking-tight">{stretch.phase}</span>
+                        {/* Dynamic GIF/Video Demonstration */}
+                        <div className="w-full md:w-52 h-36 shrink-0 rounded-xl overflow-hidden shadow-sm">
+                          <WorkoutVisual 
+                            exerciseName={getMatchedExerciseName(stretch.name)} 
+                            className="h-full w-full" 
+                            isCard={true} 
+                          />
                         </div>
-                        
-                        <div className="space-y-2 flex-grow">
-                          <h4 className="text-sm font-black uppercase text-slate-900 dark:text-white">
-                            {stretch.name}
-                          </h4>
-                          <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold leading-relaxed">
-                            {stretch.instructions}
-                          </p>
+
+                        <div className="space-y-2 flex-grow flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="px-2 py-0.5 bg-[#D32F2F]/10 text-[9px] font-mono font-black text-[#D32F2F] rounded-md uppercase">
+                                Phase {stretch.phase}
+                              </span>
+                            </div>
+                            <h4 className="text-sm font-black uppercase text-slate-900 dark:text-white">
+                              {stretch.name}
+                            </h4>
+                            <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold leading-relaxed mt-1">
+                              {stretch.instructions}
+                            </p>
+                          </div>
                           
-                          <div className="flex flex-wrap gap-3 pt-1 text-[10px] font-bold uppercase">
-                            <span className="bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 px-2 py-1 rounded text-slate-500">
+                          <div className="flex flex-wrap gap-2 pt-2 text-[9px] font-mono font-bold uppercase">
+                            <span className="bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 px-2.5 py-1 rounded text-slate-500">
                               Duration: {stretch.duration}
                             </span>
-                            <span className="bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 px-2 py-1 rounded text-slate-500">
+                            <span className="bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 px-2.5 py-1 rounded text-slate-500">
                               Sets: {stretch.sets}
                             </span>
-                            <span className="bg-emerald-50 dark:bg-emerald-950/30 px-2 py-1 rounded text-emerald-600">
+                            <span className="bg-emerald-50 dark:bg-emerald-950/20 px-2.5 py-1 rounded text-emerald-600 border border-emerald-100 dark:border-emerald-950/50">
                               {stretch.benefits}
                             </span>
                           </div>
                         </div>
                       </div>
                     ))}
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <button
+                      onClick={() => {
+                        if (!isStretchingCompleted) {
+                          toggleCheck(`c${activeChallenge.id}_stretching_complete`);
+                        }
+                        setActiveTab("workout");
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                      className="w-full py-4 bg-gradient-to-r from-red-600 to-amber-500 hover:from-red-700 hover:to-amber-600 text-white font-black text-xs sm:text-sm uppercase tracking-wider rounded-2xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer animate-pulse"
+                    >
+                      <span>Mark Stretching Routine Done & Unlock Weekly Workout & Daily Action Plan</span>
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
                   </div>
 
                 </div>
@@ -1010,16 +1121,29 @@ export default function LifestyleFitnessAcademy() {
                         <div className="space-y-4">
                           <span className="block text-[9px] uppercase font-bold text-slate-400">MAIN EXERCISES</span>
                           {dayProg.exercises.map((ex, exIdx) => (
-                            <div key={exIdx} className="bg-white dark:bg-slate-950 p-4 border border-slate-200 dark:border-slate-800/85 rounded-xl space-y-1.5">
-                              <div className="flex justify-between items-start gap-4">
-                                <h5 className="font-bold text-xs uppercase text-[#D32F2F]">{ex.name}</h5>
-                                <span className="bg-slate-50 dark:bg-slate-800 px-2 py-0.5 rounded text-[10px] font-mono text-slate-500 font-bold uppercase">{ex.reps}</span>
+                            <div key={exIdx} className="bg-white dark:bg-slate-950 p-5 border border-slate-200 dark:border-slate-800/85 rounded-xl flex flex-col sm:flex-row gap-5 items-stretch">
+                              {/* Centralized Exercise Demonstration GIF/Video */}
+                              <div className="w-full sm:w-44 h-28 shrink-0 rounded-lg overflow-hidden shadow-xs">
+                                <WorkoutVisual 
+                                  exerciseName={getMatchedExerciseName(ex.name)} 
+                                  className="h-full w-full" 
+                                  isCard={true} 
+                                />
                               </div>
-                              <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold leading-relaxed">
-                                {ex.coaching}
-                              </p>
-                              <div className="text-[10px] font-bold text-slate-400 uppercase">
-                                Recommended Rest: {ex.rest}
+
+                              <div className="flex-grow flex flex-col justify-between">
+                                <div className="space-y-1">
+                                  <div className="flex justify-between items-start gap-4">
+                                    <h5 className="font-bold text-xs uppercase text-[#D32F2F]">{ex.name}</h5>
+                                    <span className="bg-slate-50 dark:bg-slate-800 px-2.5 py-0.5 rounded text-[9px] font-mono text-slate-500 font-bold uppercase">{ex.reps}</span>
+                                  </div>
+                                  <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold leading-relaxed">
+                                    {ex.coaching}
+                                  </p>
+                                </div>
+                                <div className="text-[9px] font-mono font-bold text-slate-400 uppercase mt-2">
+                                  Rest Protocol: {ex.rest}
+                                </div>
                               </div>
                             </div>
                           ))}
@@ -1033,6 +1157,22 @@ export default function LifestyleFitnessAcademy() {
                         </div>
                       </div>
                     ))}
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <button
+                      onClick={() => {
+                        if (!isWorkoutCompleted) {
+                          toggleCheck(`c${activeChallenge.id}_workout_complete`);
+                        }
+                        setActiveTab("habits");
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                      className="w-full py-4 bg-gradient-to-r from-red-600 to-amber-500 hover:from-red-700 hover:to-amber-600 text-white font-black text-xs sm:text-sm uppercase tracking-wider rounded-2xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer animate-pulse"
+                    >
+                      <span>Mark Workout Completed & Go to Daily Action Plan</span>
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
                   </div>
 
                 </div>
@@ -1143,7 +1283,20 @@ export default function LifestyleFitnessAcademy() {
                         </div>
                       </div>
                     </div>
+                  </div>
 
+                  <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+                    <button
+                      onClick={() => {
+                        toggleCheck(`c${activeChallenge.id}_habits_complete`);
+                        setActiveChallengeId(null);
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                      className="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white font-black text-xs sm:text-sm uppercase tracking-wider rounded-2xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <span>Complete Entire Challenge Course & Earn Academy Badge</span>
+                      <CheckCircle2 className="w-5 h-5" />
+                    </button>
                   </div>
 
                 </div>

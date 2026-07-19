@@ -3217,7 +3217,19 @@ app.post("/api/payments/initialize", async (req, res) => {
     amountNGN = 215989;
   } else if (plan === "multi") {
     const m = months || 3;
-    amountNGN = 19999 * m;
+    if (m === 2) {
+      amountNGN = 35999;
+    } else if (m === 3) {
+      amountNGN = 49999;
+    } else if (m === 4) {
+      amountNGN = 63999;
+    } else if (m === 5) {
+      amountNGN = 77999;
+    } else if (m === 6) {
+      amountNGN = 89999;
+    } else {
+      amountNGN = 19999 * m;
+    }
   }
 
   const amountInKobo = amountNGN * 100;

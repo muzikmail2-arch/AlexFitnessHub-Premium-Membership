@@ -275,9 +275,6 @@ export default function DailyPlanView() {
       {/* Greeting Header */}
       <div id="plan_header_block" className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 border-b border-slate-200 dark:border-slate-800 pb-6">
         <div>
-          <span className="text-[10px] font-black text-emerald-500 font-mono uppercase tracking-widest">
-            EXCLUSIVE PREMIUM WORKSPACE
-          </span>
           <h1 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight mt-1 flex items-center gap-2">
             <Sparkles className="w-7 h-7 text-emerald-500" /> My Daily Plan
           </h1>

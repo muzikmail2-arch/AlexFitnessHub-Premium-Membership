@@ -350,7 +350,7 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [selectedMonths, setSelectedMonths] = useState(3);
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
-  const [selectedPlan, setSelectedPlan] = useState<"monthly" | "quarterly" | "six_month" | "annual">("quarterly");
+  const [selectedPlan, setSelectedPlan] = useState<"monthly" | "volume" | "annual">("volume");
 
   // States for reviews/testimonials
   const [reviewFilter, setReviewFilter] = useState("All");
@@ -796,16 +796,13 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
               </div>
               <div className="relative w-full aspect-[16/10] rounded-3xl p-2 bg-gradient-to-tr from-[#D4AF37] to-amber-500 shadow-xl group overflow-hidden border border-slate-200">
                 <div className="w-full h-full rounded-[1.4rem] overflow-hidden bg-black relative">
-                  <video
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
+                  <img
+                    src="https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3h0YnpwM2wzdW9vdG9ndjY5NHdvdnBwdXB4Mm5qNXRpcG5xMDlxMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o84U6421O1IIXbowg/giphy.gif"
+                    alt="Alex Fitness Hub Live Session"
                     className="w-full h-full object-cover opacity-100 scale-100 transition-transform duration-700 group-hover:scale-105"
-                    poster="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRL8H7c4ADkyfqUDLGiRXOUzWfMzGs3ZY6SvmnppbzycUJoatp61JTWVgVX&s=10"
-                  >
-                    <source src="https://assets.mixkit.co/videos/44438/44438-720.mp4" />
-                  </video>
+                    referrerPolicy="no-referrer"
+                    loading="lazy"
+                  />
                   
                   {/* Glowing Premium Highlight Badges */}
                   <div className="absolute top-4 left-4 bg-[#D32F2F] text-white text-[9px] font-sans font-black tracking-wider uppercase px-3 py-1 rounded-full shadow-lg flex items-center gap-1.5 z-10 animate-pulse">
@@ -927,16 +924,13 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
             <div className="lg:col-span-8 bg-white rounded-3xl p-4 border border-gray-200 shadow-lg flex flex-col justify-between">
               <div>
                 <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-inner border border-slate-100">
-                  <video
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
+                  <img
+                    src="https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3NiaXQxMGxkcTVwZGxhbjVvNnlvZDJ4bnB4ZGpwNnZxdThscDZ6eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT8qB7Sbwskk27Rdy8/giphy.gif"
+                    alt="AlexFitnessHub HD Training Stream"
                     className="w-full h-full object-cover opacity-100"
-                    poster="https://images.squarespace-cdn.com/content/v1/6148dc8019cff94afc664bf4/3336f9fb-0c36-4d1f-8ee6-14457d2c454c/GR8FLEX+2021-411.jpg"
-                  >
-                    <source src="https://assets.mixkit.co/videos/727/727-720.mp4" />
-                  </video>
+                    referrerPolicy="no-referrer"
+                    loading="lazy"
+                  />
 
                   {/* Absolute Bright Overlays */}
                   <div className="absolute top-4 left-4 bg-red-600 text-white text-[9px] font-sans font-black tracking-widest px-3 py-1 rounded-full uppercase shadow flex items-center gap-1.5">
@@ -1916,14 +1910,48 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
             <div className="h-1 w-16 bg-[var(--accent-gold)] mx-auto mt-3" />
           </div>
 
+          {/* Plan Category Quick Selection Buttons */}
+          <div className="flex flex-wrap justify-center gap-2 max-w-xl mx-auto mb-10 p-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-inner">
+            <button
+              onClick={() => setSelectedPlan("monthly")}
+              className={`flex-1 min-w-[130px] px-4 py-2.5 rounded-xl text-xs font-sans font-black uppercase tracking-wider transition-all duration-300 ${
+                selectedPlan === "monthly"
+                  ? "bg-[#D32F2F] text-white shadow-md"
+                  : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              Monthly Starter
+            </button>
+            <button
+              onClick={() => setSelectedPlan("volume")}
+              className={`flex-1 min-w-[130px] px-4 py-2.5 rounded-xl text-xs font-sans font-black uppercase tracking-wider transition-all duration-300 ${
+                selectedPlan === "volume"
+                  ? "bg-[#D32F2F] text-white shadow-md"
+                  : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              2-6 Mo. Volume Selection
+            </button>
+            <button
+              onClick={() => setSelectedPlan("annual")}
+              className={`flex-1 min-w-[130px] px-4 py-2.5 rounded-xl text-xs font-sans font-black uppercase tracking-wider transition-all duration-300 ${
+                selectedPlan === "annual"
+                  ? "bg-[var(--accent-gold)] text-[var(--gold-btn-text)] shadow-md"
+                  : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              VIP Elite Club (Annual)
+            </button>
+          </div>
+
           {/* Interactive Tier Selection Grid */}
-          <div className="grid md:grid-cols-4 gap-6 items-stretch max-w-7xl mx-auto mb-12">
+          <div className="grid md:grid-cols-3 gap-8 items-stretch max-w-6xl mx-auto mb-12">
             
             {/* TIER 1: MONTHLY */}
             <motion.div 
               whileHover={{ y: -4, scale: 1.01 }}
               onClick={() => setSelectedPlan("monthly")}
-              className={`p-6 rounded-2xl bg-white dark:bg-slate-900 border flex flex-col justify-between cursor-pointer transition-all duration-350 relative ${
+              className={`p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border flex flex-col justify-between cursor-pointer transition-all duration-350 relative ${
                 selectedPlan === "monthly" 
                   ? "border-2 border-[#D32F2F] ring-4 ring-red-500/10 shadow-lg" 
                   : "border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700"
@@ -1966,30 +1994,102 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
               </div>
             </motion.div>
 
-            {/* TIER 2: QUARTERLY */}
+            {/* TIER 2: VOLUME SELECTION (2 - 6 Months) */}
             <motion.div 
               whileHover={{ y: -4, scale: 1.01 }}
-              onClick={() => setSelectedPlan("quarterly")}
-              className={`p-6 rounded-2xl bg-white dark:bg-slate-900 border flex flex-col justify-between cursor-pointer transition-all duration-350 relative ${
-                selectedPlan === "quarterly" 
-                  ? "border-2 border-[#D32F2F] ring-4 ring-red-500/10 shadow-lg" 
+              onClick={() => setSelectedPlan("volume")}
+              className={`p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border flex flex-col justify-between cursor-pointer transition-all duration-350 relative ${
+                selectedPlan === "volume" 
+                  ? "border-2 border-[#D32F2F] ring-4 ring-red-500/10 shadow-lg animate-[pulse-glow_2s_infinite]" 
                   : "border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700"
               }`}
             >
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#D32F2F] text-white text-[8px] font-sans font-black uppercase tracking-wider px-3 py-1 rounded-full z-10">
-                POPULAR CHOICE
+                DYNAMIC VOLUME SAVINGS
               </div>
               <div className="text-left">
                 <span className="text-[9px] font-sans font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-red-50 dark:bg-red-950/30 text-[#D32F2F]">
-                  QUARTERLY RHYTHM
+                  FLEXIBLE VOLUME
                 </span>
+                
+                {/* Dynamic Price Display */}
                 <div className="mt-4">
-                  <span className="text-3xl font-display font-black text-slate-900 dark:text-white">₦49,999</span>
-                  <span className="text-slate-500 dark:text-slate-400 text-[10px] ml-1">/ 3 Months</span>
+                  <span className="text-3xl font-display font-black text-slate-900 dark:text-white">
+                    {selectedMonths === 2 && "₦35,999"}
+                    {selectedMonths === 3 && "₦49,999"}
+                    {selectedMonths === 4 && "₦63,999"}
+                    {selectedMonths === 5 && "₦77,999"}
+                    {selectedMonths === 6 && "₦89,999"}
+                  </span>
+                  <span className="text-slate-500 dark:text-slate-400 text-[10px] ml-1">/ {selectedMonths} Months</span>
+                  
+                  {/* Saving Badge */}
+                  <div className="mt-1">
+                    <span className="text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono font-bold px-2 py-0.5 rounded">
+                      {selectedMonths === 2 && "Save ₦3,999 (10% Off)"}
+                      {selectedMonths === 3 && "Save ₦9,998 (17% Off)"}
+                      {selectedMonths === 4 && "Save ₦15,997 (20% Off)"}
+                      {selectedMonths === 5 && "Save ₦21,996 (22% Off)"}
+                      {selectedMonths === 6 && "Save ₦29,995 (25% Off)"}
+                    </span>
+                  </div>
                 </div>
+
                 <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-3 leading-relaxed font-sans font-medium">
-                  Ideal plan to build ironclad habits, track body changes, and overcome plateaus.
+                  Unlock dynamic, high-volume duration plans with compounding package savings to match your exact goals.
                 </p>
+
+                {/* Interactive Dynamic Controls */}
+                <div className="mt-4 p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 space-y-3">
+                  <span className="text-[9px] font-sans font-extrabold text-slate-500 dark:text-slate-400 uppercase block tracking-wider text-center">
+                    SELECT DURATION CAPACITY
+                  </span>
+                  
+                  {/* Row of Buttons */}
+                  <div className="grid grid-cols-5 gap-1.5">
+                    {[2, 3, 4, 5, 6].map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedMonths(m);
+                          setSelectedPlan("volume");
+                        }}
+                        className={`py-2 rounded-xl text-xs font-sans font-black transition-all ${
+                          selectedMonths === m && selectedPlan === "volume"
+                            ? "bg-[#D32F2F] text-white shadow-sm scale-105"
+                            : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-100"
+                        }`}
+                      >
+                        {m}M
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Range Slider */}
+                  <div className="pt-1.5">
+                    <input
+                      type="range"
+                      min="2"
+                      max="6"
+                      value={selectedMonths}
+                      onChange={(e) => {
+                        setSelectedMonths(parseInt(e.target.value));
+                        setSelectedPlan("volume");
+                      }}
+                      className="w-full accent-[#D32F2F] cursor-pointer bg-slate-200 dark:bg-slate-800 h-1.5 rounded-lg appearance-none"
+                    />
+                    <div className="flex justify-between text-[8px] font-mono font-bold text-slate-400 mt-1">
+                      <span>2 MONTHS</span>
+                      <span>3 MONTHS</span>
+                      <span>4 MONTHS</span>
+                      <span>5 MONTHS</span>
+                      <span>6 MONTHS</span>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="mt-4 border-t border-slate-100 dark:border-slate-800 pt-3 space-y-2 text-[10px] text-slate-700 dark:text-slate-300">
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-3.5 h-3.5 text-[#D32F2F] shrink-0" />
@@ -2007,67 +2107,20 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
               </div>
               <div className="mt-6">
                 <span className={`w-full block py-2.5 text-center font-sans font-bold text-[10px] uppercase rounded-full transition-all duration-200 ${
-                  selectedPlan === "quarterly"
+                  selectedPlan === "volume"
                     ? "bg-[#D32F2F] text-white"
                     : "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-200"
                 }`}>
-                  Select Quarterly
+                  Select Volume Plan
                 </span>
               </div>
             </motion.div>
 
-            {/* TIER 3: SIX MONTH PLAN */}
-            <motion.div 
-              whileHover={{ y: -4, scale: 1.01 }}
-              onClick={() => setSelectedPlan("six_month")}
-              className={`p-6 rounded-2xl bg-white dark:bg-slate-900 border flex flex-col justify-between cursor-pointer transition-all duration-350 relative ${
-                selectedPlan === "six_month" 
-                  ? "border-2 border-[#D32F2F] ring-4 ring-red-500/10 shadow-lg" 
-                  : "border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700"
-              }`}
-            >
-              <div className="text-left">
-                <span className="text-[9px] font-sans font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400">
-                  METABOLIC ADAPTATION
-                </span>
-                <div className="mt-4">
-                  <span className="text-3xl font-display font-black text-slate-900 dark:text-white">₦89,999</span>
-                  <span className="text-slate-500 dark:text-slate-400 text-[10px] ml-1">/ 6 Months</span>
-                </div>
-                <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-3 leading-relaxed font-sans font-medium">
-                  Best for persistent physique sculpting and sustainable lifestyle calibration.
-                </p>
-                <div className="mt-4 border-t border-slate-100 dark:border-slate-800 pt-3 space-y-2 text-[10px] text-slate-700 dark:text-slate-300">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-3.5 h-3.5 text-[#D32F2F] shrink-0" />
-                    Complete Exercise Library
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-3.5 h-3.5 text-[#D32F2F] shrink-0" />
-                    Interactive Calorie Calibrator
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-3.5 h-3.5 text-[#D32F2F] shrink-0" />
-                    Advanced AI Coach priority response
-                  </div>
-                </div>
-              </div>
-              <div className="mt-6">
-                <span className={`w-full block py-2.5 text-center font-sans font-bold text-[10px] uppercase rounded-full transition-all duration-200 ${
-                  selectedPlan === "six_month"
-                    ? "bg-[#D32F2F] text-white"
-                    : "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-200"
-                }`}>
-                  Select Six Months
-                </span>
-              </div>
-            </motion.div>
-
-            {/* TIER 4: ANNUAL PLAN */}
+            {/* TIER 3: ANNUAL PLAN */}
             <motion.div 
               whileHover={{ y: -4, scale: 1.01 }}
               onClick={() => setSelectedPlan("annual")}
-              className={`p-6 rounded-2xl bg-white dark:bg-slate-900 border flex flex-col justify-between cursor-pointer transition-all duration-350 relative ${
+              className={`p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border flex flex-col justify-between cursor-pointer transition-all duration-350 relative ${
                 selectedPlan === "annual" 
                   ? "border-2 border-[var(--accent-gold)] ring-4 ring-yellow-500/10 shadow-lg" 
                   : "border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700"
@@ -2179,8 +2232,7 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                   <span>Selected Plan:</span>
                   <span className="text-slate-900 dark:text-white font-extrabold uppercase">
                     {selectedPlan === "monthly" && "Monthly Starter (1 Month)"}
-                    {selectedPlan === "quarterly" && "Quarterly Rhythm (3 Months)"}
-                    {selectedPlan === "six_month" && "Metabolic Adaptation (6 Months)"}
+                    {selectedPlan === "volume" && `Volume Selection (${selectedMonths} Months)`}
                     {selectedPlan === "annual" && "VIP Elite Club (12 Months)"}
                   </span>
                 </div>
@@ -2188,8 +2240,7 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                   <span>Subtotal Cost:</span>
                   <span className="line-through text-slate-400">
                     {selectedPlan === "monthly" && "₦19,999"}
-                    {selectedPlan === "quarterly" && "₦59,997"}
-                    {selectedPlan === "six_month" && "₦119,994"}
+                    {selectedPlan === "volume" && `₦${(19999 * selectedMonths).toLocaleString()}`}
                     {selectedPlan === "annual" && "₦239,988"}
                   </span>
                 </div>
@@ -2197,8 +2248,14 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                   <span>Package Discount:</span>
                   <span>
                     {selectedPlan === "monthly" && "₦0"}
-                    {selectedPlan === "quarterly" && "-₦9,998"}
-                    {selectedPlan === "six_month" && "-₦29,995"}
+                    {selectedPlan === "volume" && (() => {
+                      if (selectedMonths === 2) return "-₦3,999";
+                      if (selectedMonths === 3) return "-₦9,998";
+                      if (selectedMonths === 4) return "-₦15,997";
+                      if (selectedMonths === 5) return "-₦21,996";
+                      if (selectedMonths === 6) return "-₦29,995";
+                      return "₦0";
+                    })()}
                     {selectedPlan === "annual" && "-₦23,999"}
                   </span>
                 </div>
@@ -2206,8 +2263,14 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                   <span>DUE TODAY:</span>
                   <span>
                     {selectedPlan === "monthly" && "₦19,999"}
-                    {selectedPlan === "quarterly" && "₦49,999"}
-                    {selectedPlan === "six_month" && "₦89,999"}
+                    {selectedPlan === "volume" && (() => {
+                      if (selectedMonths === 2) return "₦35,999";
+                      if (selectedMonths === 3) return "₦49,999";
+                      if (selectedMonths === 4) return "₦63,999";
+                      if (selectedMonths === 5) return "₦77,999";
+                      if (selectedMonths === 6) return "₦89,999";
+                      return "₦0";
+                    })()}
                     {selectedPlan === "annual" && "₦215,989"}
                   </span>
                 </div>
@@ -2226,10 +2289,8 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                 onClick={() => {
                   if (selectedPlan === "monthly") {
                     handleInitiatePayment("monthly", 1);
-                  } else if (selectedPlan === "quarterly") {
-                    handleInitiatePayment("multi", 3);
-                  } else if (selectedPlan === "six_month") {
-                    handleInitiatePayment("multi", 6);
+                  } else if (selectedPlan === "volume") {
+                    handleInitiatePayment("multi", selectedMonths);
                   } else if (selectedPlan === "annual") {
                     handleInitiatePayment("yearly");
                   }

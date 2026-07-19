@@ -12,6 +12,7 @@ export interface Exercise {
   alternativeExercises: string[];
   progressionVariations: string[];
   isPremium: boolean;
+  youtubeVideoId?: string;
   
   // Real Biomechanical coaching fields
   startingPosition: string;
@@ -22,6 +23,10 @@ export interface Exercise {
   gifUrl: string; // HD professional fitness loop / video url
   customMediaType?: "image" | "video";
   customMediaUrl?: string;
+  description?: string;
+  imageUrl?: string;
+  duration?: string;
+  tags?: string[];
 
   // Detailed Coaching Parameters
   breathingInstructions?: string;
@@ -317,7 +322,52 @@ const RAW_EXERCISES_DATA: RawExerciseData[] = [
   { name: "Military Style Fitness: Bodyweight Squats", displayName: "Bodyweight Squats", category: "Military Style Fitness", sub: "Military Fitness", equipment: ["Bodyweight"], primary: "Legs", secondary: ["Glutes"], diff: "Beginner" },
   { name: "Military Style Fitness: Lunges", displayName: "Lunges", category: "Military Style Fitness", sub: "Military Fitness", equipment: ["Bodyweight"], primary: "Legs", secondary: ["Glutes"], diff: "Beginner" },
   { name: "Military Style Fitness: Plank Holds", displayName: "Plank Holds", category: "Military Style Fitness", sub: "Military Fitness", equipment: ["Bodyweight"], primary: "Core", secondary: ["Shoulders"], diff: "Beginner" },
-  { name: "Military Style Fitness: Jump Squats", displayName: "Jump Squats", category: "Military Style Fitness", sub: "Military Fitness", equipment: ["Bodyweight"], primary: "Legs", secondary: ["Cardio"], diff: "Intermediate" }
+  { name: "Military Style Fitness: Jump Squats", displayName: "Jump Squats", category: "Military Style Fitness", sub: "Military Fitness", equipment: ["Bodyweight"], primary: "Legs", secondary: ["Cardio"], diff: "Intermediate" },
+
+  // ================= LIFESTYLE FITNESS ACADEMY & CHALLENGES =================
+  { name: "Primal Cat-Cow Spinal Waves", category: "Home Workouts", sub: "Core", equipment: ["Bodyweight"], primary: "Core", secondary: ["Lower Back", "Shoulders"], diff: "Beginner" },
+  { name: "Seated Thoracic Extension & Twist", category: "Home Workouts", sub: "Shoulders", equipment: ["Bodyweight"], primary: "Shoulders", secondary: ["Chest", "Upper Back"], diff: "Beginner" },
+  { name: "90/90 Active Hip Opener", category: "Home Workouts", sub: "Glutes", equipment: ["Bodyweight"], primary: "Glutes", secondary: ["Hamstrings", "Lower Back"], diff: "Beginner" },
+  { name: "Ankle Dorsiflexion & Calcaneal Mobilization", category: "Home Workouts", sub: "Calves", equipment: ["Bodyweight"], primary: "Calves", secondary: ["Ankles"], diff: "Beginner" },
+  { name: "Deep Diaphragmatic Box Breathing", category: "Home Workouts", sub: "Core", equipment: ["Bodyweight"], primary: "Core", secondary: ["Lungs"], diff: "Beginner" },
+  { name: "Y-T-W Scapular Raises (Bodyweight)", category: "Home Workouts", sub: "Shoulders", equipment: ["Bodyweight"], primary: "Shoulders", secondary: ["Traps", "Upper Back"], diff: "Beginner" },
+  { name: "Cable Lat Pulldowns (Slow Eccentric)", category: "Gym Workouts", sub: "Back", equipment: ["Cable Machine"], primary: "Back", secondary: ["Biceps", "Lats"], diff: "Intermediate" },
+  { name: "Dumbbell Bent-Over Row with Chest Support", category: "Home Workouts", sub: "Back", equipment: ["Dumbbell"], primary: "Back", secondary: ["Biceps", "Rhomboids"], diff: "Intermediate" },
+  { name: "Romanian Barbell Deadlifts", category: "Gym Workouts", sub: "Legs", equipment: ["Barbell"], primary: "Legs", secondary: ["Hamstrings", "Glutes", "Lower Back"], diff: "Intermediate" },
+  { name: "Dumbbell Romanian Deadlifts", category: "Home Workouts", sub: "Legs", equipment: ["Dumbbell"], primary: "Legs", secondary: ["Hamstrings", "Glutes", "Lower Back"], diff: "Intermediate" },
+  { name: "Standing Dumbbell Overhead Press", category: "Gym Workouts", sub: "Shoulders", equipment: ["Dumbbell"], primary: "Shoulders", secondary: ["Triceps"], diff: "Intermediate" },
+  { name: "Resistance Band Shoulder Press", category: "Home Workouts", sub: "Shoulders", equipment: ["Resistance Band"], primary: "Shoulders", secondary: ["Triceps"], diff: "Beginner" },
+  { name: "Plank with Shoulder Taps", category: "Home Workouts", sub: "Core", equipment: ["Bodyweight"], primary: "Core", secondary: ["Shoulders", "Abs"], diff: "Intermediate" },
+  { name: "Leg Press (High & Wide Stance)", category: "Gym Workouts", sub: "Legs", equipment: ["Machine"], primary: "Legs", secondary: ["Quads", "Glutes"], diff: "Intermediate" },
+  { name: "Dumbbell Goblet Squats", category: "Home Workouts", sub: "Legs", equipment: ["Dumbbell"], primary: "Legs", secondary: ["Quads", "Glutes"], diff: "Beginner" },
+  { name: "Single-Leg Glute Bridges", category: "Home Workouts", sub: "Glutes", equipment: ["Bodyweight"], primary: "Glutes", secondary: ["Hamstrings"], diff: "Intermediate" },
+  { name: "Child's Pose Spinal Reach", category: "Home Workouts", sub: "Back", equipment: ["Bodyweight"], primary: "Back", secondary: ["Shoulders"], diff: "Beginner" },
+  { name: "Active Arm Circles & Core Bracing", category: "Home Workouts", sub: "Shoulders", equipment: ["Bodyweight"], primary: "Shoulders", secondary: ["Core"], diff: "Beginner" },
+  { name: "Prone Cobra Chest Opener", category: "Home Workouts", sub: "Chest", equipment: ["Bodyweight"], primary: "Chest", secondary: ["Shoulders", "Upper Back"], diff: "Beginner" },
+  { name: "Bodyweight Air Squats & Glute Kickbacks", category: "Home Workouts", sub: "Legs", equipment: ["Bodyweight"], primary: "Legs", secondary: ["Glutes"], diff: "Beginner" },
+  { name: "90/90 Hip Stretch", category: "Home Workouts", sub: "Glutes", equipment: ["Bodyweight"], primary: "Glutes", secondary: ["Lower Back"], diff: "Beginner" },
+
+  // ================= 90 DAY CHALLENGE EXERCISES =================
+  { name: "Dynamic Warm-up Jumps", category: "Cardio Workouts", sub: "Warm-up", equipment: ["Bodyweight"], primary: "Cardio", secondary: ["Legs"], diff: "Beginner" },
+  { name: "Dynamic Rotational Swings", category: "Home Workouts", sub: "Warm-up", equipment: ["Bodyweight"], primary: "Core", secondary: ["Shoulders", "Back"], diff: "Beginner" },
+  { name: "Active Stretch Squats", category: "Home Workouts", sub: "Warm-up", equipment: ["Bodyweight"], primary: "Legs", secondary: ["Glutes", "Hamstrings"], diff: "Beginner" },
+  { name: "Systemic Decompression Breathing", category: "Home Workouts", sub: "Warm-up", equipment: ["Bodyweight"], primary: "Core", secondary: ["Lungs"], diff: "Beginner" },
+  { name: "Full Posterior Muscle Release Stretch", category: "Home Workouts", sub: "Stretching", equipment: ["Bodyweight"], primary: "Back", secondary: ["Hamstrings"], diff: "Beginner" },
+
+  // ================= 5-MONTH BELLY FAT SHRED CO-EXERCISES =================
+  { name: "Squats", category: "Home Workouts", sub: "Legs", equipment: ["Bodyweight"], primary: "Legs", secondary: ["Glutes"], diff: "Beginner" },
+  { name: "Dead Bug", category: "Home Workouts", sub: "Core", equipment: ["Bodyweight"], primary: "Core", secondary: ["Abs"], diff: "Beginner" },
+  { name: "Reverse Crunch", category: "Home Workouts", sub: "Core", equipment: ["Bodyweight"], primary: "Core", secondary: ["Abs"], diff: "Beginner" },
+  { name: "12-3-30 Treadmill Walk", category: "Cardio Workouts", sub: "Fat Burning Cardio", equipment: ["Treadmill"], primary: "Cardio", secondary: ["Legs"], diff: "Intermediate" },
+  { name: "Side Plank", category: "Home Workouts", sub: "Core", equipment: ["Bodyweight"], primary: "Core", secondary: ["Obliques"], diff: "Beginner" },
+  { name: "Push-ups", category: "Home Workouts", sub: "Chest", equipment: ["Bodyweight"], primary: "Chest", secondary: ["Triceps"], diff: "Beginner" },
+  { name: "Rope Jump", category: "Cardio Workouts", sub: "Fat Burning Cardio", equipment: ["Jump Rope"], primary: "Cardio", secondary: ["Calves"], diff: "Beginner" },
+
+  // ================= AI COACH SPECIALIZED ROUTINES =================
+  { name: "Hanging Knee-to-Chest / Leg Raises", category: "Gym Workouts", sub: "Abs and Core", equipment: ["Pullup Bar"], primary: "Core", secondary: ["Abs"], diff: "Intermediate" },
+  { name: "High-Intensity Dumbbell Thrusters", category: "Gym Workouts", sub: "Legs", equipment: ["Dumbbells"], primary: "Legs", secondary: ["Quads", "Shoulders"], diff: "Intermediate" },
+  { name: "Dumbbell Renegade Rows with Push-Up", category: "Gym Workouts", sub: "Back", equipment: ["Dumbbells"], primary: "Back", secondary: ["Chest", "Core"], diff: "Intermediate" },
+  { name: "Explosive Hip-Hinge Kettlebell Swings", category: "Cardio Workouts", sub: "HIIT Cardio", equipment: ["Kettlebell"], primary: "Cardio", secondary: ["Hamstrings", "Core"], diff: "Intermediate" }
 ];
 
 export function determineCategories(
@@ -390,7 +440,7 @@ export function determineCategories(
   }
 
   // 3. Modality-based
-  if (nameL.includes("mobility") || nameL.includes("stretch") || nameL.includes("yoga") || nameL.includes("pilates") || nameL.includes("recovery") || nameL.includes("stretching") || nameL.includes("warm up")) {
+  if (nameL.includes("mobility") || nameL.includes("stretch") || nameL.includes("yoga") || nameL.includes("pilates") || nameL.includes("recovery") || nameL.includes("stretching") || nameL.includes("warm up") || nameL.includes("cat-cow") || nameL.includes("breathing") || nameL.includes("opener") || nameL.includes("mobilization") || nameL.includes("reach")) {
     cats.push("Mobility");
     cats.push("Stretching");
     cats.push("Recovery");
@@ -446,6 +496,53 @@ export function determineCategories(
   });
 
   return Array.from(new Set(cats));
+}
+
+function getExerciseYouTubeVideoId(name: string, primary: string): string {
+  const nameL = name.toLowerCase();
+  const primL = primary.toLowerCase();
+  
+  if (primL.includes("chest") || nameL.includes("bench press") || nameL.includes("chest press") || nameL.includes("push up") || nameL.includes("pushup")) {
+    if (nameL.includes("incline") || nameL.includes("fly")) {
+      return "XvGlaH80m_o"; // Incline dumbbell press & chest fly video
+    }
+    return "myfEsD8S9M4"; // Bench press main chest video
+  }
+  if (primL.includes("back") || nameL.includes("row") || nameL.includes("pullup") || nameL.includes("pull-up") || nameL.includes("pulldown") || nameL.includes("deadlift")) {
+    if (nameL.includes("row") || nameL.includes("deadlift")) {
+      return "wYREQvVeeIs"; // Back row / deadlift strength video
+    }
+    return "870yZl_yReQ"; // Pullup / lat pulldown back video
+  }
+  if (primL.includes("shoulder") || nameL.includes("press") || nameL.includes("lateral raise") || nameL.includes("deltoid") || primL.includes("shoulders")) {
+    if (nameL.includes("raise")) {
+      return "08tO8mE6mrc"; // Shoulder lateral raises
+    }
+    return "7t8bSjF06D4"; // Overhead shoulder press
+  }
+  if (primL.includes("biceps") || primL.includes("bicep") || nameL.includes("curl")) {
+    return "H6M_eXUelO8"; // Bicep curl gym video
+  }
+  if (primL.includes("triceps") || primL.includes("tricep") || nameL.includes("dip") || nameL.includes("pushdown") || nameL.includes("extension")) {
+    return "f6300x57U4o"; // Tricep pushdowns / extension video
+  }
+  if (primL.includes("legs") || primL.includes("quad") || primL.includes("hamstring") || primL.includes("calves") || nameL.includes("squat") || nameL.includes("lunge")) {
+    if (nameL.includes("squat")) {
+      return "3_p8pEqZ5L8"; // Heavy squats leg video
+    }
+    return "N_2gN4xP_hE"; // Leg extensions / lunges video
+  }
+  if (primL.includes("core") || primL.includes("abs") || nameL.includes("plank") || nameL.includes("crunch") || nameL.includes("sit up") || nameL.includes("situp")) {
+    if (nameL.includes("plank") || nameL.includes("sit up") || nameL.includes("situp")) {
+      return "2MoGxae-zyo"; // Flat abs home core routine
+    }
+    return "X_9VoUeG8-0"; // Intense core sixpack workouts
+  }
+  if (primL.includes("cardio") || nameL.includes("burpee") || nameL.includes("jacks") || nameL.includes("climber") || nameL.includes("run") || nameL.includes("hiit")) {
+    return "2pLt0T_bAkw"; // Intense cardio / fat burn video
+  }
+  // Fallbacks
+  return "jTID7S8PsnM"; // Default Premium full body conditioning
 }
 
 const generateExercises = (): Exercise[] => {
@@ -514,6 +611,8 @@ const generateExercises = (): Exercise[] => {
       raw.originalCategories
     );
 
+    const ytVideoId = getExerciseYouTubeVideoId(displayName, raw.primary);
+
     return {
       id,
       name: displayName,
@@ -528,12 +627,17 @@ const generateExercises = (): Exercise[] => {
       alternativeExercises: [raw.name.includes("Press") ? "Push Ups" : "Plank"],
       progressionVariations: ["Increase duration or increase weight load slightly", "Perform with longer eccentric counts"],
       isPremium,
+      youtubeVideoId: ytVideoId,
       startingPosition: `Align with the ${raw.equipment.join(" and ")}, engage your abdominal core, and set your joints safely.`,
       movementExecution: `Drive the concentric phase forcefully through your ${raw.primary} muscles with strict biomechanical tension.`,
       finishingPosition: `Squeeze the active target area tightly at lock-out before releasing under total control.`,
       regressionVariations: ["Reduce sets or perform with partial range of motion initially"],
       musclesWorked: [raw.primary],
       gifUrl: getExerciseGifUrl(displayName, raw.category),
+      imageUrl: getExerciseGifUrl(displayName, raw.category),
+      description: `${displayName} targets the ${raw.primary} group to maximize hypertrophy and mechanical tension.`,
+      duration: "45s",
+      tags: [raw.primary, ...raw.secondary, raw.diff, raw.category],
       breathingInstructions: "Inhale on the negative eccentric phase. Exhale forcefully on the active concentric execution.",
       recommendedSetsReps: "3 Sets x 10-12 Reps",
       recommendedSets: "3",

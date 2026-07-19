@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useApp } from "../context/AppContext";
+import WorkoutVisual from "./WorkoutVisual";
 import { db } from "../lib/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { motion, AnimatePresence } from "motion/react";
@@ -751,15 +752,13 @@ export default function Premium90DayChallenge() {
           <img 
             src="https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=1200&auto=format&fit=crop&q=80" 
             alt="Immortal 90-Day Challenge Hero"
-            className="w-full h-full object-cover object-center scale-100 filter brightness-[0.25] contrast-110 saturate-[1.15]"
+            className="w-full h-full object-cover object-center scale-100"
             referrerPolicy="no-referrer"
           />
-          {/* Crimson / Amber gradient overlay to match brand colors & ensure high typographic contrast */}
-          <div className="absolute inset-0 bg-gradient-to-r from-red-950/80 via-red-900/70 to-amber-950/85 mix-blend-multiply" />
         </div>
         
-        <div className="max-w-4xl mx-auto space-y-4 relative z-10">
-          <div className="inline-flex items-center gap-2 bg-black/40 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 text-xs font-black uppercase tracking-widest text-amber-300 shadow-md">
+        <div className="max-w-4xl mx-auto space-y-4 relative z-10 bg-black/50 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl">
+          <div className="inline-flex items-center gap-2 bg-black/60 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 text-xs font-black uppercase tracking-widest text-amber-300 shadow-md">
             <Crown className="w-4 h-4 text-amber-300 animate-pulse shrink-0" />
             <span>AlexFitnessHub Premium Flagship</span>
           </div>
@@ -1226,12 +1225,12 @@ export default function Premium90DayChallenge() {
                                 </div>
 
                                 {/* HD Giphy loop representation */}
-                                <div className="relative aspect-video max-h-[300px] w-full rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center border border-slate-200 dark:border-slate-800">
-                                  <img 
-                                    src={ex.gifUrl || "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3h0YnpwM2wzdW9vdG9ndjY5NHdvdnBwdXB4Mm5qNXRpcG5xMDlxMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o84U6421O1IIXbowg/giphy.gif"} 
-                                    alt={ex.name} 
-                                    className="h-full object-contain" 
-                                    referrerPolicy="no-referrer"
+                                <div className="relative aspect-video max-h-[300px] w-full rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center border border-slate-200 dark:border-slate-800 shadow-xs">
+                                  <WorkoutVisual 
+                                    exerciseId={ex.id} 
+                                    exerciseName={ex.name} 
+                                    isCard={true} 
+                                    className="w-full h-full"
                                   />
                                 </div>
 

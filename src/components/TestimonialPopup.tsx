@@ -139,9 +139,9 @@ export const TestimonialPopup: React.FC = () => {
         setStatus("waiting");
       }, 8000);
     } else if (status === "waiting") {
-      // Wait exactly 60 seconds (60000 ms) before the next popup as strictly required
-      const delayMs = 60000;
-      console.log(`[Social Proof] Scheduled next popup in exactly 60 seconds`);
+      // Wait exactly 90 minutes (5400000 ms) before the next popup as strictly requested
+      const delayMs = 90 * 60 * 1000;
+      console.log(`[Social Proof] Scheduled next popup in exactly 90 minutes`);
       timer = setTimeout(() => {
         showNextPopup();
         setStatus("showing");
@@ -206,9 +206,11 @@ export const TestimonialPopup: React.FC = () => {
  
               {/* Action content & time */}
               <p className="text-[10px] text-slate-900 dark:text-slate-100 leading-snug">
-                <span className="font-extrabold text-slate-950 dark:text-white mr-1">
-                  {currentReview.name}
-                </span>
+                {currentReview.name && !currentReview.action.includes(currentReview.name) && (
+                  <span className="font-extrabold text-slate-950 dark:text-white mr-1">
+                    {currentReview.name}
+                  </span>
+                )}
                 {currentReview.action || "signed up"}
               </p>
               

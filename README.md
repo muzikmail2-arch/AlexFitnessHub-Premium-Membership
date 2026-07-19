@@ -73,7 +73,7 @@ npm run dev
 ```bash
 npm run build
 ```
-This single compile sequence bundles the front-end SPA into the clean local directory `dist/` and runs a bundle process utilizing `esbuild` to compile `server.ts` into a self-contained, high-performance CommonJS file at `dist/server.cjs` for immediate deployment.
+This single compile sequence bundles the front-end SPA into the clean local directory `dist/` and runs a bundle process utilizing `esbuild` to compile `server.ts` into a self-contained, high-performance ES Module file at `dist/index.js` for immediate deployment.
 
 ### 4. Boot Production Core
 ```bash

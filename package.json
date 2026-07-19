@@ -6,18 +6,19 @@
   "author": "muzikworld08@gmail.com",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/muzikmail2-arch/alexfit-on-main.git"
+    "url": "git+https://github.com/muzikmail2-arch/AlexFitnessHub-Premium-Membership"
   },
   "bugs": {
-    "url": "https://github.com/muzikmail2-arch/alexfit-on-main/issues"
+    "url": "https://github.com/muzikmail2-arch/AlexFitnessHub-Premium-Membership/issues"
   },
-  "homepage": "https://github.com/muzikmail2-arch/alexfit-on-main#readme",
+  "homepage": "https://github.com/muzikmail2-arch/AlexFitnessHub-Premium-Membership#readme",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "npm run clean && vite build && node ./scripts/generate-build-metadata.cjs && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
-    "start": "node dist/server.cjs",
+    "build": "npm run clean && vite build && node ./scripts/generate-build-metadata.cjs && esbuild server.ts --bundle --platform=node --format=esm --packages=external --sourcemap --outfile=dist/index.js",
+    "start": "node dist/index.js",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "postinstall": "npm run build"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
@@ -34,8 +35,7 @@
     "motion": "^12.23.24",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
-    "recharts": "^3.9.2",
-    "vite": "^6.2.3"
+    "recharts": "^3.9.2"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

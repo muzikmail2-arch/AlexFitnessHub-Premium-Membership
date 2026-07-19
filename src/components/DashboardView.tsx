@@ -167,21 +167,6 @@ export default function DashboardView({ activeView = "dashboard", setView }: Das
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-screen text-slate-900 dark:text-white">
       
-      {/* Mobile Workspace Toggle Header */}
-      <div className="lg:hidden flex items-center justify-between p-4 bg-white text-slate-900 rounded-2xl mb-4 border border-slate-200 shadow-md">
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="w-5 h-5 text-[#D32F2F]" />
-          <span className="text-xs font-sans font-black uppercase tracking-wider text-slate-900">PREMIUM WORKSPACE</span>
-        </div>
-        <button 
-          onClick={() => setIsSidebarOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#D32F2F] text-white text-[10px] font-bold uppercase rounded-lg hover:bg-[#B71C1C] transition cursor-pointer"
-        >
-          <Menu className="w-4 h-4 text-white" />
-          <span className="text-white">Workspace Menu</span>
-        </button>
-      </div>
-
       {/* Main Workspace Layout (Sidebar Left, Workspace Content Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative">
         

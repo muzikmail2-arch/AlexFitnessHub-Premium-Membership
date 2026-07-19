@@ -116,6 +116,10 @@ interface AppContextType {
   vitalsLogs: VitalsLog[];
   addVitalsLogAction: (restingHeartRate: number, sleepDuration: number, date?: string) => Promise<void>;
   updateProfilePicture: (photoURL: string) => Promise<void>;
+
+  // Navigation / Switchboard State
+  currentView: string;
+  setView: (view: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -172,6 +176,47 @@ export const normalizeExerciseId = (id: string): string => {
 };
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  const [currentView, setView] = useState<string>(() => {
+    const pathname = window.location.pathname;
+    const pathToView: Record<string, string> = {
+      "/": "home",
+      "/payment/success": "payment-success",
+      "/premium/library": "library",
+      "/premium/workout-generator": "workout-generator",
+      "/premium/workout-videos": "workout-videos",
+      "/premium/saved-exercises": "saved-exercises",
+      "/premium/coach": "coach",
+      "/premium/nutrition": "nutrition",
+      "/premium/daily-plan": "daily-plan",
+      "/premium/challenges": "challenges",
+      "/premium/community": "community",
+      "/premium/weekly-reports": "weekly-reports",
+      "/premium/daily-habit-tracker": "daily-habit-tracker",
+      "/premium/daily-calibration-desk": "daily-calibration-desk",
+      "/premium/handbook": "handbook",
+      "/premium/weight-trajectory": "weight-trajectory",
+      "/premium/dashboard": "dashboard",
+      "/premium/belly-fat-shred": "belly-fat-shred",
+      "/lifestyle-academy": "lifestyle-academy",
+    };
+    if (pathToView[pathname]) {
+      return pathToView[pathname];
+    }
+    try {
+      const activeUid = localStorage.getItem("fit_active_uid");
+      if (activeUid) {
+        const cachedUser = localStorage.getItem(`fit_user_${activeUid}`);
+        if (cachedUser) {
+          const parsed = JSON.parse(cachedUser);
+          if (parsed && parsed.onboarded !== false) {
+            return "daily-plan";
+          }
+        }
+      }
+    } catch (e) {}
+    return "home";
+  });
+
   const [userState, setUserState] = useState<UserProfile | null>(() => {
     try {
       const activeUid = localStorage.getItem("fit_active_uid");
@@ -2374,6 +2419,8 @@ ${milestones.map(m => `*   **${m}**`).join("\n")}
       loading,
       theme,
       setTheme: setThemeAction,
+      currentView,
+      setView,
       savedWorkouts,
       activityLogs,
       weightLogs,

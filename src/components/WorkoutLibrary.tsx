@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useApp } from "../context/AppContext";
-import { Exercise, PROGRAMS, Program } from "../data/exercises";
+import { Exercise, PROGRAMS, Program, EXERCISES } from "../data/exercises";
+import YouTubePlayer from "./video/YouTubePlayer";
 import { 
   Search, SlidersHorizontal, Lock, CheckCircle, PlusCircle, Sparkles, X, 
   ChevronRight, HelpCircle, AlertTriangle, Play, Shield, Calendar, Apple, Dumbbell, ArrowRight, Clipboard,
@@ -110,6 +111,40 @@ export default function WorkoutLibrary({ setView }: { setView?: (view: string) =
   
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(null);
+
+  // Live Workout Session active stopwatch states
+  const [isWorkoutSessionActive, setIsWorkoutSessionActive] = useState(false);
+  const [sessionTime, setSessionTime] = useState(0);
+
+  useEffect(() => {
+    let interval: any = null;
+    if (isWorkoutSessionActive) {
+      interval = setInterval(() => {
+        setSessionTime((prev) => prev + 1);
+      }, 1000);
+    } else {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [isWorkoutSessionActive]);
+
+  const formatSessionTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  // Compute related exercises of the same primary muscle group
+  const relatedExercises = useMemo(() => {
+    if (!selectedExerciseId) return [];
+    const activeEx = exercises.find(e => e.id === selectedExerciseId);
+    if (!activeEx) return [];
+    const currentPrimary = activeEx.musclesWorked?.[0] || activeEx.muscleGroups?.[0] || "";
+    if (!currentPrimary) return [];
+    return exercises
+      .filter(ex => ex.id !== selectedExerciseId && ex.musclesWorked?.includes(currentPrimary))
+      .slice(0, 3);
+  }, [exercises, selectedExerciseId]);
 
   // States for the interactive "Add to Program" dialog for Premium athletes
   const [addingToProgramExercise, setAddingToProgramExercise] = useState<Exercise | null>(null);
@@ -947,6 +982,63 @@ export default function WorkoutLibrary({ setView }: { setView?: (view: string) =
             
             {/* Left Column: Visual Media & Logger */}
             <div className="lg:col-span-5 space-y-6">
+
+              {/* Start Workout Session Control & Dynamic Live stopwatch */}
+              <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm relative overflow-hidden">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-[11px] font-extrabold tracking-wider text-slate-500 dark:text-slate-400 uppercase flex items-center gap-1.5 font-mono">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    ACTIVE TRAINING SESSION
+                  </h4>
+                  {isWorkoutSessionActive && (
+                    <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[9px] font-mono font-bold animate-pulse">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                      LIVE TRACKING
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-850">
+                  <div className="space-y-0.5">
+                    <span className="block text-[8px] font-mono font-bold text-slate-400 uppercase tracking-widest animate-pulse">SESSION ELAPSED TIME</span>
+                    <span className="text-2xl font-mono font-black text-slate-900 dark:text-white">
+                      {formatSessionTime(sessionTime)}
+                    </span>
+                  </div>
+                  
+                  <button
+                    type="button"
+                    onClick={() => setIsWorkoutSessionActive(!isWorkoutSessionActive)}
+                    className={`px-5 py-3 rounded-xl text-xs font-mono font-extrabold uppercase tracking-wider transition-all select-none cursor-pointer flex items-center gap-1.5 ${
+                      isWorkoutSessionActive
+                        ? "bg-amber-500 hover:bg-amber-600 text-slate-950 shadow-md"
+                        : "bg-rose-600 hover:bg-rose-700 text-white shadow-md active:scale-95"
+                    }`}
+                  >
+                    {isWorkoutSessionActive ? (
+                      <span>Pause Session</span>
+                    ) : (
+                      <>
+                        <Play className="w-3.5 h-3.5 fill-white" />
+                        <span>Start Workout</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {sessionTime > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsWorkoutSessionActive(false);
+                      setSessionTime(0);
+                    }}
+                    className="w-full py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-950 dark:hover:bg-slate-850 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 rounded-xl text-[10px] font-mono font-bold uppercase tracking-widest transition-all cursor-pointer"
+                  >
+                    Reset Session Timer
+                  </button>
+                )}
+              </div>
               
               <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
                 <h4 className="text-[11px] font-extrabold tracking-wider text-slate-500 dark:text-slate-400 uppercase flex items-center gap-1.5 font-mono">
@@ -1235,6 +1327,48 @@ export default function WorkoutLibrary({ setView }: { setView?: (view: string) =
                   </div>
                 </div>
               </div>
+
+              {/* RELATED WORKOUTS */}
+              {relatedExercises.length > 0 && (
+                <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4 shadow-xs">
+                  <h5 className="text-xs font-black text-slate-800 dark:text-slate-300 uppercase tracking-widest font-mono border-b border-slate-100 dark:border-slate-850 pb-2 flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-[#C0392B]" />
+                    Related Workouts
+                  </h5>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {relatedExercises.map((ex) => (
+                      <button
+                        type="button"
+                        key={ex.id}
+                        onClick={() => {
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                          setSelectedExerciseId(ex.id);
+                        }}
+                        className="text-left p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-850 hover:border-[#C0392B]/40 hover:shadow-md transition-all group flex flex-col justify-between h-36 cursor-pointer"
+                      >
+                        <div className="space-y-1">
+                          <span className={`px-2 py-0.5 rounded-full text-[8px] font-mono font-bold uppercase border ${
+                            ex.difficulty === "Beginner"
+                              ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/10"
+                              : ex.difficulty === "Intermediate"
+                                ? "bg-blue-500/10 text-blue-500 border-blue-500/10"
+                                : "bg-rose-500/10 text-rose-500 border-rose-500/10"
+                          }`}>
+                            {ex.difficulty}
+                          </span>
+                          <p className="text-slate-850 dark:text-slate-100 font-extrabold text-xs line-clamp-2 leading-snug group-hover:text-[#C0392B] transition-colors mt-1">
+                            {ex.name}
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-between text-[9px] font-mono text-slate-450 mt-2 pt-2 border-t border-slate-200/50 dark:border-slate-800/50 w-full">
+                          <span className="line-clamp-1">{ex.equipment[0] || "No Equipment"}</span>
+                          <span className="text-[#C0392B] font-bold group-hover:translate-x-1 transition-transform">&#10142;</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
             </div>
 

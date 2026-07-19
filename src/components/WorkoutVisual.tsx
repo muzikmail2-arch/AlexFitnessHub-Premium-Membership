@@ -9,7 +9,7 @@ import {
   Sparkles, 
   ShieldCheck 
 } from "lucide-react";
-import { EXERCISES } from "../data/exercises";
+import { useApp } from "../context/AppContext";
 
 interface WorkoutVisualProps {
   exerciseId?: string;
@@ -34,8 +34,10 @@ const WorkoutVisual = React.memo(function WorkoutVisual({
   isCard = false
 }: WorkoutVisualProps) {
 
+  const { exercises } = useApp();
+
   // Try to find the detailed exercise object from our centralized database
-  const exercise = EXERCISES.find(ex => 
+  const exercise = exercises.find(ex => 
     ex.id === exerciseId || 
     ex.name.toLowerCase() === exerciseName.toLowerCase()
   );
@@ -45,8 +47,30 @@ const WorkoutVisual = React.memo(function WorkoutVisual({
   const displayEquipment = exercise?.equipment || [];
   const displayDifficulty = exercise?.difficulty || "Beginner";
 
-  const resolvedMediaUrl = customMediaUrl || exercise?.customMediaUrl;
+  const resolvedMediaUrl = customMediaUrl || exercise?.customMediaUrl || exercise?.gifUrl;
   const resolvedMediaType = customMediaType || exercise?.customMediaType || "image";
+
+  // Performance & Robustness states
+  const [loading, setLoading] = React.useState(true);
+  const [hasError, setHasError] = React.useState(false);
+  const [retryCount, setRetryCount] = React.useState(0);
+
+  React.useEffect(() => {
+    setLoading(true);
+    setHasError(false);
+    setRetryCount(0);
+  }, [resolvedMediaUrl]);
+
+  const handleMediaError = () => {
+    if (retryCount < 2) {
+      setTimeout(() => {
+        setRetryCount(prev => prev + 1);
+      }, 1000);
+    } else {
+      setHasError(true);
+      setLoading(false);
+    }
+  };
 
   // Card Mode Layout Helper
   if (isCard) {
@@ -55,26 +79,23 @@ const WorkoutVisual = React.memo(function WorkoutVisual({
         id={`visual-card-${(exerciseName || exercise?.name || "exercise").replace(/\s+/g, '-').toLowerCase()}`} 
         className={`relative overflow-hidden ${className} bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col justify-between`}
       >
-        {resolvedMediaUrl ? (
+        {resolvedMediaUrl && !hasError ? (
           <div className="absolute inset-0 w-full h-full">
-            {resolvedMediaType === "video" ? (
-              <video 
-                src={resolvedMediaUrl} 
-                className="w-full h-full object-cover opacity-80" 
-                autoPlay 
-                loop 
-                muted 
-                playsInline
-              />
-            ) : (
-              <img 
-                src={resolvedMediaUrl} 
-                alt={exerciseName || "Exercise Preview"} 
-                className="w-full h-full object-cover opacity-100 filter brightness-110" 
-                referrerPolicy="no-referrer"
-                loading="lazy"
-              />
+            {loading && (
+              <div className="absolute inset-0 bg-slate-200 dark:bg-slate-800 animate-pulse z-20 flex flex-col items-center justify-center space-y-2">
+                <Dumbbell className="w-5 h-5 text-slate-400 dark:text-slate-500 animate-spin" />
+                <span className="text-[8px] font-mono font-bold text-slate-400 dark:text-slate-500 tracking-wider">LOADING SKELETON</span>
+              </div>
             )}
+            <img 
+              src={resolvedMediaUrl + (retryCount > 0 ? `?retry=${retryCount}` : "")} 
+              alt={exerciseName || "Exercise Preview"} 
+              className={`w-full h-full object-cover transition-opacity duration-700 filter brightness-110 ${loading ? 'opacity-0' : 'opacity-100'}`} 
+              referrerPolicy="no-referrer"
+              loading="lazy"
+              onLoad={() => setLoading(false)}
+              onError={handleMediaError}
+            />
             <div className="absolute inset-0 bg-white/10" />
           </div>
         ) : null}
@@ -84,7 +105,7 @@ const WorkoutVisual = React.memo(function WorkoutVisual({
           <div className="h-6" />
           
           {/* Central graphic: stylized glowing biomechanical radar schematic */}
-          {!resolvedMediaUrl ? (
+          {(!resolvedMediaUrl || hasError) ? (
             <div className="my-auto flex flex-col items-center justify-center space-y-2">
               <div className="relative flex items-center justify-center">
                 {/* Outer pulsing ring */}
@@ -94,16 +115,16 @@ const WorkoutVisual = React.memo(function WorkoutVisual({
                 <div className="absolute h-16 w-16 rounded-full border border-dashed border-[#C0392B]/20 animate-spin-slow" style={{ animationDuration: '20s' }} />
                 
                 {/* Inner glowing circle */}
-                <div className="h-12 w-12 rounded-full bg-red-50 border border-red-200/50 flex items-center justify-center shadow-inner">
+                <div className="h-12 w-12 rounded-full bg-red-50 dark:bg-slate-950 border border-red-200/50 dark:border-slate-800 flex items-center justify-center shadow-inner">
                   <Dumbbell className="w-5 h-5 text-[#C0392B]" />
                 </div>
               </div>
               
               <div className="text-center space-y-0.5">
-                <span className="text-[8px] font-mono font-black text-[#C0392B] uppercase tracking-widest bg-red-50 px-2 py-0.5 rounded border border-red-100">
-                  KINETIC PROTOCOL
+                <span className="text-[8px] font-mono font-black text-[#C0392B] uppercase tracking-widest bg-red-50 dark:bg-red-950/40 px-2 py-0.5 rounded border border-red-100 dark:border-red-900/40">
+                  {hasError ? "FALLBACK SYSTEM ACTIVE" : "KINETIC PROTOCOL"}
                 </span>
-                <p className="text-[10px] text-slate-500 font-sans font-bold tracking-tight">
+                <p className="text-[10px] text-slate-500 dark:text-slate-450 font-sans font-bold tracking-tight">
                   {displayMuscles.length > 0 ? `Target: ${displayMuscles[0].toUpperCase()}` : "BIOMECHANIC ANALYSIS"}
                 </p>
               </div>
@@ -115,16 +136,16 @@ const WorkoutVisual = React.memo(function WorkoutVisual({
           )}
           
           {/* Footer bar */}
-          <div className="flex justify-between items-center border-t border-slate-200/20 pt-2 text-[7.5px] font-mono text-slate-700 bg-white/95 backdrop-blur-md px-2 py-1.5 rounded-lg border border-slate-100 uppercase tracking-widest relative z-10 shadow-sm">
+          <div className="flex justify-between items-center border-t border-slate-200/20 pt-2 text-[7.5px] font-mono text-slate-700 bg-white/95 dark:bg-slate-900 backdrop-blur-md px-2 py-1.5 rounded-lg border border-slate-100 dark:border-slate-800 uppercase tracking-widest relative z-10 shadow-sm">
             <span>{exerciseName || exercise?.name || "ALEX KINESIOLOGY"}</span>
             <div className="flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>{resolvedMediaUrl ? "GIF ACTIVE" : "SYSTEM ACTIVE"}</span>
+              <span>{hasError ? "FALLBACK PROT." : resolvedMediaUrl ? "GIF ACTIVE" : "SYSTEM ACTIVE"}</span>
             </div>
           </div>
         </div>
         
-        {!resolvedMediaUrl && (
+        {(!resolvedMediaUrl || hasError) && (
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000003_1px,transparent_1px),linear-gradient(to_bottom,#00000003_1px,transparent_1px)] bg-[size:12px_12px] pointer-events-none" />
         )}
       </div>
@@ -163,28 +184,45 @@ const WorkoutVisual = React.memo(function WorkoutVisual({
       </div>
 
       {/* Manually uploaded GIF / custom media display */}
-      {resolvedMediaUrl && (
-        <div id="exercise-demo-media-box" className="w-full h-80 rounded-xl overflow-hidden bg-slate-950 border border-slate-200 dark:border-slate-850/80 flex items-center justify-center">
-          {resolvedMediaType === "video" ? (
-            <video 
-              src={resolvedMediaUrl} 
-              className="w-full h-full object-contain" 
-              autoPlay 
-              loop 
-              muted 
-              playsInline
-            />
-          ) : (
+      <div id="exercise-demo-media-box" className="relative w-full h-80 rounded-xl overflow-hidden bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-center">
+        {resolvedMediaUrl && !hasError ? (
+          <>
+            {loading && (
+              <div className="absolute inset-0 bg-slate-900 animate-pulse z-20 flex flex-col items-center justify-center space-y-2">
+                <Dumbbell className="w-6 h-6 text-slate-500 animate-spin" />
+                <span className="text-[9px] font-mono font-bold text-slate-500 tracking-wider">LOADING KINESIOLOGY STREAM</span>
+              </div>
+            )}
             <img 
-              src={resolvedMediaUrl} 
+              src={resolvedMediaUrl + (retryCount > 0 ? `?retry=${retryCount}` : "")} 
               alt={exerciseName || "Exercise Demo GIF"} 
-              className="w-full h-full object-contain" 
+              className={`w-full h-full object-contain transition-opacity duration-700 ${loading ? 'opacity-0' : 'opacity-100'}`} 
               referrerPolicy="no-referrer"
               loading="lazy"
+              onLoad={() => setLoading(false)}
+              onError={handleMediaError}
             />
-          )}
-        </div>
-      )}
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center space-y-3 p-6 text-center">
+            <div className="relative flex items-center justify-center">
+              <div className="absolute h-20 w-20 rounded-full border border-dashed border-[#C0392B]/30 animate-spin-slow" style={{ animationDuration: '25s' }} />
+              <div className="absolute h-24 w-24 rounded-full bg-[#C0392B]/5 animate-pulse" />
+              <div className="h-14 w-14 rounded-full bg-slate-900 border border-[#C0392B]/30 flex items-center justify-center shadow-lg">
+                <Dumbbell className="w-6 h-6 text-[#C0392B]" />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <span className="text-[10px] font-mono font-black text-[#C0392B] bg-[#C0392B]/10 px-2.5 py-1 rounded border border-[#C0392B]/20 tracking-wider">
+                {hasError ? "MEDIA HOST UNREACHABLE" : "KINETIC PLACEHOLDER"}
+              </span>
+              <p className="text-xs text-slate-405 dark:text-slate-400 font-medium max-w-sm">
+                {hasError ? "Unable to retrieve raw media stream. Falling back to biomechanic guidelines." : "No custom visual uploaded. Follow the professional instructions below."}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* 3-Part Movement Biomechanics Details */}
       {exercise && (

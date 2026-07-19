@@ -57,7 +57,15 @@ const VIEW_TO_PATH_MAP: Record<string, string> = Object.fromEntries(
 
 
 function FitnessAppContent() {
-  const { user, loading, isBlockedUser, authDatabaseError, setAuthDatabaseError } = useApp();
+  const { 
+    user, 
+    loading, 
+    isBlockedUser, 
+    authDatabaseError, 
+    setAuthDatabaseError,
+    currentView,
+    setView
+  } = useApp();
 
   const renderSkeletonForView = (view: string) => {
     if (["dashboard", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory"].includes(view)) {
@@ -109,25 +117,6 @@ function FitnessAppContent() {
     } catch (e) {}
   }, []);
 
-  const [currentView, setView] = useState(() => {
-    const pathname = window.location.pathname;
-    if (PATH_TO_VIEW_MAP[pathname]) {
-      return PATH_TO_VIEW_MAP[pathname];
-    }
-    try {
-      const activeUid = localStorage.getItem("fit_active_uid");
-      if (activeUid) {
-        const cachedUser = localStorage.getItem(`fit_user_${activeUid}`);
-        if (cachedUser) {
-          const parsed = JSON.parse(cachedUser);
-          if (parsed && parsed.onboarded !== false) {
-            return "daily-plan";
-          }
-        }
-      }
-    } catch (e) {}
-    return "home";
-  });
   const [isAuthOpen, setIsAuthOpen] = useState(false);
 
   // Refactored Auth Sync: Track previous uid to only trigger redirect ONCE on login/logout
@@ -274,27 +263,33 @@ function FitnessAppContent() {
     }
   }, []);
 
-  // Scroll Restoration & Position Preservation for every view/route
-  const scrollPositions = React.useRef<Record<string, number>>({});
-  const prevViewRef = React.useRef<string>(currentView);
-
-  React.useLayoutEffect(() => {
-    // 1. Save scroll position of the previous view before it gets replaced
-    const prevView = prevViewRef.current;
-    if (prevView && prevView !== currentView) {
-      scrollPositions.current[prevView] = window.scrollY || document.documentElement.scrollTop;
+  // Global Scroll Restoration Solution
+  // 1. Force the browser to manual scroll restoration on mount to prevent native jumpy behavior on back/forward
+  React.useEffect(() => {
+    if (typeof window !== "undefined" && window.history && "scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
     }
-    prevViewRef.current = currentView;
+  }, []);
 
-    // 2. Restore scroll position of the new view
-    const savedPos = scrollPositions.current[currentView] || 0;
-    
-    // Smooth/instant scroll restoration with a micro-timeout to allow layout stability
-    const timer = setTimeout(() => {
-      window.scrollTo({ top: savedPos, behavior: "instant" as ScrollBehavior });
-    }, 30);
+  // 2. Perform robust scroll to top whenever the current view/route changes
+  React.useLayoutEffect(() => {
+    const handleScrollToTop = () => {
+      window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+    };
 
-    return () => clearTimeout(timer);
+    // Execute scroll immediately to prevent flashing content scrolled down
+    handleScrollToTop();
+
+    // Staggered timeouts to ensure the viewport is pinned to the top as elements and lazy-loaded views mount
+    const timer1 = setTimeout(handleScrollToTop, 10);
+    const timer2 = setTimeout(handleScrollToTop, 50);
+    const timer3 = setTimeout(handleScrollToTop, 150);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+    };
   }, [currentView]);
 
   // Protected navigation handler
