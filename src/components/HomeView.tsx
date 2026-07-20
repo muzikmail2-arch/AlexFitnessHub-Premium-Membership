@@ -3,7 +3,8 @@ import { useApp } from "../context/AppContext";
 import { 
   Shield, CheckCircle, ArrowRight, Zap, Flame, 
   Play, Users, X, HelpCircle, Clipboard, ChevronDown, Star, Lock, MessageCircle, ChevronLeft,
-  Mail, Bell, Heart, Sparkles, Activity, Crown
+  Mail, Bell, Heart, Sparkles, Activity, Crown,
+  Scale, Clock, Plus, TrendingUp, Droplet, ChevronRight
 } from "lucide-react";
 import { motion } from "motion/react";
 import { NewsletterSubscription } from "./NewsletterSubscription";
@@ -277,9 +278,272 @@ interface HomeViewProps {
 }
 
 export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
-  const { user, upgradeWithPaystack } = useApp();
+  const { 
+    user, 
+    upgradeWithPaystack,
+    weightLogs, 
+    addWeightLogAction, 
+    communityPosts, 
+    addCommunityPost, 
+    likePost, 
+    commentOnPost 
+  } = useApp();
   const [submittingPlan, setSubmittingPlan] = useState<"monthly" | "yearly" | "multi" | null>(null);
   const [activePaymentModal, setActivePaymentModal] = useState<"monthly" | "yearly" | "multi" | null>(null);
+
+  const scrollToCheckout = () => {
+    setTimeout(() => {
+      const el = document.getElementById("activate-premium-access-section");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 100);
+  };
+
+  // Public Interactive Preview Widgets state
+  const [activeDemoTab, setActiveDemoTab] = useState<"trajectory" | "community" | "calibration" | "habits">(() => {
+    if (typeof window !== "undefined" && (window as any).__activeDemoTab) {
+      return (window as any).__activeDemoTab;
+    }
+    return "trajectory";
+  });
+
+  useEffect(() => {
+    const handleSetTab = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail && ["trajectory", "community", "calibration", "habits"].includes(detail)) {
+        setActiveDemoTab(detail as any);
+      }
+    };
+    window.addEventListener("set-demo-tab", handleSetTab);
+    return () => {
+      window.removeEventListener("set-demo-tab", handleSetTab);
+    };
+  }, []);
+  
+  // Weight Trajectory preview states
+  const [localWeightLogs, setLocalWeightLogs] = useState<any[]>([]);
+  const [publicNewWeight, setPublicNewWeight] = useState("");
+  const [submittingPublicWeight, setSubmittingPublicWeight] = useState(false);
+  const [weightToast, setWeightToast] = useState<string | null>(null);
+
+  // Community preview states
+  const [localPosts, setLocalPosts] = useState<any[]>([]);
+  const [newPostContent, setNewPostContent] = useState("");
+  const [isSubmittingNewPost, setIsSubmittingNewPost] = useState(false);
+  const [postToast, setPostToast] = useState<string | null>(null);
+  const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
+
+  // Calibration Desk preview states
+  const [publicGlasses, setPublicGlasses] = useState(() => parseInt(localStorage.getItem("alexfit_public_hydration") || "4"));
+  const [publicCaloriesIn, setPublicCaloriesIn] = useState(2000);
+  const [publicCaloriesOut, setPublicCaloriesOut] = useState(2500);
+  const [publicRemTime, setPublicRemTime] = useState(() => localStorage.getItem("alexfit_public_reminder_time") || "08:00");
+  const [calibrationToast, setCalibrationToast] = useState<string | null>(null);
+
+  // Daily Habit Tracker preview states
+  const [publicHabits, setPublicHabits] = useState<any[]>([
+    { id: "h1", name: "Lemon & Cucumber Hydration Protocol", desc: "Consumed at least 8 glasses of cucumber/lemon ambient water", done: false },
+    { id: "h2", name: "Lean Protein Target", desc: "Secure 1.6g to 2.2g of high quality protein per kg of body weight", done: false },
+    { id: "h3", name: "8 Hours Growth Sleep", desc: "Optimal sleep hygiene for nocturnal growth hormone release", done: false },
+    { id: "h4", name: "Daily Core Conditioning", desc: "Completed 5-10 minute specialized kinetic abdominal strengthening", done: false },
+    { id: "h5", name: "Post-Workout Eccentric Stretch", desc: "3-5 sets of passive active stretch to release tissue micro-tears", done: false }
+  ]);
+  const [streakCount, setStreakCount] = useState(() => parseInt(localStorage.getItem("alexfit_public_streak") || "3"));
+  const [habitToast, setHabitToast] = useState<string | null>(null);
+
+  // Weight Trajectory state sync
+  useEffect(() => {
+    if (user && weightLogs && weightLogs.length > 0) {
+      setLocalWeightLogs(weightLogs);
+    } else {
+      const saved = localStorage.getItem("alexfit_public_weight_logs");
+      if (saved) {
+        setLocalWeightLogs(JSON.parse(saved));
+      } else {
+        const defaultLogs = [
+          { date: "07/15", weight: 85.2 },
+          { date: "07/16", weight: 84.8 },
+          { date: "07/17", weight: 84.1 },
+          { date: "07/18", weight: 83.5 },
+          { date: "07/19", weight: 82.9 },
+          { date: "07/20", weight: 82.2 }
+        ];
+        setLocalWeightLogs(defaultLogs);
+        localStorage.setItem("alexfit_public_weight_logs", JSON.stringify(defaultLogs));
+      }
+    }
+  }, [user, weightLogs]);
+
+  // Community posts state sync
+  useEffect(() => {
+    if (communityPosts && communityPosts.length > 0) {
+      setLocalPosts(communityPosts.filter(p => p.status === "active").slice(0, 5));
+    }
+  }, [communityPosts]);
+
+  // Weight Logging action
+  const handlePublicWeightSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const parsed = parseFloat(publicNewWeight);
+    if (isNaN(parsed) || parsed <= 30 || parsed >= 250) {
+      alert("Please specify a valid biometric weight value (30kg - 250kg).");
+      return;
+    }
+
+    setSubmittingPublicWeight(true);
+    try {
+      if (user && addWeightLogAction) {
+        await addWeightLogAction(parsed);
+        setWeightToast("Successfully logged weight checkpoint to Firebase!");
+      } else {
+        const todayStr = new Date().toLocaleDateString(undefined, { month: '2-digit', day: '2-digit' });
+        const newLog = { date: todayStr, weight: parsed };
+        const updated = [...localWeightLogs, newLog].slice(-10);
+        setLocalWeightLogs(updated);
+        localStorage.setItem("alexfit_public_weight_logs", JSON.stringify(updated));
+        setWeightToast("Saved to browser preview! Sign In to persist on Cloud Run.");
+      }
+      setPublicNewWeight("");
+      setTimeout(() => setWeightToast(null), 4000);
+    } catch (err) {
+      console.warn("Could not submit weight log:", err);
+    } finally {
+      setSubmittingPublicWeight(false);
+    }
+  };
+
+  // Community post submit action
+  const handlePublicPostSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPostContent.trim()) return;
+
+    setIsSubmittingNewPost(true);
+    try {
+      if (user && addCommunityPost) {
+        await addCommunityPost(newPostContent, "General Discussion");
+        setPostToast("Post shared with the whole community!");
+      } else {
+        const tempId = `temp_post_${Date.now()}`;
+        const newPostItem = {
+          id: tempId,
+          userDisplayName: "Visitor Pro",
+          content: newPostContent,
+          category: "General Discussion",
+          createdAt: new Date().toISOString(),
+          likes: [],
+          comments: [],
+          status: "active"
+        };
+        const updated = [newPostItem, ...localPosts];
+        setLocalPosts(updated);
+        setPostToast("Shared to local preview! Sign In to post publicly.");
+      }
+      setNewPostContent("");
+      setTimeout(() => setPostToast(null), 4000);
+    } catch (err) {
+      console.warn("Error posting:", err);
+    } finally {
+      setIsSubmittingNewPost(false);
+    }
+  };
+
+  // Community like action
+  const handlePublicLike = async (postId: string) => {
+    if (user && likePost) {
+      try {
+        await likePost(postId);
+      } catch (err) {
+        console.warn("Could not like post:", err);
+      }
+    } else {
+      setLocalPosts(prev => prev.map(p => {
+        if (p.id === postId) {
+          const hasLiked = p.likes.includes("visitor_temp_uid");
+          const nextLikes = hasLiked 
+            ? p.likes.filter((id: string) => id !== "visitor_temp_uid")
+            : [...p.likes, "visitor_temp_uid"];
+          return { ...p, likes: nextLikes };
+        }
+        return p;
+      }));
+      setPostToast("Liked! Sign In to persist your engagement.");
+      setTimeout(() => setPostToast(null), 3000);
+    }
+  };
+
+  // Community comment action
+  const handlePublicComment = async (postId: string, e: React.FormEvent) => {
+    e.preventDefault();
+    const commentText = commentInputs[postId];
+    if (!commentText || !commentText.trim()) return;
+
+    if (user && commentOnPost) {
+      try {
+        await commentOnPost(postId, commentText);
+        setCommentInputs(prev => ({ ...prev, [postId]: "" }));
+        setPostToast("Comment added successfully!");
+      } catch (err) {
+        console.warn("Could not comment on post:", err);
+      }
+    } else {
+      setLocalPosts(prev => prev.map(p => {
+        if (p.id === postId) {
+          const newComment = {
+            id: `temp_comm_${Date.now()}`,
+            userDisplayName: "Visitor Pro",
+            content: commentText,
+            createdAt: new Date().toISOString()
+          };
+          return { ...p, comments: [...p.comments, newComment] };
+        }
+        return p;
+      }));
+      setCommentInputs(prev => ({ ...prev, [postId]: "" }));
+      setPostToast("Comment added to preview! Sign In to sync.");
+    }
+    setTimeout(() => setPostToast(null), 3500);
+  };
+
+  // Calibration water incrementer
+  const handlePublicGlassChange = (diff: number) => {
+    const next = Math.max(0, publicGlasses + diff);
+    setPublicGlasses(next);
+    localStorage.setItem("alexfit_public_hydration", String(next));
+    if (next >= 10) {
+      setCalibrationToast("⭐ Hydration targets fully met! Perfect cellular water balance.");
+      setTimeout(() => setCalibrationToast(null), 4000);
+    }
+  };
+
+  // Calibration time reminder
+  const savePublicReminder = (time: string) => {
+    setPublicRemTime(time);
+    localStorage.setItem("alexfit_public_reminder_time", time);
+    setCalibrationToast("⏰ Reminder scheduled successfully! Alert system initialized.");
+    setTimeout(() => setCalibrationToast(null), 3500);
+  };
+
+  // Habits checkbox toggle
+  const togglePublicHabit = (id: string) => {
+    const updated = publicHabits.map(h => {
+      if (h.id === id) {
+        return { ...h, done: !h.done };
+      }
+      return h;
+    });
+    setPublicHabits(updated);
+    
+    const allChecked = updated.every(h => h.done);
+    if (allChecked) {
+      const nextStreak = streakCount + 1;
+      setStreakCount(nextStreak);
+      localStorage.setItem("alexfit_public_streak", String(nextStreak));
+      setHabitToast(`🏆 Compliance 100%! Growth streak increased to ${nextStreak} Days!`);
+    } else {
+      setHabitToast(null);
+    }
+  };
 
   // Sort the verified user reviews according to their name gender
   const sortedVerifiedReviews = React.useMemo(() => {
@@ -1887,6 +2151,572 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
         </motion.div>
       </section>
 
+      {/* PUBLIC INTERACTIVE PREVIEW HUB: DYNAMIC ATHLETE DESK */}
+      <section id="public-live-desk" className="py-24 bg-background border-b border-border relative overflow-hidden">
+        {/* Ambient background blur */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#D32F2F]/5 rounded-full filter blur-3xl pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
+            <span className="text-[10px] font-sans font-black tracking-[0.2em] text-[#D32F2F] uppercase block">
+              LIVE PREVIEW PLAYGROUND
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-display font-black tracking-tight text-slate-900 dark:text-white uppercase">
+              INTERACTIVE <span className="text-[#D32F2F]">ATHLETE WORKSPACE</span>
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 max-w-xl mx-auto leading-relaxed font-sans font-medium">
+              Test drive the core features of the premium AlexFitnessHub platform. Monitor kinesiologist weight charts, explore community boards, check calibrations, and log habits.
+            </p>
+            <div className="h-1 w-16 bg-[#D32F2F] mx-auto mt-3" />
+          </div>
+
+          {/* Tab Selection Row */}
+          <div className="flex flex-wrap justify-center gap-2 max-w-2xl mx-auto mb-12 p-1.5 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800 shadow-inner">
+            {[
+              { id: "trajectory", label: "Weight Trajectory", icon: Scale, desc: "Biometric slopes" },
+              { id: "community", label: "Community Feed", icon: Users, desc: "Live social board" },
+              { id: "calibration", label: "Calibration Desk", icon: Clock, desc: "Physiological vitals" },
+              { id: "habits", label: "Habit Tracker", icon: CheckCircle, desc: "Routine compliance" }
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeDemoTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveDemoTab(tab.id as any)}
+                  className={`flex-1 min-w-[130px] flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-sans font-black text-[10px] uppercase tracking-wider transition-all duration-250 cursor-pointer border-0 ${
+                    isActive 
+                      ? "bg-white dark:bg-slate-800 text-[#D32F2F] shadow-md" 
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-transparent"
+                  }`}
+                >
+                  <Icon className="w-4 h-4 shrink-0" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* ACTIVE TAB CONTENT BOX */}
+          <div className="bg-card rounded-[2.5rem] border border-border p-6 sm:p-10 lg:p-12 shadow-xl relative max-w-5xl mx-auto">
+            {activeDemoTab === "trajectory" && (
+              <div className="space-y-8 animate-fade-in" id="public-weight-trajectory">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div>
+                    <h3 className="text-xl font-sans font-black uppercase text-slate-900 dark:text-white">
+                      Weight Recomposition <span className="text-[#D32F2F]">Trajectory Index</span>
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      Plot your absolute biometric checkpoints, monitor recomposition slopes, and map target weights dynamically.
+                    </p>
+                  </div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                    LIVE PLOT MODEL ACTIVE
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {/* Visual SVG Trajectory Trend (Last 6 Checkpoints) */}
+                  <div className="lg:col-span-2 p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-900/60 shadow-inner space-y-4">
+                    <h4 className="text-xs font-sans font-black text-slate-400 uppercase tracking-wider">Weight Slope Calibration Chart</h4>
+                    
+                    {localWeightLogs.length > 1 ? (
+                      <div className="relative w-full overflow-hidden">
+                        {/* SVG Custom Line Graph */}
+                        {(() => {
+                          const displayLogs = localWeightLogs.slice(-6);
+                          const minW = Math.min(...displayLogs.map(l => l.weight)) - 1;
+                          const maxW = Math.max(...displayLogs.map(l => l.weight)) + 1;
+                          const diffW = maxW - minW || 1;
+                          const width = 480;
+                          const height = 180;
+                          const padding = 25;
+
+                          const points = displayLogs.map((l, i) => {
+                            const x = padding + (i / (displayLogs.length - 1 || 1)) * (width - 2 * padding);
+                            const y = height - padding - ((l.weight - minW) / diffW) * (height - 2 * padding);
+                            return { x, y, weight: l.weight, date: l.date };
+                          });
+
+                          const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(" ");
+                          const areaPath = points.length > 0 
+                            ? `${linePath} L ${points[points.length - 1].x} ${height - padding} L ${points[0].x} ${height - padding} Z` 
+                            : "";
+
+                          return (
+                            <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto text-slate-350 overflow-visible">
+                              {[0, 0.25, 0.5, 0.75, 1].map((val, idx) => {
+                                const y = padding + val * (height - 2 * padding);
+                                const wVal = (maxW - val * diffW).toFixed(1);
+                                return (
+                                  <g key={idx}>
+                                    <line x1={padding} y1={y} x2={width - padding} y2={y} stroke="currentColor" strokeWidth="0.5" strokeDasharray="3 3" className="text-slate-200 dark:text-slate-800" />
+                                    <text x={padding - 5} y={y + 3} textAnchor="end" className="text-[8px] font-mono font-bold fill-slate-400">{wVal}</text>
+                                  </g>
+                                );
+                              })}
+
+                              <path d={areaPath} fill="url(#gradAreaPublic)" />
+                              <path d={linePath} fill="none" stroke="#D32F2F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+
+                              {points.map((p, idx) => (
+                                <g key={idx} className="group cursor-pointer">
+                                  <circle cx={p.x} cy={p.y} r="4.5" fill="#D32F2F" stroke="white" strokeWidth="2" />
+                                  <text x={p.x} y={p.y - 8} textAnchor="middle" className="text-[8px] font-mono font-black fill-slate-800 dark:fill-white">{p.weight}kg</text>
+                                  <text x={p.x} y={height - 8} textAnchor="middle" className="text-[7px] font-mono font-bold fill-slate-400">{p.date}</text>
+                                </g>
+                              ))}
+
+                              <defs>
+                                <linearGradient id="gradAreaPublic" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="0%" stopColor="#D32F2F" stopOpacity="0.18" />
+                                  <stop offset="100%" stopColor="#D32F2F" stopOpacity="0.0" />
+                                </linearGradient>
+                              </defs>
+                            </svg>
+                          );
+                        })()}
+                      </div>
+                    ) : (
+                      <div className="py-12 text-center text-slate-450">
+                        <Scale className="w-8 h-8 text-slate-300 mx-auto mb-2 animate-bounce" />
+                        <p className="text-[10px] font-sans font-bold uppercase tracking-wider">Awaiting weight logs</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Weight checkpoint Submission Panel */}
+                  <div className="flex flex-col justify-between p-6 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-900/60 shadow-inner">
+                    <div className="space-y-4">
+                      <h4 className="text-xs font-sans font-black text-slate-400 uppercase tracking-wider">Biometric Checkpoint</h4>
+                      <p className="text-[11px] text-slate-500 leading-relaxed font-medium">
+                        Input your current body weight to calibrate the trajectory graph. Changes are modeled immediately on the preview chart.
+                      </p>
+                      <form onSubmit={handlePublicWeightSubmit} className="space-y-3">
+                        <div className="relative">
+                          <input 
+                            type="number" 
+                            step="0.1"
+                            value={publicNewWeight}
+                            onChange={(e) => setPublicNewWeight(e.target.value)}
+                            placeholder="e.g. 82.5" 
+                            className="w-full pl-4 pr-12 py-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-sm font-bold focus:outline-none focus:border-[#D32F2F]"
+                          />
+                          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-slate-400 uppercase">KG</span>
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={submittingPublicWeight}
+                          className="w-full py-3 bg-[#D32F2F] hover:bg-[#B71C1C] text-white font-sans font-black text-[10px] uppercase tracking-wider rounded-xl transition shadow-md cursor-pointer border-0"
+                        >
+                          {submittingPublicWeight ? "Logging Metric..." : "Log Weight Checkpoint"}
+                        </button>
+                      </form>
+                    </div>
+
+                    {weightToast && (
+                      <div className="mt-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/15 text-[10px] text-emerald-600 dark:text-emerald-400 font-bold leading-normal text-center animate-fade-in">
+                        {weightToast}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeDemoTab === "community" && (
+              <div className="space-y-8 animate-fade-in" id="public-community">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div>
+                    <h3 className="text-xl font-sans font-black uppercase text-slate-900 dark:text-white">
+                      AlexFitnessHub Live <span className="text-[#D32F2F]">Community Feed</span>
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      Read dynamic transformation logs, share lifting results, and check active discussions with fellow athletes.
+                    </p>
+                  </div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#D32F2F]/10 border border-[#D32F2F]/20 rounded-full text-[10px] font-mono font-bold text-[#D32F2F] uppercase tracking-wider">
+                    <span className="w-2 h-2 rounded-full bg-[#D32F2F] animate-ping" />
+                    LIVE SOCIAL BRIDGE ENGAGED
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {/* Create New Post Form */}
+                  <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-900/60 shadow-inner flex flex-col justify-between h-fit">
+                    <div className="space-y-4">
+                      <h4 className="text-xs font-sans font-black text-slate-400 uppercase tracking-wider">Share an Achievement</h4>
+                      <p className="text-[11px] text-slate-500 leading-relaxed font-medium">
+                        What did you train today? Share a lifting achievement or ask the community a physiological question.
+                      </p>
+                      <form onSubmit={handlePublicPostSubmit} className="space-y-3">
+                        <textarea 
+                          value={newPostContent}
+                          onChange={(e) => setNewPostContent(e.target.value)}
+                          placeholder="My Bench Press is up 5kg today! Thanks to the 12-30-3 protocol..." 
+                          rows={3}
+                          className="w-full p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-medium focus:outline-none focus:border-[#D32F2F] resize-none"
+                        />
+                        <button
+                          type="submit"
+                          disabled={isSubmittingNewPost}
+                          className="w-full py-3 bg-[#D32F2F] hover:bg-[#B71C1C] text-white font-sans font-black text-[10px] uppercase tracking-wider rounded-xl transition shadow-md cursor-pointer border-0"
+                        >
+                          {isSubmittingNewPost ? "Publishing..." : "Publish Post"}
+                        </button>
+                      </form>
+                    </div>
+
+                    {postToast && (
+                      <div className="mt-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/15 text-[10px] text-emerald-600 dark:text-emerald-400 font-bold leading-normal text-center animate-fade-in">
+                        {postToast}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Active Posts Feed */}
+                  <div className="lg:col-span-2 space-y-4 max-h-[420px] overflow-y-auto pr-2 scrollbar-thin">
+                    {localPosts.length > 0 ? (
+                      localPosts.map((post) => {
+                        const hasLiked = post.likes?.includes("visitor_temp_uid") || (user && post.likes?.includes(user.uid));
+                        return (
+                          <div 
+                            key={post.id} 
+                            className="p-5 bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-900/40 rounded-2xl shadow-sm space-y-3 animate-fade-in"
+                          >
+                            <div className="flex justify-between items-center">
+                              <div className="flex items-center gap-2.5">
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-slate-700 to-slate-900 text-white font-sans font-black text-[10px] uppercase flex items-center justify-center shadow-inner">
+                                  {post.userDisplayName ? post.userDisplayName.substring(0, 2).toUpperCase() : "VP"}
+                                </div>
+                                <div>
+                                  <div className="text-xs font-black uppercase text-slate-900 dark:text-white leading-none">
+                                    {post.userDisplayName}
+                                  </div>
+                                  <span className="text-[8px] font-mono text-slate-400">
+                                    {new Date(post.createdAt).toLocaleDateString(undefined, { hour: "2-digit", minute:"2-digit" })}
+                                  </span>
+                                </div>
+                              </div>
+                              <span className="text-[8px] font-mono font-black uppercase px-2 py-0.5 bg-slate-100 dark:bg-slate-900 rounded text-slate-500 border border-slate-200/50 dark:border-slate-800/50">
+                                {post.category || "General"}
+                              </span>
+                            </div>
+
+                            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-sans whitespace-pre-wrap break-words">
+                              {post.content}
+                            </p>
+
+                            {post.imageUrl && (
+                              <div className="w-full max-h-48 rounded-xl overflow-hidden border border-slate-150 dark:border-slate-900 shadow-sm">
+                                <img src={post.imageUrl} alt="Uploaded progress" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                              </div>
+                            )}
+
+                            {/* Likes and comments display */}
+                            <div className="flex items-center gap-4 pt-2 border-t border-slate-200/50 dark:border-slate-900/40 text-[10px] font-mono">
+                              <button 
+                                onClick={() => handlePublicLike(post.id)}
+                                className={`flex items-center gap-1 cursor-pointer transition bg-transparent border-0 ${hasLiked ? 'text-red-500 font-bold' : 'text-slate-400 hover:text-red-500'}`}
+                              >
+                                <Heart className={`w-4 h-4 ${hasLiked ? 'fill-red-500 text-red-500' : ''}`} />
+                                <span>{post.likes?.length || 0} Likes</span>
+                              </button>
+                              <span className="text-slate-400">{post.comments?.length || 0} Comments</span>
+                            </div>
+
+                            {/* Comment thread list */}
+                            {post.comments && post.comments.length > 0 && (
+                              <div className="space-y-2 mt-2 bg-slate-100 dark:bg-slate-900/40 p-3 rounded-xl border border-slate-200/40 dark:border-slate-850/40">
+                                {post.comments.slice(0, 3).map((comm: any, idx: number) => (
+                                  <div key={idx} className="text-[10px] leading-relaxed">
+                                    <strong className="text-slate-850 dark:text-white uppercase font-black mr-1">{comm.userDisplayName}</strong>
+                                    <span className="text-slate-600 dark:text-slate-400 font-sans break-words">{comm.content}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Add comment inline */}
+                            <form onSubmit={(e) => handlePublicComment(post.id, e)} className="flex gap-2 pt-1">
+                              <input 
+                                type="text"
+                                placeholder="Type a response..."
+                                value={commentInputs[post.id] || ""}
+                                onChange={(e) => setCommentInputs(prev => ({ ...prev, [post.id]: e.target.value }))}
+                                className="flex-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs focus:outline-none focus:border-[#D32F2F]"
+                              />
+                              <button 
+                                type="submit"
+                                className="px-3 bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 text-white font-sans font-black text-[9px] uppercase tracking-wider rounded-xl cursor-pointer transition border-0"
+                              >
+                                Send
+                              </button>
+                            </form>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="py-12 text-center text-slate-450 border border-dashed border-slate-150 dark:border-slate-900 rounded-2xl">
+                        <MessageCircle className="w-8 h-8 text-slate-350 dark:text-slate-700 mx-auto mb-2 animate-pulse" />
+                        <p className="text-[10px] font-sans font-bold uppercase tracking-wider">Feed is loading...</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeDemoTab === "calibration" && (
+              <div className="space-y-8 animate-fade-in" id="public-calibration">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div>
+                    <h3 className="text-xl font-sans font-black uppercase text-slate-900 dark:text-white">
+                      Physiological <span className="text-[#D32F2F]">Calibration Desk</span>
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      Fine-tune metabolic multipliers, balance cellular hydration, and schedule active workout alerts.
+                    </p>
+                  </div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full text-[10px] font-mono font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                    <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                    METRICS CALIBRATED
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Hydration Tracker Card */}
+                  <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-900/60 shadow-inner space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-sans font-black text-slate-400 uppercase tracking-wider">Hydration Protocol</h4>
+                      <Droplet className="w-5 h-5 text-blue-500 fill-blue-500/20" />
+                    </div>
+                    <div className="space-y-3 text-center">
+                      <div className="text-3xl font-sans font-black text-slate-850 dark:text-white font-mono">
+                        {publicGlasses} <span className="text-xs text-slate-400">/ 10 glasses</span>
+                      </div>
+                      
+                      {/* Water Meter Progress bar */}
+                      <div className="w-full bg-slate-200 dark:bg-slate-900 h-2.5 rounded-full overflow-hidden">
+                        <div 
+                          className="bg-blue-500 h-full transition-all duration-300" 
+                          style={{ width: `${Math.min(100, (publicGlasses / 10) * 100)}%` }} 
+                        />
+                      </div>
+
+                      <p className="text-[9px] text-slate-500 leading-relaxed font-medium">
+                        Includes lemon infusion & cucumber mineral rounds to secure optimum glycogen re-synthesis.
+                      </p>
+
+                      <div className="flex gap-2 justify-center pt-2">
+                        <button 
+                          onClick={() => handlePublicGlassChange(-1)}
+                          className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-xs font-bold bg-white dark:bg-slate-900 hover:bg-slate-100 transition cursor-pointer"
+                        >
+                          -1 Glass
+                        </button>
+                        <button 
+                          onClick={() => handlePublicGlassChange(1)}
+                          className="px-3.5 py-1.5 rounded-lg bg-blue-500 text-white text-xs font-bold hover:bg-blue-600 transition cursor-pointer shadow-sm border-0"
+                        >
+                          +1 Glass
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Deficit Calorie Calibration Slider */}
+                  <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-900/60 shadow-inner space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-sans font-black text-slate-400 uppercase tracking-wider">Calorie Deficit Slider</h4>
+                      <Flame className="w-5 h-5 text-orange-500 fill-orange-500/20" />
+                    </div>
+                    <div className="space-y-4 font-sans text-xs">
+                      {/* Intake Slider */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between font-bold">
+                          <span className="text-slate-500">Intake Calibration:</span>
+                          <span className="font-mono text-slate-800 dark:text-white">{publicCaloriesIn} kcal</span>
+                        </div>
+                        <input 
+                          type="range" 
+                          min="1200" 
+                          max="3500" 
+                          step="50"
+                          value={publicCaloriesIn}
+                          onChange={(e) => setPublicCaloriesIn(parseInt(e.target.value))}
+                          className="w-full accent-orange-500 cursor-pointer h-1.5 bg-slate-200 dark:bg-slate-900 rounded-lg appearance-none"
+                        />
+                      </div>
+
+                      {/* Burn Slider */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between font-bold">
+                          <span className="text-slate-500">Active Metabolic Rate:</span>
+                          <span className="font-mono text-emerald-500">{publicCaloriesOut} kcal</span>
+                        </div>
+                        <input 
+                          type="range" 
+                          min="1500" 
+                          max="4000" 
+                          step="50"
+                          value={publicCaloriesOut}
+                          onChange={(e) => setPublicCaloriesOut(parseInt(e.target.value))}
+                          className="w-full accent-emerald-500 cursor-pointer h-1.5 bg-slate-200 dark:bg-slate-900 rounded-lg appearance-none"
+                        />
+                      </div>
+
+                      {/* Calorie Balance net result */}
+                      {(() => {
+                        const balance = publicCaloriesOut - publicCaloriesIn;
+                        return (
+                          <div className="border-t border-slate-200 dark:border-slate-900 pt-3 flex justify-between items-center">
+                            <span className="text-[10px] font-sans font-black text-slate-400 uppercase tracking-wider">NET DEFICIT BALANCE</span>
+                            <span className={`text-sm font-mono font-black ${balance >= 400 ? 'text-emerald-500' : 'text-orange-500'}`}>
+                              {balance} kcal
+                            </span>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+
+                  {/* Reminder Alarm Clock */}
+                  <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-900/60 shadow-inner space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-sans font-black text-slate-400 uppercase tracking-wider">Compliance Alarm</h4>
+                      <Clock className="w-5 h-5 text-[#D32F2F]" />
+                    </div>
+                    <div className="space-y-4 text-center">
+                      <p className="text-[11px] text-slate-500 leading-relaxed font-medium">
+                        Configure kinesiologist check-in times. Active alerts prompt you with direct structural notifications.
+                      </p>
+                      <div className="flex items-center justify-center gap-3">
+                        <input 
+                          type="time" 
+                          value={publicRemTime}
+                          onChange={(e) => savePublicReminder(e.target.value)}
+                          className="p-2 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-xl text-sm font-mono font-bold focus:outline-none focus:border-[#D32F2F] text-center"
+                        />
+                        <span className="text-xs text-slate-450 uppercase font-black">Daily Clock</span>
+                      </div>
+                      <div className="text-[9px] text-emerald-500 font-black tracking-wider uppercase bg-emerald-500/10 border border-emerald-500/15 py-1.5 rounded-lg">
+                        ALERT CONTROLLER ACTIVE
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {calibrationToast && (
+                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/15 text-[10px] text-emerald-600 dark:text-emerald-400 font-bold text-center animate-fade-in">
+                    {calibrationToast}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeDemoTab === "habits" && (
+              <div className="space-y-8 animate-fade-in" id="public-habit-tracker">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div>
+                    <h3 className="text-xl font-sans font-black uppercase text-slate-900 dark:text-white">
+                      AlexFitnessHub Daily <span className="text-[#D32F2F]">Habit Tracker</span>
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      Check off essential biometric habits daily. Securing compliance increments your streak and locks in muscle recovery.
+                    </p>
+                  </div>
+                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#D32F2F]/10 rounded-full text-xs font-black text-[#D32F2F] uppercase tracking-wider">
+                    <Activity className="w-4 h-4 text-[#D32F2F] shrink-0" />
+                    <span>Active Streak: {streakCount} Days</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                  {/* Habits Checklist */}
+                  <div className="lg:col-span-8 space-y-3">
+                    {publicHabits.map((habit) => (
+                      <div 
+                        key={habit.id}
+                        onClick={() => togglePublicHabit(habit.id)}
+                        className={`p-4 rounded-xl border transition-all duration-200 cursor-pointer flex items-center justify-between gap-4 ${
+                          habit.done 
+                            ? 'bg-emerald-500/5 border-emerald-500/20 text-slate-800 dark:text-slate-200' 
+                            : 'bg-slate-50 dark:bg-slate-950 border-slate-150 dark:border-slate-900/60 text-slate-700 dark:text-slate-300 hover:bg-slate-100/50 dark:hover:bg-slate-900/50'
+                        }`}
+                      >
+                        <div className="space-y-1">
+                          <p className="text-xs font-black uppercase tracking-tight leading-none">{habit.name}</p>
+                          <p className="text-[10px] text-slate-450 leading-relaxed font-medium">{habit.desc}</p>
+                        </div>
+                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${
+                          habit.done ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900'
+                        }`}>
+                          {habit.done && <CheckCircle className="w-3.5 h-3.5 text-white stroke-[3px]" />}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Habit Metrics Stats Panel */}
+                  <div className="lg:col-span-4 p-6 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-900/60 shadow-inner space-y-4 text-center">
+                    <h4 className="text-xs font-sans font-black text-slate-400 uppercase tracking-wider">Streak Level Metric</h4>
+                    
+                    {/* Ring Radial progress circle */}
+                    {(() => {
+                      const completedCount = publicHabits.filter(h => h.done).length;
+                      const percent = Math.round((completedCount / publicHabits.length) * 100);
+                      return (
+                        <div className="space-y-4">
+                          <div className="relative w-32 h-32 mx-auto flex items-center justify-center">
+                            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                              <path
+                                className="text-slate-200 dark:text-slate-800"
+                                strokeWidth="3"
+                                stroke="currentColor"
+                                fill="none"
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                              />
+                              <path
+                                className="text-emerald-500 transition-all duration-500"
+                                strokeWidth="3"
+                                strokeDasharray={`${percent}, 100`}
+                                strokeLinecap="round"
+                                stroke="currentColor"
+                                fill="none"
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                              />
+                            </svg>
+                            <div className="absolute flex flex-col items-center justify-center">
+                              <span className="text-2xl font-sans font-black text-slate-800 dark:text-white font-mono">{percent}%</span>
+                              <span className="text-[8px] font-sans font-black text-slate-400 uppercase tracking-widest">Compliance</span>
+                            </div>
+                          </div>
+
+                          <p className="text-[10px] text-slate-500 font-semibold leading-relaxed">
+                            {completedCount === publicHabits.length 
+                              ? "Excellent! Perfect compliance locks in 24h anabolic recovery." 
+                              : `Completed ${completedCount} out of ${publicHabits.length} daily habits. Securing the remaining habits locks in streak protection.`
+                            }
+                          </p>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+
+                {habitToast && (
+                  <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/15 text-xs text-emerald-600 dark:text-emerald-400 font-bold text-center animate-fade-in">
+                    {habitToast}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
       {/* 5. PRICING PLANS */}
       <section id="pricing" className="py-24 bg-secondary border-b border-border transition-colors duration-300">
         <motion.div
@@ -1950,7 +2780,10 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
             {/* TIER 1: MONTHLY */}
             <motion.div 
               whileHover={{ y: -4, scale: 1.01 }}
-              onClick={() => setSelectedPlan("monthly")}
+              onClick={() => {
+                setSelectedPlan("monthly");
+                scrollToCheckout();
+              }}
               className={`p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border flex flex-col justify-between cursor-pointer transition-all duration-350 relative ${
                 selectedPlan === "monthly" 
                   ? "border-2 border-[#D32F2F] ring-4 ring-red-500/10 shadow-lg" 
@@ -1997,7 +2830,10 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
             {/* TIER 2: VOLUME SELECTION (2 - 6 Months) */}
             <motion.div 
               whileHover={{ y: -4, scale: 1.01 }}
-              onClick={() => setSelectedPlan("volume")}
+              onClick={() => {
+                setSelectedPlan("volume");
+                scrollToCheckout();
+              }}
               className={`p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border flex flex-col justify-between cursor-pointer transition-all duration-350 relative ${
                 selectedPlan === "volume" 
                   ? "border-2 border-[#D32F2F] ring-4 ring-red-500/10 shadow-lg animate-[pulse-glow_2s_infinite]" 
@@ -2119,7 +2955,10 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
             {/* TIER 3: ANNUAL PLAN */}
             <motion.div 
               whileHover={{ y: -4, scale: 1.01 }}
-              onClick={() => setSelectedPlan("annual")}
+              onClick={() => {
+                setSelectedPlan("annual");
+                scrollToCheckout();
+              }}
               className={`p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border flex flex-col justify-between cursor-pointer transition-all duration-350 relative ${
                 selectedPlan === "annual" 
                   ? "border-2 border-[var(--accent-gold)] ring-4 ring-yellow-500/10 shadow-lg" 
@@ -2216,7 +3055,7 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
             </div>
 
             {/* Right: Dynamic Billing Summary & Paystack Action */}
-            <div className="lg:col-span-5 bg-slate-50 dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 space-y-4">
+            <div id="activate-premium-access-section" className="lg:col-span-5 bg-slate-50 dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 space-y-4">
               <div>
                 <span className="text-[8px] font-mono font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded uppercase">
                   ✓ SECURE SUBSCRIPTION CHECKOUT

@@ -10,6 +10,11 @@ export default function OnboardingWizard() {
   const [step, setStep] = useState(1);
   const totalSteps = 6;
 
+  // Scroll to top smoothly whenever onboarding step changes
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [step]);
+
   // Onboarding states
   const [gender, setGender] = useState("Male");
   const [age, setAge] = useState("25");

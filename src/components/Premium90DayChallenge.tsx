@@ -196,6 +196,12 @@ export default function Premium90DayChallenge() {
   const isPremiumUser = user?.subscriptionStatus === "premium" || user?.role === "admin";
 
   const [activeSubTab, setActiveSubTab] = useState<"workout" | "analytics" | "badges" | "measurements" | "certificate">("workout");
+
+  // Scroll to top smoothly when challenge active sub-tab changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [activeSubTab]);
+
   const [loadingDb, setLoadingDb] = useState(false);
   const [dbState, setDbState] = useState<Premium90DayState | null>(null);
 

@@ -20,6 +20,11 @@ export default function CoachView() {
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<"chat" | "lifestyle" | "art">("lifestyle"); // Default to the premium lifestyle hub to showcase this beautiful new feature!
   
+  // Smoothly scroll to the top of the viewport whenever the active tab changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [activeTab]);
+  
   // Lookup central exercises to retrieve their unique IDs and media
   const ex1 = exercises.find(ex => ex.name.toLowerCase() === "hanging knee-to-chest / leg raises");
   const ex2 = exercises.find(ex => ex.name.toLowerCase() === "high-intensity dumbbell thrusters");

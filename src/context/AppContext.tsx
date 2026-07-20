@@ -52,8 +52,8 @@ interface AppContextType {
   // Auth Functions
   loginWithGoogle: () => Promise<void>;
   loginWithApple: () => Promise<void>;
-  signUpEmail: (email: string, pass: string, name: string) => Promise<void>;
-  loginEmail: (email: string, pass: string) => Promise<void>;
+  signUpEmail: (email: string, pass: string, name: string, remember?: boolean) => Promise<void>;
+  loginEmail: (email: string, pass: string, remember?: boolean) => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
   logout: () => Promise<void>;
   

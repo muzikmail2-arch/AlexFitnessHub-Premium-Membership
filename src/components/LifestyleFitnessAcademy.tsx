@@ -601,8 +601,7 @@ export default function LifestyleFitnessAcademy() {
     // Try a broad substring or reciprocal inclusion search
     const found = exercises.find(ex => 
       ex.name.toLowerCase().includes(targetLower) || 
-      targetLower.includes(ex.name.toLowerCase()) ||
-      (ex.displayName && ex.displayName.toLowerCase().includes(targetLower))
+      targetLower.includes(ex.name.toLowerCase())
     );
     if (found) return found.name;
 

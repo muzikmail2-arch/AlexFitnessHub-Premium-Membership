@@ -30,6 +30,38 @@ export const TestimonialAdminManager: React.FC = () => {
 
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState("");
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setUploadProgress("Preparing upload...");
+
+    try {
+      const { ref, uploadBytes, getDownloadURL } = await import("firebase/storage");
+      const { storage } = await import("../lib/firebase");
+      
+      const fileRef = ref(storage, `testimonials/${Date.now()}_${file.name}`);
+      setUploadProgress("Uploading file...");
+      const snapshot = await uploadBytes(fileRef, file);
+      
+      setUploadProgress("Getting download URL...");
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      
+      setAvatar(downloadURL);
+      setUploadProgress("Upload successful!");
+      setTimeout(() => setUploadProgress(""), 2000);
+    } catch (error: any) {
+      console.error("Storage upload error:", error);
+      setErrorMsg("Failed to upload to Firebase Storage: " + (error.message || error));
+      setUploadProgress("");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const resetForm = () => {
     setName("");
@@ -388,15 +420,34 @@ export const TestimonialAdminManager: React.FC = () => {
 
               <div className="space-y-1">
                 <label className="font-bold text-slate-700 dark:text-slate-300">
-                  Profile Photo URL <span className="font-normal text-slate-400">(Unsplash, raw link, or leave blank to auto-generate initials)</span>
+                  Profile Photo URL <span className="font-normal text-slate-400">(Unsplash, raw link, or upload file)</span>
                 </label>
-                <input
-                  type="url"
-                  value={avatar}
-                  onChange={(e) => setAvatar(e.target.value)}
-                  placeholder="https://images.unsplash.com/photo-..."
-                  className="w-full p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-950 dark:text-white focus:outline-none focus:border-emerald-500"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={avatar}
+                    onChange={(e) => setAvatar(e.target.value)}
+                    placeholder="https://images.unsplash.com/photo-..."
+                    className="flex-1 p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-950 dark:text-white focus:outline-none focus:border-emerald-500"
+                  />
+                  <label className="cursor-pointer bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 hover:border-emerald-300 font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center shrink-0 transition-all active:scale-95">
+                    {uploading ? (
+                      <span className="animate-pulse">Uploading...</span>
+                    ) : (
+                      <span>Upload to Storage</span>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*,image/gif"
+                      className="hidden"
+                      onChange={handleAvatarUpload}
+                      disabled={uploading}
+                    />
+                  </label>
+                </div>
+                {uploadProgress && (
+                  <p className="text-[10px] font-mono text-emerald-600 mt-1">{uploadProgress}</p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">

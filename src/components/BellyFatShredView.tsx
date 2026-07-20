@@ -12,6 +12,8 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db, handleFirestoreError, OperationType, isMockFirebase, auth } from "../lib/firebase";
 import { queueBellyFatShredReminderEmail } from "../lib/mailTriggers";
 import WorkoutVisual from "./WorkoutVisual";
+import { useCentralizedExercises } from "../hooks/useCentralizedExercises";
+import { UnifiedExerciseMedia } from "./UnifiedExerciseMedia";
 
 // High-fidelity local types
 interface WeightEntry {
@@ -227,6 +229,7 @@ const getWorkoutForWeekAndDay = (week: number, dayNum: number) => {
 
 export default function BellyFatShredView() {
   const { user, setView, theme } = useApp();
+  const { exercises: centralizedExercises } = useCentralizedExercises();
   const [activeTab, setActiveTab] = useState<"dashboard" | "workouts" | "running" | "nutrition" | "analytics" | "coaching">("dashboard");
 
   // Smoothly scroll to the top of the viewport whenever the active tab changes

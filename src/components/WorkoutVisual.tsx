@@ -9,7 +9,7 @@ import {
   Sparkles, 
   ShieldCheck 
 } from "lucide-react";
-import { useApp } from "../context/AppContext";
+import { useCentralizedExercises } from "../hooks/useCentralizedExercises";
 
 interface WorkoutVisualProps {
   exerciseId?: string;
@@ -34,7 +34,7 @@ const WorkoutVisual = React.memo(function WorkoutVisual({
   isCard = false
 }: WorkoutVisualProps) {
 
-  const { exercises } = useApp();
+  const { exercises } = useCentralizedExercises();
 
   // Try to find the detailed exercise object from our centralized database
   const exercise = exercises.find(ex => 

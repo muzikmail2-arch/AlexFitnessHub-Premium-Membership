@@ -31,6 +31,8 @@ import DailyPlanView from "./DailyPlanView";
 import CoachView from "./CoachView";
 import CommunityView from "./CommunityView";
 import PageHero from "./PageHero";
+import { useCentralizedExercises } from "../hooks/useCentralizedExercises";
+import { UnifiedExerciseMedia } from "./UnifiedExerciseMedia";
 
 interface DashboardProps {
   activeView?: string;
@@ -566,8 +568,9 @@ interface RoutineExercise {
 }
 
 function RoutinesAndSetsView() {
+  const { exercises } = useCentralizedExercises();
   // Available Workout Splits templates
-  const splitsTemplates = [
+  const splitsTemplates: Array<{ id: string; name: string; desc: string; exercises: RoutineExercise[] }> = [
     {
       id: "ppl",
       name: "Push / Pull / Legs Split",
@@ -918,10 +921,15 @@ function RoutinesAndSetsView() {
               {activeExercises.map((ex, exIdx) => (
                 <div key={ex.id} className="p-4 rounded-2xl bg-white dark:bg-slate-950 border border-slate-150 dark:border-slate-900 space-y-3 shadow-2xs">
                   <div className="flex justify-between items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <span className="w-5 h-5 rounded-md bg-slate-100 dark:bg-slate-900 flex items-center justify-center text-[10px] font-mono font-black text-slate-400">
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-5 h-5 rounded-md bg-slate-100 dark:bg-slate-900 flex items-center justify-center text-[10px] font-mono font-black text-slate-400 shrink-0">
                         {exIdx + 1}
                       </span>
+                      <UnifiedExerciseMedia
+                        exerciseName={ex.name}
+                        className="w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900"
+                        fallbackType="dumbbell"
+                      />
                       <h4 className="text-xs font-sans font-black uppercase text-slate-800 dark:text-slate-100">
                         {ex.name}
                       </h4>

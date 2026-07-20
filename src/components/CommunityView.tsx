@@ -245,7 +245,7 @@ export default function CommunityView() {
                   </div>
 
                   {/* Post Content */}
-                  <div className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-sans whitespace-pre-wrap">
+                  <div className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-sans whitespace-pre-wrap break-words">
                     {post.content}
                   </div>
 
@@ -287,7 +287,7 @@ export default function CommunityView() {
                           <strong className="text-slate-800 dark:text-slate-205 text-[11px]">{comm.userDisplayName}</strong>
                           <span className="text-[8px] font-mono text-slate-400">{new Date(comm.createdAt).toLocaleDateString()}</span>
                         </div>
-                        <p className="text-slate-600 dark:text-slate-400 font-sans">{comm.content}</p>
+                        <p className="text-slate-600 dark:text-slate-400 font-sans break-words">{comm.content}</p>
                       </div>
                     ))}
 

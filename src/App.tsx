@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { auth } from "./lib/firebase";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { AppProvider, useApp } from "./context/AppContext";
 import { motion, AnimatePresence } from "motion/react";
 import Navbar from "./components/Navbar";
@@ -291,6 +292,67 @@ function FitnessAppContent() {
       clearTimeout(timer3);
     };
   }, [currentView]);
+
+  // 3. Global click/touch interceptor to scroll to top smoothly on navigation, tabs, next/prev, and wizard actions
+  React.useEffect(() => {
+    const handleGlobalNavigationClick = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target) return;
+
+      let current: HTMLElement | null = target;
+      let shouldScroll = false;
+
+      // Scan up to 5 levels to find tab buttons, next/prev buttons, or navigation items
+      for (let i = 0; i < 5 && current; i++) {
+        const role = current.getAttribute("role");
+        const type = current.getAttribute("type");
+        const tagName = current.tagName.toLowerCase();
+        const text = (current.textContent || "").trim();
+        const id = current.id || "";
+        const className = current.className || "";
+
+        const isTab = role === "tab" || id.includes("tab") || className.includes("tab-button") || className.includes("tab_active") || className.includes("active-tab");
+        const isNextPrevButton = (type === "button" || tagName === "button") && (
+          /next/i.test(text) || 
+          /prev/i.test(text) || 
+          /back/i.test(text) || 
+          /continue/i.test(text) || 
+          /proceed/i.test(text) || 
+          /start/i.test(text) || 
+          /submit/i.test(text)
+        );
+        const isNavAnchor = tagName === "a" && (className.includes("nav") || className.includes("menu-item"));
+        const isInteractiveHeaderOrCard = className.includes("cursor-pointer") && (
+          /lesson/i.test(text) ||
+          /article/i.test(text) ||
+          /day \d+/i.test(text) ||
+          /week \d+/i.test(text) ||
+          /challenge/i.test(text)
+        );
+
+        if (isTab || isNextPrevButton || isNavAnchor || isInteractiveHeaderOrCard || id === "onboarding_btn_next" || id === "onboarding_btn_back") {
+          shouldScroll = true;
+          break;
+        }
+        current = current.parentElement;
+      }
+
+      if (shouldScroll) {
+        // Run with a brief delay to allow React state updates and content changes to complete
+        setTimeout(() => {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }, 100);
+      }
+    };
+
+    window.addEventListener("click", handleGlobalNavigationClick, { passive: true });
+    window.addEventListener("touchend", handleGlobalNavigationClick, { passive: true });
+
+    return () => {
+      window.removeEventListener("click", handleGlobalNavigationClick);
+      window.removeEventListener("touchend", handleGlobalNavigationClick);
+    };
+  }, []);
 
   // Protected navigation handler
   const handleSetView = (targetView: string) => {
@@ -596,8 +658,10 @@ function FitnessAppContent() {
 
 export default function App() {
   return (
-    <AppProvider>
-      <FitnessAppContent />
-    </AppProvider>
+    <ErrorBoundary>
+      <AppProvider>
+        <FitnessAppContent />
+      </AppProvider>
+    </ErrorBoundary>
   );
 }

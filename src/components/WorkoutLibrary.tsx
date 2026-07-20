@@ -2,6 +2,8 @@ import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useApp } from "../context/AppContext";
 import { Exercise, PROGRAMS, Program, EXERCISES } from "../data/exercises";
 import YouTubePlayer from "./video/YouTubePlayer";
+import { useCentralizedExercises } from "../hooks/useCentralizedExercises";
+import { UnifiedExerciseMedia } from "./UnifiedExerciseMedia";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   Search, SlidersHorizontal, Lock, CheckCircle, PlusCircle, Sparkles, X, 
@@ -89,9 +91,9 @@ const getExerciseSystemGroup = (ex: Exercise): string => {
 };
 
 export default function WorkoutLibrary({ setView }: { setView?: (view: string) => void }) {
+  const { exercises } = useCentralizedExercises();
   const { 
     user, 
-    exercises, 
     toggleSaveWorkout, 
     savedWorkouts, 
     logWorkoutCompletion, 

@@ -7,6 +7,9 @@ export interface UserProfile {
   subscriptionStatus: "free" | "premium";
   subscriptionTier: "monthly" | "yearly" | "none";
   subscriptionExpiry?: string | null;
+  subscriptionPlan?: "monthly" | "yearly" | "multi" | "none";
+  subscriptionActivationDate?: string;
+  paymentReference?: string;
   fitnessGoals?: string;
   weight?: number; // in kg
   height?: number; // in cm

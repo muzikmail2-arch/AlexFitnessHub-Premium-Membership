@@ -124,6 +124,23 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
     }
   };
 
+  const handleFreeInteractiveNav = (tabId: "trajectory" | "community" | "calibration" | "habits") => {
+    setIsMenuOpen(false);
+    setView("home");
+    
+    if (typeof window !== "undefined") {
+      (window as any).__activeDemoTab = tabId;
+      window.dispatchEvent(new CustomEvent("set-demo-tab", { detail: tabId }));
+    }
+
+    setTimeout(() => {
+      const el = document.getElementById("public-live-desk");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 180);
+  };
+
   const isPremium = user && (user.subscriptionStatus === "premium" || user.role === "admin");
 
   const hamburgerMenuItems = isPremium ? [
@@ -147,6 +164,10 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
   ] : [
     { id: "home", label: "Homepage", sublabel: "Public Hub", action: () => handleCustomNav("home") },
     { id: "lifestyle-academy", label: "Lifestyle Academy", sublabel: "Free & Premium Courses", action: () => handleCustomNav("lifestyle-academy") },
+    { id: "weight-trajectory-free", label: "Weight Trajectory Index", sublabel: "Interactive Biometrics", action: () => handleFreeInteractiveNav("trajectory") },
+    { id: "community-free", label: "Community", sublabel: "Public Discussion Feed", action: () => handleFreeInteractiveNav("community") },
+    { id: "daily-calibration-desk-free", label: "Live Daily Calibration Desk", sublabel: "Live Physiological Vitals", action: () => handleFreeInteractiveNav("calibration") },
+    { id: "daily-habit-tracker-free", label: "Daily Habit Tracker", sublabel: "Active Daily Habit Log", action: () => handleFreeInteractiveNav("habits") },
     { id: "pricing", label: "Pricing Plans", sublabel: "Upgrade Status", action: () => handleCustomNav("pricing") },
   ];
 

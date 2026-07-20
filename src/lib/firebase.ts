@@ -1,11 +1,13 @@
 import { initializeApp, getApp, getApps } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 import firebaseConfig from "../../firebase-applet-config.json";
 
 let app;
 let db: any;
 let auth: any;
+let storage: any;
 const isMockFirebase = false;
 
 try {
@@ -15,9 +17,16 @@ try {
     app = getApp();
   }
   
-  const dbId = (firebaseConfig as any).firestoreDatabaseId || "(default)";
+  const dbId = firebaseConfig.firestoreDatabaseId;
   db = getFirestore(app, dbId);
   auth = getAuth(app);
+  
+  // Ensure proper authentication persistence configuration for smooth Google Sign-In and session handling
+  setPersistence(auth, browserLocalPersistence).catch((err) => {
+    console.error("Failed to configure browser local persistence:", err);
+  });
+  
+  storage = getStorage(app);
 } catch (error) {
   console.error("FATAL ERROR: Firebase initialization failed. Real production mode is required.", error);
   throw error;
@@ -70,4 +79,4 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   throw new Error(JSON.stringify(errInfo));
 }
 
-export { app, db, auth, isMockFirebase };
+export { app, db, auth, storage, isMockFirebase };
