@@ -3386,20 +3386,7 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
         </motion.div>
       </section>
 
-      {/* 8. FLOATING ACTION BUTTON: Fixed circular red chat bubble bottom-right */}
-      <button
-        onClick={() => {
-          if (user) {
-            setView("coach");
-          } else {
-            onOpenAuth();
-          }
-        }}
-        className="fixed bottom-6 right-6 z-40 p-4 rounded-full bg-[#C0392B] text-white shadow-xl hover:bg-[#A82E22] active:scale-95 transition-all duration-200"
-        aria-label="Consult AI Coach Assistant"
-      >
-        <MessageCircle className="w-6 h-6 text-white" />
-      </button>
+
 
       {/* 9. EMBEDDED PREMIUM ACTIVATION OVERLAY (PAYSTACK DISPLAY NAVIGATOR) */}
       {activePaymentModal && (
@@ -3579,8 +3566,8 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 mt-8 border-t border-slate-200 dark:border-slate-800/80 text-left text-xs text-slate-500 dark:text-slate-400">
           <p>© 2026 Alex Fitness Inc. All rights reserved.</p>
         </div>
-      </footer>
 
+      </footer>
     </div>
   );
 }

@@ -48,8 +48,12 @@ const PATH_TO_VIEW_MAP: Record<string, string> = {
   "/premium/handbook": "handbook",
   "/premium/weight-trajectory": "weight-trajectory",
   "/premium/dashboard": "dashboard",
+  "/dashboard": "dashboard",
   "/premium/belly-fat-shred": "belly-fat-shred",
   "/lifestyle-academy": "lifestyle-academy",
+  "/onboarding": "onboarding",
+  "/login": "login",
+  "/signin": "signin",
 };
 
 const VIEW_TO_PATH_MAP: Record<string, string> = Object.fromEntries(
@@ -130,13 +134,13 @@ function FitnessAppContent() {
 
     // Transition: Logged out -> Logged in
     if (currentUid && !previousUid) {
-      if (user && user.onboarded !== false) {
-        if (user.subscriptionStatus === "premium" || user.role === "admin") {
-          console.log("[DevOps Auth Sync] Successfully signed in premium. Redirecting to Dashboard view.");
-          setView("dashboard");
+      if (user) {
+        if (user.onboarded === false) {
+          console.log("[DevOps Auth Sync] Successfully authenticated. Redirecting brand new user to onboarding.");
+          setView("onboarding");
         } else {
-          console.log("[DevOps Auth Sync] Successfully signed in free user. Redirecting to Home view.");
-          setView("home");
+          console.log("[DevOps Auth Sync] Successfully authenticated. Redirecting existing user to dashboard.");
+          setView("dashboard");
         }
       }
     } else if (!currentUid && previousUid) {
@@ -145,6 +149,33 @@ function FitnessAppContent() {
       setView("home");
     }
   }, [user]);
+
+  // Handle explicit /login, /signin, /onboarding routing triggers and redirect guards
+  React.useEffect(() => {
+    if (currentView === "login" || currentView === "signin") {
+      if (user) {
+        // Already logged in, redirect away from login screen immediately!
+        if (user.onboarded === false) {
+          setView("onboarding");
+        } else {
+          setView("dashboard");
+        }
+        setIsAuthOpen(false);
+      } else {
+        // Show Auth Modal when user navigates directly to /login or /signin
+        setIsAuthOpen(true);
+      }
+    } else if (currentView === "onboarding") {
+      if (!user) {
+        // Force login if trying to access onboarding unauthenticated
+        setView("home");
+        setIsAuthOpen(true);
+      } else if (user.onboarded !== false) {
+        // Redirect to dashboard if already onboarded
+        setView("dashboard");
+      }
+    }
+  }, [currentView, user]);
 
   // General Guard to catch any unauthorized entries to completely off-limit standalone premium features
   React.useEffect(() => {
@@ -216,7 +247,8 @@ function FitnessAppContent() {
         url.includes("tawk.to") ||
         msg.includes("Tawk") ||
         msg.includes("tawk") ||
-        msg.includes("$_Tawk")
+        msg.includes("$_Tawk") ||
+        msg.includes("Tawk/Logger")
       ) {
         event.preventDefault();
         event.stopPropagation();
@@ -224,9 +256,75 @@ function FitnessAppContent() {
       }
     };
 
+    const handleRejection = (event: PromiseRejectionEvent) => {
+      const reason = event.reason;
+      const msg = reason && typeof reason === "object" ? (reason.message || "") : String(reason || "");
+      if (
+        msg.includes("Tawk") ||
+        msg.includes("tawk") ||
+        msg.includes("$_Tawk") ||
+        msg.includes("Tawk/Logger")
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+        return true;
+      }
+    };
+
+    // Safely intercept console.error/warn to prevent Tawk.to sandbox logger errors from showing as app crashes
+    const originalConsoleError = console.error;
+    const originalConsoleWarn = console.warn;
+
+    console.error = function (...args: any[]) {
+      try {
+        const msg = args.map(arg => {
+          if (typeof arg === "string") return arg;
+          if (arg instanceof Error) return arg.message;
+          return String(arg);
+        }).join(" ");
+        if (
+          msg.includes("Tawk") ||
+          msg.includes("tawk") ||
+          msg.includes("$_Tawk") ||
+          msg.includes("Tawk/Logger")
+        ) {
+          return;
+        }
+      } catch (e) {
+        // fallback
+      }
+      originalConsoleError.apply(console, args);
+    };
+
+    console.warn = function (...args: any[]) {
+      try {
+        const msg = args.map(arg => {
+          if (typeof arg === "string") return arg;
+          if (arg instanceof Error) return arg.message;
+          return String(arg);
+        }).join(" ");
+        if (
+          msg.includes("Tawk") ||
+          msg.includes("tawk") ||
+          msg.includes("$_Tawk") ||
+          msg.includes("Tawk/Logger")
+        ) {
+          return;
+        }
+      } catch (e) {
+        // fallback
+      }
+      originalConsoleWarn.apply(console, args);
+    };
+
     window.addEventListener("error", handleWindowError, true);
+    window.addEventListener("unhandledrejection", handleRejection, true);
+    
     return () => {
       window.removeEventListener("error", handleWindowError, true);
+      window.removeEventListener("unhandledrejection", handleRejection, true);
+      console.error = originalConsoleError;
+      console.warn = originalConsoleWarn;
     };
   }, []);
 
@@ -234,20 +332,11 @@ function FitnessAppContent() {
   React.useEffect(() => {
     if (document.getElementById("tawkto-script")) return;
 
-    // Check if we are running inside an iframe (like the AI Studio development preview)
-    const isInIframe = (() => {
-      try {
-        return window.self !== window.top;
-      } catch (e) {
-        return true;
-      }
-    })();
+    const tawkId = (import.meta as any).env?.VITE_TAWKTO_PROPERTY_ID || "6a48cf13539b7e1d4b7d3d34/1jsm6hqa8";
 
-    if (isInIframe) {
-      return;
-    }
-
-    const tawkId = (import.meta as any).env?.VITE_TAWKTO_PROPERTY_ID || "6a48cf13539b7e1d4b7d3d34/1jsm6hqa8"; // Live Tawk.to Property
+    // Setup standard Tawk.to global state to prevent runtime error logs
+    (window as any).Tawk_API = (window as any).Tawk_API || {};
+    (window as any).Tawk_LoadStart = new Date();
 
     const s1 = document.createElement("script");
     const s0 = document.getElementsByTagName("script")[0];
@@ -309,7 +398,7 @@ function FitnessAppContent() {
         const tagName = current.tagName.toLowerCase();
         const text = (current.textContent || "").trim();
         const id = current.id || "";
-        const className = current.className || "";
+        const className = typeof current.className === "string" ? current.className : "";
 
         const isTab = role === "tab" || id.includes("tab") || className.includes("tab-button") || className.includes("tab_active") || className.includes("active-tab");
         const isNextPrevButton = (type === "button" || tagName === "button") && (

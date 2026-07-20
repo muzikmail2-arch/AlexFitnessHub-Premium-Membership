@@ -553,7 +553,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       subscriptionStatus: "free",
       subscriptionTier: "none",
       createdAt: new Date().toISOString(),
-      onboarded: true,
+      onboarded: false,
       ...profile, // overlay cached attributes if any
     };
 
@@ -722,7 +722,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                   subscriptionStatus: "free",
                   subscriptionTier: "none",
                   createdAt: new Date().toISOString(),
-                  onboarded: true,
+                  onboarded: false,
                 };
                 await setDoc(userDocRef, profile);
                 // Cache in local storage
@@ -748,7 +748,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                   subscriptionStatus: "free",
                   subscriptionTier: "none",
                   createdAt: new Date().toISOString(),
-                  onboarded: true,
+                  onboarded: false,
                 };
                 safeSetItem(`fit_user_${firebaseUser.uid}`, JSON.stringify(profile));
               }

@@ -210,109 +210,19 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
       >
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
           
-          {/* DESKTOP HEADER (Screens lg and above) */}
-          <div className="hidden lg:flex h-16 items-center justify-between gap-4 w-full">
-            {/* Left Column: Logo */}
-            <div className="flex items-center flex-shrink-0">
+          {/* RESPONSIVE HEADER FOR ALL SCREEN SIZES */}
+          <div className="flex h-16 items-center justify-between w-full relative">
+            {/* Left Column: Logo & Theme switch side-by-side */}
+            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0 z-10">
               <HeaderLogoElement />
-            </div>
-
-            {/* Center Column: Navigation links */}
-            <nav className="flex items-center justify-center flex-1 gap-1.5 xl:gap-3 overflow-x-auto py-1 scrollbar-none">
-              {menuItems.map((item) => {
-                const isActive = currentView === item.id;
-                return (
-                  <motion.button
-                    whileHover={{ scale: 1.05, y: -1 }}
-                    whileTap={{ scale: 0.95 }}
-                    key={item.id}
-                    onClick={item.action}
-                    className={`text-[10px] xl:text-[11px] font-sans font-black uppercase tracking-wider px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer whitespace-nowrap ${
-                      isActive
-                        ? "bg-primary text-white shadow-sm font-black"
-                        : theme === "dark"
-                          ? "text-slate-300 hover:bg-white/10"
-                          : "text-slate-700 hover:bg-slate-100"
-                    }`}
-                  >
-                    {item.label}
-                  </motion.button>
-                );
-              })}
-            </nav>
-
-            {/* Right Column: Premium button, Sign In / Sign Out, Profile Avatar & Theme Toggle */}
-            <div className="flex items-center gap-3 flex-shrink-0">
               
-              {/* Access Premium Button (if user is not premium) */}
-              {(!user || user.subscriptionStatus !== "premium") && (
-                <motion.button
-                  whileHover={{ scale: 1.05, y: -1 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setView("pricing")}
-                  className="inline-flex items-center gap-1.5 text-[11px] font-sans font-black uppercase tracking-wider h-9 px-5 rounded-full bg-primary text-white hover:opacity-90 transition-all duration-200 cursor-pointer shadow-md"
-                >
-                  <Award className="w-4 h-4" />
-                  <span>Access Premium</span>
-                </motion.button>
-              )}
-
-              {/* Login/Logout Button */}
-              {!user ? (
-                <motion.button
-                  whileHover={{ scale: 1.05, y: -1 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={onOpenAuth}
-                  className={`inline-flex text-[11px] font-sans font-bold uppercase tracking-wider h-9 px-5 rounded-full border transition-all duration-200 cursor-pointer ${
-                    theme === "dark"
-                      ? "border-slate-700 text-white hover:bg-white/10"
-                      : "border-slate-300 text-slate-700 hover:bg-slate-50"
-                  }`}
-                >
-                  Sign In
-                </motion.button>
-              ) : (
-                <motion.button
-                  whileHover={{ scale: 1.05, y: -1 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={logout}
-                  className={`inline-flex text-[11px] font-sans font-bold uppercase tracking-wider h-9 px-5 rounded-full border transition-all duration-200 cursor-pointer ${
-                    theme === "dark"
-                      ? "border-slate-800 text-slate-300 hover:bg-white/10"
-                      : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                  }`}
-                >
-                  Sign Out
-                </motion.button>
-              )}
-
-              {/* Profile Avatar (if logged in) */}
-              {user && (
-                <div 
-                  onClick={() => setView("dashboard")} 
-                  className="w-8 h-8 rounded-full overflow-hidden border border-border cursor-pointer select-none flex items-center justify-center shrink-0"
-                  title="View Dashboard / Profile"
-                >
-                  {user.photoURL ? (
-                    <img src={user.photoURL} alt={user.displayName || "User"} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                  ) : (
-                    <div className="w-full h-full bg-primary flex items-center justify-center text-white font-black text-xs uppercase">
-                      {user.displayName ? user.displayName[0] : (user.email ? user.email[0] : "A")}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Theme Toggle Switch with Website Name */}
-              <div className="flex items-center gap-2 border-l border-slate-200 dark:border-slate-800 pl-3 ml-1 shrink-0">
-                <span className="font-sans font-black text-[11px] uppercase tracking-tight text-slate-900 dark:text-white">
-                  ALEXFITNESS<span className="text-[#0EA5E9] font-black">HUB</span>
-                </span>
+              {/* Header Theme Toggle beside logo */}
+              <div className="flex items-center gap-1.5 shrink-0">
                 <motion.button
                   whileHover={{ scale: 1.1, rotate: 15 }}
                   whileTap={{ scale: 0.9, rotate: -15 }}
                   onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                  className={`p-2 rounded-full transition-all duration-200 cursor-pointer flex items-center justify-center border ${
+                  className={`p-2 rounded-full transition-all duration-200 cursor-pointer flex items-center justify-center border shrink-0 ${
                     theme === "dark"
                       ? "text-white hover:bg-white/10 border-slate-800"
                       : "text-slate-700 hover:bg-slate-100 border-slate-200"
@@ -327,42 +237,11 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
                   )}
                 </motion.button>
               </div>
-
-            </div>
-          </div>
-
-          {/* MOBILE HEADER (Screens below lg) */}
-          <div className="flex lg:hidden h-16 items-center justify-between w-full relative">
-            {/* Left Column: Logo & Theme switch side-by-side */}
-            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0 z-10">
-              <HeaderLogoElement />
-              
-              {/* Mobile Header Theme Toggle beside logo */}
-              <div className="flex items-center gap-1.5 shrink-0">
-                <motion.button
-                  whileHover={{ scale: 1.1, rotate: 15 }}
-                  whileTap={{ scale: 0.9, rotate: -15 }}
-                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                  className={`p-2 rounded-full transition-all duration-200 cursor-pointer flex items-center justify-center border shrink-0 ${
-                    theme === "dark"
-                      ? "text-white hover:bg-white/10 border-slate-800"
-                      : "text-slate-700 hover:bg-slate-100 border-slate-200"
-                  }`}
-                  aria-label="Toggle Theme"
-                  id="navbar-mobile-theme-toggle"
-                >
-                  {theme === "dark" ? (
-                    <Sun className="w-4 h-4 text-amber-300 fill-amber-300" />
-                  ) : (
-                    <Moon className="w-4 h-4 text-slate-700 fill-slate-700" />
-                  )}
-                </motion.button>
-              </div>
             </div>
 
-            {/* Center Column: Prominent Centered Title ALEXFITNESSHUB in the red-marked area */}
+            {/* Center Column: Prominent Centered Title ALEXFITNESSHUB */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <span className="font-sans font-black text-xs min-[360px]:text-[13px] uppercase tracking-wider text-slate-900 dark:text-white pointer-events-auto select-none">
+              <span className="font-sans font-black text-xs sm:text-sm uppercase tracking-wider text-slate-900 dark:text-white pointer-events-auto select-none">
                 ALEXFITNESS<span className="text-[#0EA5E9] font-black">HUB</span>
               </span>
             </div>
@@ -411,7 +290,7 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
 
         {/* Snappy Left Slide-in Panel */}
         <div
-          className={`absolute top-0 bottom-0 left-0 w-[65%] sm:w-[50%] md:w-[40%] shadow-[8px_0_32px_rgba(0,0,0,0.15)] p-6 flex flex-col justify-between pointer-events-auto transition-transform duration-[280ms] ease-out ${
+          className={`absolute top-0 bottom-0 left-0 w-[65%] sm:w-[50%] md:w-[40%] lg:w-[30%] xl:w-[22%] shadow-[8px_0_32px_rgba(0,0,0,0.15)] p-6 flex flex-col justify-between pointer-events-auto transition-transform duration-[280ms] ease-out ${
             theme === "dark"
               ? "bg-[#0A0E17] border-r border-slate-900"
               : "bg-white border-r border-slate-200"
