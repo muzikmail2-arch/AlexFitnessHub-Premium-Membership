@@ -37,6 +37,48 @@ export default function HomeWorkoutPlayer({ onComplete, onClose }: HomeWorkoutPl
   const [showHydrationReminder, setShowHydrationReminder] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   
+  // Local active reminder state for coaching tips during session
+  const [activeReminder, setActiveReminder] = useState<{
+    title: string;
+    body: string;
+    type: "hydration" | "posture";
+  } | null>(null);
+
+  // Auto-request HTML5 Notification permission on mount
+  useEffect(() => {
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission().catch(e => console.log("System notification request blocked:", e));
+    }
+  }, []);
+
+  // System-level + In-app notification dispatcher
+  const triggerLocalWorkoutNotification = (title: string, body: string, type: "hydration" | "posture") => {
+    // 1. Show beautiful animated overlay banner inside the active player
+    setActiveReminder({ title, body, type });
+
+    // 2. Energetic audio coach voice read-out using Speech Synthesis
+    speak(`${title}. ${body}`);
+
+    // 3. Native push notification (if authorized by browser)
+    if ("Notification" in window && Notification.permission === "granted") {
+      try {
+        new Notification(title, {
+          body: body,
+          icon: "/favicon.ico",
+          silent: false,
+          tag: "workout-active-reminder"
+        });
+      } catch (err) {
+        console.warn("System desktop notification failed to render:", err);
+      }
+    }
+
+    // Auto-dismiss the overlay banner after 7 seconds for a clean visual experience
+    setTimeout(() => {
+      setActiveReminder((prev) => (prev?.title === title ? null : prev));
+    }, 7000);
+  };
+  
   // Prep-phase: 5-second intro countdown before first exercise
   const [prepTimeRemaining, setPrepTimeRemaining] = useState(5);
   const [isPrepPhase, setIsPrepPhase] = useState(true);
@@ -143,6 +185,24 @@ export default function HomeWorkoutPlayer({ onComplete, onClose }: HomeWorkoutPl
           }
 
           const nextVal = prev - 1;
+          
+          // Trigger local posture/hydration coaching reminders at the 15-second mark of each exercise
+          if (nextVal === 15) {
+            if (currentIndex % 2 === 0) {
+              triggerLocalWorkoutNotification(
+                "Focus on your posture!",
+                "Keep your core fully engaged, shoulders relaxed, and maintain optimal spinal alignment.",
+                "posture"
+              );
+            } else {
+              triggerLocalWorkoutNotification(
+                "Time to hydrate!",
+                "Take a small, quick sip of clean water to maintain muscle density and keep your energy high.",
+                "hydration"
+              );
+            }
+          }
+
           // Voice countdown for last 3 seconds of exercise
           if (nextVal <= 3 && nextVal > 0) {
             speak(nextVal.toString());
@@ -312,6 +372,47 @@ export default function HomeWorkoutPlayer({ onComplete, onClose }: HomeWorkoutPl
     <div className="fixed inset-0 z-50 bg-slate-950 text-slate-100 flex flex-col justify-between overflow-y-auto">
       {/* Confetti overlay */}
       <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none z-50 w-full h-full" />
+
+      {/* Real-time Dynamic Notification Toast Banner */}
+      {activeReminder && (
+        <div 
+          className={`fixed top-24 right-6 z-55 max-w-sm w-full p-4 rounded-2xl border bg-slate-900 shadow-2xl flex gap-3 items-start animate-slide-in transition-all duration-300 ${
+            activeReminder.type === "hydration" 
+              ? "border-blue-500/50 shadow-blue-500/10" 
+              : "border-amber-500/50 shadow-amber-500/10"
+          }`}
+          id="workout_active_toast_notification"
+        >
+          <div className={`p-2 rounded-xl shrink-0 ${
+            activeReminder.type === "hydration" ? "bg-blue-500/10 text-blue-400" : "bg-amber-500/10 text-amber-400"
+          }`}>
+            {activeReminder.type === "hydration" ? (
+              <Droplet className="w-5 h-5 fill-current" />
+            ) : (
+              <Activity className="w-5 h-5 animate-pulse" />
+            )}
+          </div>
+          <div className="space-y-1 text-left flex-grow">
+            <span className={`text-[9px] font-mono font-black uppercase tracking-widest block ${
+              activeReminder.type === "hydration" ? "text-blue-400" : "text-amber-400"
+            }`}>
+              {activeReminder.type === "hydration" ? "Hydration Alert" : "Posture Check"}
+            </span>
+            <h4 className="text-xs font-black text-white uppercase tracking-tight leading-none">
+              {activeReminder.title}
+            </h4>
+            <p className="text-[10px] text-slate-300 leading-normal font-sans">
+              {activeReminder.body}
+            </p>
+          </div>
+          <button 
+            onClick={() => setActiveReminder(null)} 
+            className="text-slate-500 hover:text-slate-300 transition text-[10px] uppercase font-mono font-bold self-start cursor-pointer px-1.5 py-0.5 rounded hover:bg-slate-800"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* Header bar */}
       <header className="px-6 py-4 border-b border-slate-900 bg-slate-900/80 backdrop-blur-md flex items-center justify-between sticky top-0 z-40">

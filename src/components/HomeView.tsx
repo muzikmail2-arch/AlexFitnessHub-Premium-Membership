@@ -3554,6 +3554,22 @@ export default function HomeView({ setView, onOpenAuth }: HomeViewProps) {
                 <span className="font-bold text-[#C0392B] uppercase text-[9px] block">WhatsApp / Phone</span>
                 <a href="https://wa.me/2347073307875" target="_blank" rel="noopener noreferrer" className="text-[10px] text-white bg-[#C0392B] px-2.5 py-1 rounded inline-block font-mono hover:bg-[#A82E22] transition-colors mt-0.5">+2347073307875</a>
               </div>
+              <div className="pt-1">
+                <span className="font-bold text-[#C0392B] uppercase text-[9px] block">Live Chat Support</span>
+                <button
+                  onClick={() => {
+                    const openLiveSupportChat = (window as any).openLiveSupportChat;
+                    if (openLiveSupportChat) {
+                      openLiveSupportChat();
+                    } else {
+                      alert("Live chat support is currently initializing. Please try again in 2 seconds!");
+                    }
+                  }}
+                  className="text-[10px] text-white bg-[#C0392B] px-2.5 py-1 rounded inline-block font-mono hover:bg-[#A82E22] transition-colors mt-0.5 text-left cursor-pointer border-0"
+                >
+                  Start Live Chat Now
+                </button>
+              </div>
             </div>
           </div>
 

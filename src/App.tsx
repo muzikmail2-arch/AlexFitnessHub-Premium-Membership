@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { MessageSquare } from "lucide-react";
 import { auth } from "./lib/firebase";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { AppProvider, useApp } from "./context/AppContext";
@@ -314,13 +315,33 @@ function FitnessAppContent() {
 
   // Activate Tawk.to Live Chat dynamically on load
   React.useEffect(() => {
-    if (document.getElementById("tawkto-script")) return;
-
-    const tawkId = (import.meta as any).env?.VITE_TAWKTO_PROPERTY_ID || "6a48cf13539b7e1d4b7d3d34/1jsm6hqa8";
-
     // Setup standard Tawk.to global state to prevent runtime error logs
     (window as any).Tawk_API = (window as any).Tawk_API || {};
     (window as any).Tawk_LoadStart = new Date();
+
+    // Attach a global helper function to maximize/toggle the chat widget instantly
+    (window as any).openLiveSupportChat = () => {
+      const Tawk_API = (window as any).Tawk_API;
+      if (Tawk_API && typeof Tawk_API.maximize === "function") {
+        try {
+          Tawk_API.maximize();
+        } catch (e) {
+          console.error("Error maximizing Tawk.to:", e);
+        }
+      } else if (Tawk_API && typeof Tawk_API.toggle === "function") {
+        try {
+          Tawk_API.toggle();
+        } catch (e) {
+          console.error("Error toggling Tawk.to:", e);
+        }
+      } else {
+        alert("Live Support Chat is currently loading. Please try again in 2-3 seconds!");
+      }
+    };
+
+    if (document.getElementById("tawkto-script")) return;
+
+    const tawkId = (import.meta as any).env?.VITE_TAWKTO_PROPERTY_ID || "6a48cf13539b7e1d4b7d3d34/1jsm6hqa8";
 
     const s1 = document.createElement("script");
     const s0 = document.getElementsByTagName("script")[0];
@@ -724,6 +745,21 @@ function FitnessAppContent() {
 
       {/* Daily Reminders & System Compliance Alerts Desk */}
       <DailyNotificationController />
+
+      {/* Custom Global Tawk.to Floating Live Chat Trigger */}
+      {currentView !== "workout-videos" && (
+        <button
+          onClick={() => {
+            const openChat = (window as any).openLiveSupportChat;
+            if (openChat) openChat();
+          }}
+          className="fixed bottom-6 right-6 z-45 bg-[#C0392B] hover:bg-[#A82E22] active:scale-95 text-white font-sans font-black uppercase text-[10px] tracking-widest px-5 py-3 rounded-full shadow-[0_4px_24px_rgba(192,57,43,0.35)] hover:shadow-[0_6px_30px_rgba(192,57,43,0.5)] border border-white/10 flex items-center gap-2 transition-all duration-200 cursor-pointer"
+          title="Start Live Support Chat"
+        >
+          <MessageSquare className="w-4 h-4 text-white" />
+          <span>Live Chat Support</span>
+        </button>
+      )}
 
     </div>
   );
