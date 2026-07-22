@@ -180,24 +180,8 @@ function FitnessAppContent() {
   // General Guard to catch any unauthorized entries to completely off-limit standalone premium features
   React.useEffect(() => {
     if (!loading) {
-      // Strict premium check for '/premium/belly-fat-shred' view
-      if (currentView === "belly-fat-shred") {
-        const isPremium = user && (user.subscriptionStatus === "premium" || user.role === "admin");
-        if (!isPremium) {
-          console.log("[DevOps Security] Unauthorized user attempted to access '/premium/belly-fat-shred'. Redirecting to pricing section.");
-          setView("home");
-          setTimeout(() => {
-            const el = document.getElementById("pricing");
-            if (el) {
-              el.scrollIntoView({ behavior: "smooth", block: "start" });
-            }
-          }, 150);
-          return;
-        }
-      }
-
       const loginRequiredViews = ["coach", "nutrition", "community", "challenges", "success-stories", "workout-generator", "daily-plan", "dashboard", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory", "library", "workout-videos", "saved-exercises", "belly-fat-shred"];
-      const standalonePremiumViews = ["library", "workout-generator", "workout-videos", "saved-exercises", "coach", "nutrition", "daily-plan", "challenges", "community", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory", "dashboard", "belly-fat-shred"];
+      const standalonePremiumViews = ["library", "workout-generator", "workout-videos", "saved-exercises", "coach", "nutrition", "daily-plan", "challenges", "community", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory", "dashboard"];
 
       if (loginRequiredViews.includes(currentView) && !user) {
         console.log(`[DevOps Security] Unauthenticated user attempted to access protected view: ${currentView}. Redirecting to Home and opening auth.`);

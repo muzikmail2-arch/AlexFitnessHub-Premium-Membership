@@ -52,39 +52,7 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
     }
   };
 
-  // Centralized Navigation Menu definitions
-  const menuItems = user ? (
-    user.subscriptionStatus === "premium" ? [
-      { id: "home", label: "Home", action: () => handleNav("home") },
-      { id: "daily-plan", label: "My Plan", action: () => handleNav("daily-plan") },
-      { id: "lifestyle-academy", label: "Academy", action: () => handleNav("lifestyle-academy") },
-      { id: "library", label: "Workouts", action: () => handleNav("library") },
-      { id: "nutrition", label: "Nutrition", action: () => handleNav("nutrition") },
-      { id: "community", label: "Community", action: () => handleNav("community") },
-    ] : [
-      { id: "home", label: "Home", action: () => handleNav("home") },
-      { id: "lifestyle-academy", label: "Academy", action: () => handleNav("lifestyle-academy") },
-      { id: "pricing", label: "Pricing", action: () => handleNav("home", "pricing") },
-      { id: "testimonials-segment", label: "Reviews", action: () => handleNav("home", "testimonials-segment") },
-      { id: "contact", label: "Contact", action: () => handleNav("home", "contact") },
-    ]
-  ) : [
-    { id: "home", label: "Home", action: () => handleNav("home") },
-    { id: "lifestyle-academy", label: "Academy", action: () => handleNav("lifestyle-academy") },
-    { id: "pricing", label: "Pricing", action: () => handleNav("home", "pricing") },
-    { id: "testimonials-segment", label: "Reviews", action: () => handleNav("home", "testimonials-segment") },
-    { id: "contact", label: "Contact", action: () => handleNav("home", "contact") },
-  ];
-
-  if (user && user.role === "admin") {
-    menuItems.push({
-      id: "admin",
-      label: "Admin CPU",
-      action: () => handleNav("admin")
-    });
-  }
-
-  // 13 Detailed options for the hamburger slide-out menu
+  // Detailed navigation router logic for hamburger items
   const handleCustomNav = (targetView: string, subview?: string, elementId?: string) => {
     setIsMenuOpen(false);
     
@@ -96,8 +64,9 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
     }
     
     // If the user is on the free plan, block premium workouts and redirect to pricing section on Home
+    // Note: belly-fat-shred is allowed because it has custom lock screen for Home Workout circuit preview!
     if (user && user.subscriptionStatus !== "premium" && user.role !== "admin") {
-      const standalonePremiumViews = ["library", "workout-generator", "workout-videos", "saved-exercises", "coach", "nutrition", "daily-plan", "challenges", "community", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory", "dashboard", "belly-fat-shred"];
+      const standalonePremiumViews = ["library", "workout-generator", "workout-videos", "saved-exercises", "coach", "nutrition", "daily-plan", "challenges", "community", "weekly-reports", "daily-habit-tracker", "daily-calibration-desk", "handbook", "weight-trajectory", "dashboard"];
       if (standalonePremiumViews.includes(targetView)) {
         setView("home");
         setTimeout(() => {
@@ -164,6 +133,7 @@ export default function Navbar({ currentView, setView, onOpenAuth }: NavbarProps
   ] : [
     { id: "home", label: "Homepage", sublabel: "Public Hub", action: () => handleCustomNav("home") },
     { id: "lifestyle-academy", label: "Lifestyle Academy", sublabel: "Free & Premium Courses", action: () => handleCustomNav("lifestyle-academy") },
+    { id: "belly-fat-shred", label: "Belly Fat Shred Program", sublabel: "5-Month Transformation", action: () => handleCustomNav("belly-fat-shred") },
     { id: "weight-trajectory-free", label: "Weight Trajectory Index", sublabel: "Interactive Biometrics", action: () => handleFreeInteractiveNav("trajectory") },
     { id: "community-free", label: "Community", sublabel: "Public Discussion Feed", action: () => handleFreeInteractiveNav("community") },
     { id: "daily-calibration-desk-free", label: "Live Daily Calibration Desk", sublabel: "Live Physiological Vitals", action: () => handleFreeInteractiveNav("calibration") },

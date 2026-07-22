@@ -4,7 +4,7 @@ import {
   Flame, Droplets, Trophy, CheckSquare, LineChart, Shield, Calendar, Play, 
   ChevronRight, Dumbbell, Activity, Compass, Info, Check, Plus, AlertCircle, 
   Trash2, Upload, Sparkles, RefreshCw, ChevronLeft, ArrowRight, Heart, Zap, Clock, Footprints, Settings, Bell, Apple, Ban,
-  Pause, Award
+  Pause, Award, Home, Lock
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { LineChart as ReLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
@@ -14,6 +14,8 @@ import { queueBellyFatShredReminderEmail } from "../lib/mailTriggers";
 import WorkoutVisual from "./WorkoutVisual";
 import { useCentralizedExercises } from "../hooks/useCentralizedExercises";
 import { UnifiedExerciseMedia } from "./UnifiedExerciseMedia";
+import { bellyFatCardioCircuit } from "../data/homeWorkouts";
+import HomeWorkoutPlayer from "./HomeWorkoutPlayer";
 
 // High-fidelity local types
 interface WeightEntry {
@@ -230,7 +232,40 @@ const getWorkoutForWeekAndDay = (week: number, dayNum: number) => {
 export default function BellyFatShredView() {
   const { user, setView, theme } = useApp();
   const { exercises: centralizedExercises } = useCentralizedExercises();
-  const [activeTab, setActiveTab] = useState<"dashboard" | "workouts" | "running" | "nutrition" | "analytics" | "coaching">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "workouts" | "home-workouts" | "running" | "nutrition" | "analytics" | "coaching">("dashboard");
+  const [isPlayingHomeWorkout, setIsPlayingHomeWorkout] = useState(false);
+  const [favoriteExercises, setFavoriteExercises] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem("alex_fitness_favorite_home_exercises");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [isCircuitFavorited, setIsCircuitFavorited] = useState(() => {
+    try {
+      return localStorage.getItem("alex_fitness_circuit_favorited") === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleFavoriteExercise = (id: string) => {
+    let next;
+    if (favoriteExercises.includes(id)) {
+      next = favoriteExercises.filter((x) => x !== id);
+    } else {
+      next = [...favoriteExercises, id];
+    }
+    setFavoriteExercises(next);
+    localStorage.setItem("alex_fitness_favorite_home_exercises", JSON.stringify(next));
+  };
+
+  const toggleCircuitFavorite = () => {
+    const next = !isCircuitFavorited;
+    setIsCircuitFavorited(next);
+    localStorage.setItem("alex_fitness_circuit_favorited", next ? "true" : "false");
+  };
 
   // Smoothly scroll to the top of the viewport whenever the active tab changes
   useEffect(() => {
@@ -335,16 +370,6 @@ export default function BellyFatShredView() {
   useEffect(() => {
     if (!user) return;
     
-    // Safety redirect: If standard user, block and scroll to pricing section
-    if (user.subscriptionStatus !== "premium" && user.role !== "admin") {
-      setView("home");
-      setTimeout(() => {
-        const el = document.getElementById("pricing");
-        if (el) el.scrollIntoView({ behavior: "smooth" });
-      }, 300);
-      return;
-    }
-
     loadUserData();
   }, [user]);
 
@@ -466,14 +491,61 @@ export default function BellyFatShredView() {
     }
   };
 
-  if (!user || user.subscriptionStatus !== "premium" && user.role !== "admin") {
+  const handleCompleteHomeWorkout = async (caloriesBurned: number, durationMinutes: number) => {
+    if (!progress || !user) return;
+    
+    // Create copy of progress
+    const updated = { ...progress };
+    
+    // Add workout completion key
+    const wKey = `home_circuit_week_${progress.currentWeek}_day_${progress.currentDay}_${Date.now()}`;
+    if (!updated.completedWorkouts.includes(wKey)) {
+      updated.completedWorkouts.push(wKey);
+    }
+    
+    // Update workout streaks
+    if (!updated.streaks) {
+      updated.streaks = { workoutStreak: 0, hydrationStreak: 0, runningStreak: 0 };
+    }
+    let currentStreak = updated.streaks.workoutStreak || 0;
+    currentStreak += 1;
+    updated.streaks.workoutStreak = currentStreak;
+    
+    // Unlock achievement badge
+    if (!updated.achievements.includes("cardio_circuit_champion")) {
+      updated.achievements.push("cardio_circuit_champion");
+    }
+    
+    // Set daily checklist habit to completed
+    const dayKey = todayStr;
+    const currentHabits = updated.dailyChecklistHistory[dayKey] || {
+      workout: false,
+      run: false,
+      water: false,
+      lemonCucumber: false,
+      mealWalks: { breakfast: false, lunch: false, dinner: false },
+      healthyMeals: false,
+      sleep: false,
+      stretch: false,
+    };
+    currentHabits.workout = true;
+    updated.dailyChecklistHistory[dayKey] = currentHabits;
+    
+    // Trigger progress update and synchronize to Firestore/LocalStorage
+    setProgress(updated);
+    await syncProgress(updated);
+    
+    setIsPlayingHomeWorkout(false);
+  };
+
+  if (!user) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 text-white text-center">
         <div className="space-y-4 max-w-md">
           <AlertCircle className="w-12 h-12 text-[#D32F2F] mx-auto animate-bounce" />
-          <h2 className="text-xl font-bold font-sans uppercase">Premium Access Required</h2>
+          <h2 className="text-xl font-bold font-sans uppercase">Please Sign In</h2>
           <p className="text-xs text-slate-400">
-            Redirecting to the AlexFitnessHub Pricing & Upgrade module...
+            You must be logged in to view the Belly Fat Shred program.
           </p>
         </div>
       </div>
@@ -935,6 +1007,15 @@ export default function BellyFatShredView() {
   const borderCol = isDark ? "border-slate-800" : "border-slate-200";
   const btnSecondary = isDark ? "bg-slate-800 hover:bg-slate-700 text-slate-300" : "bg-slate-100 hover:bg-slate-200 text-slate-700";
 
+  if (isPlayingHomeWorkout) {
+    return (
+      <HomeWorkoutPlayer 
+        onClose={() => setIsPlayingHomeWorkout(false)}
+        onComplete={(calories, duration) => handleCompleteHomeWorkout(calories, duration)}
+      />
+    );
+  }
+
   return (
     <div className={`min-h-screen py-8 px-4 sm:px-6 lg:px-8 font-sans ${isDark ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900"}`}>
       
@@ -1046,6 +1127,7 @@ export default function BellyFatShredView() {
         {[
           { id: "dashboard", label: "My Board", icon: Trophy },
           { id: "workouts", label: "Workouts", icon: Dumbbell },
+          { id: "home-workouts", label: "Home Workout", icon: Home },
           { id: "running", label: "Cardio", icon: Footprints },
           { id: "nutrition", label: "Nutrition Guide", icon: Apple },
           { id: "analytics", label: "Analytics", icon: LineChart },
@@ -1360,7 +1442,7 @@ export default function BellyFatShredView() {
                                   }`}>
                                     {isChecked ? "Done" : "Pending"}
                                   </span>
-                                  <WorkoutVisual
+                                  <UnifiedExerciseMedia
                                     exerciseName={libName}
                                     className="w-12 h-12 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shrink-0 shadow-sm bg-slate-100 dark:bg-slate-900"
                                   />
@@ -1981,7 +2063,7 @@ export default function BellyFatShredView() {
                                 </span>
                               </div>
                             </div>
-                            <WorkoutVisual
+                            <UnifiedExerciseMedia
                               exerciseName={libName}
                               className="w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shrink-0 shadow-sm bg-slate-100 dark:bg-slate-900"
                             />
@@ -2010,7 +2092,7 @@ export default function BellyFatShredView() {
                                 </span>
                               </div>
                             </div>
-                            <WorkoutVisual
+                            <UnifiedExerciseMedia
                               exerciseName={libName}
                               className="w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shrink-0 shadow-sm bg-slate-100 dark:bg-slate-900"
                             />
@@ -2039,7 +2121,7 @@ export default function BellyFatShredView() {
                                 </span>
                               </div>
                             </div>
-                            <WorkoutVisual
+                            <UnifiedExerciseMedia
                               exerciseName={libName}
                               className="w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shrink-0 shadow-sm bg-slate-100 dark:bg-slate-900"
                             />
@@ -2068,7 +2150,7 @@ export default function BellyFatShredView() {
                                 </span>
                               </div>
                             </div>
-                            <WorkoutVisual
+                            <UnifiedExerciseMedia
                               exerciseName={libName}
                               className="w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shrink-0 shadow-sm bg-slate-100 dark:bg-slate-900"
                             />
@@ -2097,7 +2179,7 @@ export default function BellyFatShredView() {
                                 </span>
                               </div>
                             </div>
-                            <WorkoutVisual
+                            <UnifiedExerciseMedia
                               exerciseName={libName}
                               className="w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shrink-0 shadow-sm bg-slate-100 dark:bg-slate-900"
                             />
@@ -2126,7 +2208,7 @@ export default function BellyFatShredView() {
                                 </span>
                               </div>
                             </div>
-                            <WorkoutVisual
+                            <UnifiedExerciseMedia
                               exerciseName={libName}
                               className="w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shrink-0 shadow-sm bg-slate-100 dark:bg-slate-900"
                             />
@@ -2304,6 +2386,231 @@ export default function BellyFatShredView() {
               </div>
             ) : null}
 
+          </div>
+        )}
+
+        {/* TAB: HOME WORKOUT MODULE */}
+        {activeTab === "home-workouts" && (
+          <div className="space-y-8 relative animate-fade-in">
+            {/* Main Circuit Header */}
+            <div className={`border rounded-3xl p-6 sm:p-8 ${cardBg} relative overflow-hidden`}>
+              <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
+                <Flame className="w-48 h-48 text-[#D32F2F]" />
+              </div>
+              
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2 items-center">
+                    <span className="text-[9px] font-mono font-black text-[#D32F2F] bg-[#D32F2F]/10 border border-[#D32F2F]/20 px-3 py-1 rounded-full uppercase tracking-wider">
+                      {bellyFatCardioCircuit.category}
+                    </span>
+                    <span className="text-[9px] font-mono font-black text-amber-500 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full uppercase tracking-wider">
+                      {bellyFatCardioCircuit.level}
+                    </span>
+                    <span className="text-[9px] font-mono font-black text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full uppercase tracking-wider">
+                      {bellyFatCardioCircuit.workoutType}
+                    </span>
+                  </div>
+                  
+                  <h2 className={`text-3xl font-black uppercase tracking-tight font-display ${textPrimary}`}>
+                    {bellyFatCardioCircuit.title}
+                  </h2>
+                  
+                  <p className={`text-xs max-w-2xl leading-relaxed ${textSecondary}`}>
+                    An elite, high-intensity aerobic system requiring zero equipment, designed to spike metabolic rate, maximize calorie output, and stimulate fat-burning post-exercise.
+                  </p>
+                  
+                  {/* Metadata Indicators Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+                    <div>
+                      <span className="text-[10px] text-slate-500 font-mono uppercase block">Equipment</span>
+                      <span className={`text-xs font-black mt-0.5 block ${textPrimary}`}>{bellyFatCardioCircuit.equipment}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-500 font-mono uppercase block">Duration</span>
+                      <span className={`text-xs font-black mt-0.5 block ${textPrimary}`}>{bellyFatCardioCircuit.duration}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-500 font-mono uppercase block">Calories Burned</span>
+                      <span className="text-xs font-black mt-0.5 block text-red-500">{bellyFatCardioCircuit.estimatedCalories}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-500 font-mono uppercase block">Target Areas</span>
+                      <span className={`text-xs font-black mt-0.5 block ${textPrimary} truncate`} title={bellyFatCardioCircuit.targetAreas.join(", ")}>
+                        {bellyFatCardioCircuit.targetAreas.slice(0, 3).join(", ")}...
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Action buttons */}
+                {user.subscriptionStatus === "premium" || user.role === "admin" ? (
+                  <div className="flex flex-col gap-3 shrink-0">
+                    <button
+                      onClick={() => setIsPlayingHomeWorkout(true)}
+                      className="px-6 py-3.5 bg-[#D32F2F] text-white hover:bg-[#B71C1C] rounded-2xl text-xs font-black uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 cursor-pointer transition transform hover:scale-105"
+                    >
+                      <Play className="w-4 h-4 fill-current" />
+                      <span>Start Workout Circuit</span>
+                    </button>
+                    
+                    <button
+                      onClick={toggleCircuitFavorite}
+                      className={`px-6 py-3 border rounded-2xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+                        isCircuitFavorited 
+                          ? "border-red-500 bg-red-500/10 text-red-500" 
+                          : "border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900"
+                      }`}
+                    >
+                      <Heart className={`w-4 h-4 ${isCircuitFavorited ? "fill-current" : ""}`} />
+                      <span>{isCircuitFavorited ? "Circuit Saved" : "Save Circuit"}</span>
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+
+            {/* Scientific Spot Reduction Disclaimer */}
+            <div className="p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 text-xs text-amber-600 dark:text-amber-400 flex gap-3 leading-relaxed">
+              <span className="text-lg shrink-0">⚠️</span>
+              <div>
+                <strong className="uppercase font-mono tracking-wider block mb-1">Scientific Coaching Note:</strong>
+                belly fat cannot be reduced through spot reduction and that consistent nutrition, strength training, cardio, hydration, recovery, and calorie control are essential for overall fat loss.
+              </div>
+            </div>
+
+            {/* Exercises Grid Container */}
+            <div className="relative">
+              {/* Premium Lock Overlay for Free Users */}
+              {user.subscriptionStatus !== "premium" && user.role !== "admin" && (
+                <div className="absolute inset-0 z-40 flex items-center justify-center p-6 bg-slate-950/40 backdrop-blur-md rounded-3xl">
+                  <div className="bg-slate-900/95 border border-amber-500/30 rounded-3xl p-8 max-w-md text-center shadow-2xl relative overflow-hidden">
+                    <div className="absolute -top-10 -right-10 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl"></div>
+                    <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                      <Lock className="w-8 h-8 text-amber-500" />
+                    </div>
+                    
+                    <span className="text-[10px] font-mono font-black text-amber-500 uppercase tracking-widest bg-amber-500/10 px-3 py-1 rounded-full">
+                      👑 Premium Module Lock
+                    </span>
+                    
+                    <h3 className="text-xl font-black uppercase text-white mt-4 font-display">
+                      Unlock Home HIIT Cardio Circuit
+                    </h3>
+                    
+                    <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                      This premium workout circuit features 12 calorie-scorching movements, interactive video guides, speech-synthesized voice count-downs, real-time heart rate simulators, and automated cloud sync.
+                    </p>
+                    
+                    <button
+                      onClick={() => {
+                        const el = document.getElementById("pricing");
+                        if (el) {
+                          el.scrollIntoView({ behavior: "smooth" });
+                        } else {
+                          setView("home");
+                          setTimeout(() => {
+                            const el2 = document.getElementById("pricing");
+                            if (el2) el2.scrollIntoView({ behavior: "smooth" });
+                          }, 300);
+                        }
+                      }}
+                      className="w-full mt-6 px-6 py-3.5 bg-gradient-to-r from-amber-500 to-red-600 text-white hover:from-amber-600 hover:to-red-700 rounded-2xl text-xs font-black uppercase tracking-wider shadow-lg cursor-pointer transform transition hover:scale-[1.02]"
+                    >
+                      Unlock Premium Access Now
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Grid content */}
+              <div className={`grid md:grid-cols-2 gap-6 ${user.subscriptionStatus !== "premium" && user.role !== "admin" ? "blur-md select-none pointer-events-none opacity-35" : ""}`}>
+                {bellyFatCardioCircuit.exercises.map((exercise, idx) => {
+                  const isFav = favoriteExercises.includes(exercise.id);
+                  return (
+                    <div key={exercise.id} className={`border rounded-3xl p-5 flex flex-col justify-between gap-4 ${cardBg} hover:shadow-xl transition-all duration-300`}>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-start gap-4">
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-mono text-slate-500 block uppercase font-black">Movement {idx + 1}</span>
+                            <h3 className={`text-lg font-black uppercase font-display leading-tight ${textPrimary}`}>
+                              {exercise.name}
+                            </h3>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-mono text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-full uppercase font-black">
+                              {exercise.duration}
+                            </span>
+                            <button
+                              onClick={() => toggleFavoriteExercise(exercise.id)}
+                              className={`p-2 rounded-xl border transition ${
+                                isFav 
+                                  ? "border-red-500/30 bg-red-500/10 text-red-500" 
+                                  : "border-slate-200 dark:border-slate-800 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-900"
+                              }`}
+                            >
+                              <Heart className={`w-4 h-4 ${isFav ? "fill-current" : ""}`} />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Interactive Visual Media */}
+                        <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-900 h-44 flex items-center justify-center relative">
+                          <UnifiedExerciseMedia 
+                            exerciseName={exercise.name} 
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute top-2 left-2 px-2 py-1 bg-black/60 rounded-lg text-[9px] font-mono text-slate-300">
+                            🔥 {exercise.caloriesEst}
+                          </div>
+                        </div>
+
+                        {/* Instructions */}
+                        <div className="space-y-1.5 pt-2">
+                          <span className="text-[10px] font-mono text-slate-500 uppercase font-bold block">Steps</span>
+                          <ol className="text-xs space-y-1 text-slate-600 dark:text-slate-300 list-decimal pl-4 leading-relaxed">
+                            {exercise.instructions.map((step, sIdx) => (
+                              <li key={sIdx}>{step}</li>
+                            ))}
+                          </ol>
+                        </div>
+
+                        {/* Muscle groups badges */}
+                        <div className="flex flex-wrap gap-1.5 pt-2">
+                          {exercise.muscles.map((muscle, mIdx) => (
+                            <span key={mIdx} className="text-[9px] font-mono px-2 py-0.5 rounded bg-slate-200/60 dark:bg-slate-800 text-slate-500 uppercase">
+                              {muscle}
+                            </span>
+                          ))}
+                        </div>
+
+                        {/* Variations and modifications bento blocks */}
+                        <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-200 dark:border-slate-800 text-[11px] leading-relaxed">
+                          <div className="space-y-1">
+                            <span className="text-[9px] font-mono text-amber-500 font-bold block uppercase">Beginner Mod</span>
+                            <p className={textSecondary}>{exercise.beginnerMod}</p>
+                          </div>
+                          <div className="space-y-1">
+                            <span className="text-[9px] font-mono text-blue-500 font-bold block uppercase">Advanced Var</span>
+                            <p className={textSecondary}>{exercise.advancedVar}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Safety Alert block */}
+                      <div className="p-3 rounded-2xl bg-red-500/5 border border-red-500/10 text-[10px] text-red-500 leading-relaxed flex gap-2 items-start mt-2">
+                        <span className="text-xs shrink-0">🛡️</span>
+                        <div>
+                          <strong className="uppercase font-mono block">Safety Cue:</strong>
+                          {exercise.safetyTips.join(" ")}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         )}
 
